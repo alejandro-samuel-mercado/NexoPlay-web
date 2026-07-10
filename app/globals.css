@@ -1,0 +1,214 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+/* ─── Serivia Theme Variables ─────────────────────────────────────────────── */
+:root {
+  /* Default Dark */
+  --bg-main: #121215;
+  --bg-panel: #1C1C22;
+  --bg-hover: #26262D;
+  --bg-hover-strong: #32323D;
+  --text-main: #FFFFFF;
+  --text-muted: #8B8B9B;
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-strong: rgba(255, 255, 255, 0.1);
+  --border-focus: rgba(255, 255, 255, 0.3);
+  --glass-bg: rgba(28, 28, 34, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --btn-primary-bg: #FFFFFF;
+  --btn-primary-text: #000000;
+  --search-bg: #1C1C22;
+  --search-focus: #26262D;
+}
+
+[data-theme="light"] {
+  --bg-main: #F5F1FB;
+  --bg-panel: #FFFFFF;
+  --bg-hover: #EBE5F7;
+  --bg-hover-strong: #E0D7F4;
+  --text-main: #2D2342;
+  --text-muted: #7A7291;
+  --border-subtle: rgba(139, 92, 246, 0.12);
+  --border-strong: rgba(139, 92, 246, 0.25);
+  --border-focus: rgba(139, 92, 246, 0.4);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(139, 92, 246, 0.15);
+  --btn-primary-bg: #8B5CF6;
+  --btn-primary-text: #FFFFFF;
+  --search-bg: #FFFFFF;
+  --search-focus: #F5F1FB;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+@layer components {
+  /* ─── Glassmorphism Pills & Tags ───────────────────────────────────────── */
+  .glass-pill {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    border-radius: 9999px;
+    padding: 0.35rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  /* ─── Search Bar ───────────────────────────────────────────────────────── */
+  .search-bar-oval {
+    background: var(--search-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: 9999px;
+    color: var(--text-main);
+    transition: all 0.2s ease;
+  }
+
+  .search-bar-oval:focus-within {
+    background: var(--search-focus);
+    border-color: var(--border-focus);
+  }
+
+  .search-input {
+    background: transparent;
+    outline: none;
+    width: 100%;
+    color: var(--text-main);
+  }
+  .search-input::placeholder { color: var(--text-muted); font-weight: 400; }
+
+  /* ─── Filters ──────────────────────────────────────────────────────────── */
+  .filter-pill {
+    background: var(--bg-panel);
+    color: var(--text-muted);
+    border-radius: 9999px;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .filter-pill:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
+  }
+
+  .filter-pill.active {
+    background: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
+  }
+
+  /* ─── Scrollbar ────────────────────────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--bg-hover-strong);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-focus); }
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
+  .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* ─── Buttons ──────────────────────────────────────────────────────────── */
+  .btn-primary {
+    background: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
+    border-radius: 9999px;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+  }
+  .btn-primary:hover { opacity: 0.9; transform: scale(1.02); }
+
+  .btn-icon-rounded {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-main);
+    transition: all 0.2s;
+  }
+  .btn-icon-rounded:hover {
+    background: var(--border-strong);
+  }
+
+  /* ─── Skeleton Loader ────────────────────────────────────────────────────── */
+  .shimmer {
+    background: linear-gradient(90deg, var(--bg-panel) 25%, var(--bg-hover) 50%, var(--bg-panel) 75%);
+    background-size: 200% 100%;
+    animation: load 1.5s infinite;
+  }
+
+  /* Old Clay overrides for compatibility during transition */
+  .btn-clay {
+    background: white;
+    color: black;
+    border-radius: 9999px;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+  }
+  .btn-clay:hover { opacity: 0.9; transform: scale(1.02); }
+
+  .clay-input {
+    background: var(--search-bg);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-main);
+    border-radius: 1rem;
+    padding: 0.75rem 1.25rem;
+    width: 100%;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+  .clay-input:focus {
+    background: var(--search-focus);
+    border-color: var(--border-focus);
+  }
+  .clay-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+
+  .clay-card, .clay-card-dark {
+    background-color: var(--bg-panel);
+    border-radius: 1rem;
+    border: 1px solid var(--border-subtle);
+    box-shadow: none;
+  }
+}
+
+@keyframes load {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
