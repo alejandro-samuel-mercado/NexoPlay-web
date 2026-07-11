@@ -69,6 +69,19 @@ export const API = {
     delete: async (id: string) =>
       fetchAPI(`/api/profiles/${id}`, { method: 'DELETE' }),
   },
+
+  ADS: {
+    active: async (countryCode?: string) => 
+      fetchAPI(`/api/ads/active${countryCode ? `?country=${countryCode}` : ''}`),
+    impression: async (data: { campaignId: string; userId?: string; deviceType?: string }) =>
+      fetchAPI('/api/ads/impression', { method: 'POST', body: JSON.stringify(data) }),
+    click: async (data: { campaignId: string; userId?: string }) =>
+      fetchAPI('/api/ads/click', { method: 'POST', body: JSON.stringify(data) }),
+    admin: {
+      stats: async () => fetchAPI('/api/ads/admin/stats'),
+      create: async (data: any) => fetchAPI('/api/ads/admin/campaigns', { method: 'POST', body: JSON.stringify(data) }),
+    },
+  },
 };
 
 // Fetch wrapper with auth
