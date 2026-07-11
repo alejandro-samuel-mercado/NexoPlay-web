@@ -176,9 +176,32 @@ export default function ResellerDashboard() {
               <div className="flex items-center gap-2">
                 <Star size={18} style={{ color: 'var(--clay-orange)' }} />
                 <h2 className="font-black text-white">Pack de la Semana</h2>
-                <span className="text-xs px-2 py-0.5 rounded-lg font-bold" style={{ background: 'var(--clay-orange)', color: 'var(--clay-ink)' }}>{weeklyPack.title}</span>
+                <span className="text-xs px-2 py-0.5 rounded-lg font-bold" style={{ background: 'var(--clay-orange)', color: 'var(--clay-ink)' }}>Novedades</span>
               </div>
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{weeklyPack.contents.length} títulos incluidos</p>
+              <div className="flex items-center gap-3">
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{weeklyPack.contents.length} títulos incluidos</p>
+                <button 
+                  onClick={async () => {
+                    try {
+                      setDownloadingId('pack');
+                      const res = await API.RESELLER.claimWeeklyPack();
+                      if (res.success) {
+                        alert(res.message);
+                        loadData();
+                      }
+                    } catch (e: any) {
+                      alert(e.message || 'Error al descargar pack');
+                    } finally {
+                      setDownloadingId(null);
+                    }
+                  }}
+                  disabled={!!downloadingId || remaining < 10}
+                  className="px-3 py-1.5 rounded-lg text-xs font-black transition-transform hover:scale-105 disabled:opacity-50"
+                  style={{ background: 'var(--clay-orange)', color: 'var(--clay-ink)', border: '2px solid var(--clay-ink)', boxShadow: '2px 2px 0 var(--clay-ink)' }}
+                >
+                  {downloadingId === 'pack' ? 'Procesando...' : 'Descargar Pack (10 reqs)'}
+                </button>
+              </div>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2">
               {weeklyPack.contents.map(item => (

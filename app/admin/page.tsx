@@ -72,6 +72,7 @@ export default function AdminDashboard() {
           { href: '/admin/planes', icon: <Crown size={20} />, label: 'Planes de Suscripción', color: 'var(--clay-purple)', desc: 'Crear y editar planes' },
           { href: '/admin/ads', icon: <TrendingUp size={20} />, label: 'Publicidad', color: 'var(--clay-teal)', desc: 'Gestión de anuncios' },
           { href: '/admin/api-keys', icon: <Code2 size={20} />, label: 'API Pública', color: 'var(--clay-orange)', desc: 'Tokens para desarrolladores' },
+          { href: '/admin/tenant', icon: <Settings size={20} />, label: 'Marca Blanca', color: 'var(--clay-primary)', desc: 'Personalizar plataforma' },
           { href: '/admin/configuracion', icon: <Settings size={20} />, label: 'Configuración', color: 'var(--clay-mint)', desc: 'Ajustes del sistema' },
         ].map((item) => (
           <Link key={item.href} href={item.href}

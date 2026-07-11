@@ -7,6 +7,7 @@ import { ChevronDown, ChevronUp, Crown, Download, Heart, Key, MessageCircle, Pla
 import Link from 'next/link';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import RewardedAd from '@/components/ads/RewardedAd';
 
 const TYPE_LABELS: Record<string, string> = {
   MOVIE: 'Movie', SERIES: 'Series', ANIME: 'Anime',
@@ -284,6 +285,9 @@ export default function ContentDetailPage() {
                  )}
                </div>
              )}
+             
+             {/* Rewarded Ad Component */}
+             <RewardedAd />
 
              {/* Synopsis */}
              <section>

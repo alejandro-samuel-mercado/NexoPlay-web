@@ -88,6 +88,16 @@ export const API = {
     createKey: async (name: string) => fetchAPI('/api/public/keys', { method: 'POST', body: JSON.stringify({ name }) }),
     revokeKey: async (id: string) => fetchAPI(`/api/public/keys/${id}`, { method: 'DELETE' }),
   },
+
+  TENANT: {
+    getSettings: async () => fetchAPI('/api/tenant/settings'),
+    updateSettings: async (data: Partial<{ appName: string; primaryColor: string; logoUrl: string; subdomain: string }>) => 
+      fetchAPI('/api/tenant/settings', { method: 'PUT', body: JSON.stringify(data) })
+  },
+
+  RESELLER: {
+    claimWeeklyPack: async () => fetchAPI('/api/reseller/pack/weekly', { method: 'POST' })
+  }
 };
 
 // Fetch wrapper with auth
