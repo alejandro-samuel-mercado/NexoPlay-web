@@ -40,6 +40,19 @@ export const API = {
     CONFIG: `${API_BASE}/api/admin/config`,
   },
   MYLIST: `${API_BASE}/api/mylist`,
+  TOKENS: {
+    WALLET: `${API_BASE}/api/tokens/wallet`,
+    HISTORY: `${API_BASE}/api/tokens/history`,
+    PACKAGES: `${API_BASE}/api/tokens/packages`,
+    GIFT_SUBSCRIPTION: `${API_BASE}/api/tokens/gift-subscription`,
+    REWARD_WATCH: `${API_BASE}/api/tokens/reward/watch`,
+    WEEKLY_PACK: `${API_BASE}/api/tokens/weekly-pack`,
+    ADMIN_GRANT: `${API_BASE}/api/tokens/admin/grant`,
+    ADMIN_DEDUCT: `${API_BASE}/api/tokens/admin/deduct`,
+    ADMIN_PACKAGES: `${API_BASE}/api/tokens/admin/packages`,
+    ADMIN_PACKAGE: (id: string) => `${API_BASE}/api/tokens/admin/packages/${id}`,
+    ADMIN_WEEKLY_PACK: `${API_BASE}/api/tokens/admin/weekly-pack`,
+  },
 };
 
 // Fetch wrapper with auth

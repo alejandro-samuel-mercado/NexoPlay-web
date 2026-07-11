@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, Film, Key, Crown, Settings, ArrowLeft, Bell } from 'lucide-react';
+import { LayoutDashboard, Users, Film, Key, Crown, Settings, ArrowLeft, Bell, Coins } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const NAV_ITEMS = [
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: '/admin/contenido', icon: <Film size={18} />, label: 'Contenido' },
   { href: '/admin/codigos', icon: <Key size={18} />, label: 'Códigos' },
   { href: '/admin/planes', icon: <Crown size={18} />, label: 'Planes' },
+  { href: '/admin/tokens', icon: <Coins size={18} />, label: 'Tokens' },
   { href: '/admin/notificaciones', icon: <Bell size={18} />, label: 'Avisos Push' },
   { href: '/admin/configuracion', icon: <Settings size={18} />, label: 'Configuración' },
 ];
