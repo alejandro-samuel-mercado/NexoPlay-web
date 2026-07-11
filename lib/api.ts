@@ -82,6 +82,12 @@ export const API = {
       create: async (data: any) => fetchAPI('/api/ads/admin/campaigns', { method: 'POST', body: JSON.stringify(data) }),
     },
   },
+
+  PUBLIC_API: {
+    listKeys: async () => fetchAPI('/api/public/keys'),
+    createKey: async (name: string) => fetchAPI('/api/public/keys', { method: 'POST', body: JSON.stringify({ name }) }),
+    revokeKey: async (id: string) => fetchAPI(`/api/public/keys/${id}`, { method: 'DELETE' }),
+  },
 };
 
 // Fetch wrapper with auth
