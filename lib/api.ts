@@ -53,6 +53,22 @@ export const API = {
     ADMIN_PACKAGE: (id: string) => `${API_BASE}/api/tokens/admin/packages/${id}`,
     ADMIN_WEEKLY_PACK: `${API_BASE}/api/tokens/admin/weekly-pack`,
   },
+
+  PROFILES: {
+    list: async () => fetchAPI('/api/profiles'),
+    create: async (data: { name: string; avatarUrl?: string; isKids?: boolean; pinCode?: string }) =>
+      fetchAPI('/api/profiles', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    update: async (id: string, data: Partial<{ name: string; avatarUrl: string; isKids: boolean; pinCode: string }>) =>
+      fetchAPI(`/api/profiles/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    delete: async (id: string) =>
+      fetchAPI(`/api/profiles/${id}`, { method: 'DELETE' }),
+  },
 };
 
 // Fetch wrapper with auth

@@ -6,8 +6,15 @@ import { API } from '@/lib/api';
 import { ChevronLeft, ChevronRight, Crown, Heart, Play } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { useProfile } from '@/context/ProfileContext';
+import { useRouter } from 'next/navigation';
 
 export default function HomePage() {
+  const { isLoggedIn, isLoading: authLoading } = useAuth();
+  const { activeProfile, profiles, isLoading: profileLoading } = useProfile();
+  const router = useRouter();
+  
   const [featured, setFeatured] = useState<any[]>([]);
   const [trending, setTrending] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,6 +22,12 @@ export default function HomePage() {
   const [activeFilter, setActiveFilter] = useState('Trending');
 
   const [filters, setFilters] = useState<string[]>(['Trending']);
+
+  useEffect(() => {
+    if (!authLoading && !profileLoading && isLoggedIn && profiles.length > 0 && !activeProfile) {
+      router.push('/profiles');
+    }
+  }, [isLoggedIn, authLoading, profileLoading, profiles, activeProfile, router]);
 
   useEffect(() => {
     const MOCK_HERO = [

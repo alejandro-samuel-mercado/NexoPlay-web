@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
+import { ProfileProvider } from '@/context/ProfileContext';
 
 export const metadata: Metadata = {
   title: { default: 'NexoPlay — Descargá tu contenido favorito', template: '%s | NexoPlay' },
@@ -22,7 +23,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="antialiased">
         <AuthProvider>
-          {children}
+          <ProfileProvider>
+            {children}
+          </ProfileProvider>
         </AuthProvider>
       </body>
     </html>
