@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useProfile } from '@/context/ProfileContext';
 import { useRouter } from 'next/navigation';
 import AdBanner from '@/components/ads/AdBanner';
+import SponsoredListAd from '@/components/ads/SponsoredListAd';
 
 export default function HomePage() {
   const { isLoggedIn, isLoading: authLoading } = useAuth();
@@ -140,6 +141,9 @@ export default function HomePage() {
       
       {/* ─── AD BANNER ─────────────────────────────────────────────────────── */}
       <AdBanner />
+
+      {/* ─── SPONSORED LIST AD ─────────────────────────────────────────────── */}
+      <SponsoredListAd />
 
       {/* ─── INFO BANNER CTA ─────────────────────────────────────────────────── */}
       <div className="bg-gradient-to-r from-[var(--clay-primary)]/20 to-[var(--clay-teal)]/20 border border-[var(--clay-primary)]/30 rounded-2xl p-4 md:p-6 mb-8 flex flex-col md:flex-row items-center justify-between gap-4 backdrop-blur-sm">

@@ -55,48 +55,51 @@ export const API = {
   },
 
   PROFILES: {
-    list: async () => fetchAPI('/api/profiles'),
+    list: async () => apiFetch('/api/profiles'),
     create: async (data: { name: string; avatarUrl?: string; isKids?: boolean; pinCode?: string }) =>
-      fetchAPI('/api/profiles', {
+      apiFetch('/api/profiles', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
     update: async (id: string, data: Partial<{ name: string; avatarUrl: string; isKids: boolean; pinCode: string }>) =>
-      fetchAPI(`/api/profiles/${id}`, {
+      apiFetch(`/api/profiles/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
     delete: async (id: string) =>
-      fetchAPI(`/api/profiles/${id}`, { method: 'DELETE' }),
+      apiFetch(`/api/profiles/${id}`, { method: 'DELETE' }),
   },
 
   ADS: {
     active: async (countryCode?: string) => 
-      fetchAPI(`/api/ads/active${countryCode ? `?country=${countryCode}` : ''}`),
+      apiFetch(`/api/ads/active${countryCode ? `?country=${countryCode}` : ''}`),
     impression: async (data: { campaignId: string; userId?: string; deviceType?: string }) =>
-      fetchAPI('/api/ads/impression', { method: 'POST', body: JSON.stringify(data) }),
+      apiFetch('/api/ads/impression', { method: 'POST', body: JSON.stringify(data) }),
     click: async (data: { campaignId: string; userId?: string }) =>
-      fetchAPI('/api/ads/click', { method: 'POST', body: JSON.stringify(data) }),
+      apiFetch('/api/ads/click', { method: 'POST', body: JSON.stringify(data) }),
+    reward: async (data: { campaignId: string }) =>
+      apiFetch('/api/ads/reward', { method: 'POST', body: JSON.stringify(data) }),
     admin: {
-      stats: async () => fetchAPI('/api/ads/admin/stats'),
-      create: async (data: any) => fetchAPI('/api/ads/admin/campaigns', { method: 'POST', body: JSON.stringify(data) }),
+      stats: async () => apiFetch('/api/ads/admin/stats'),
+      create: async (data: any) => apiFetch('/api/ads/admin/campaigns', { method: 'POST', body: JSON.stringify(data) }),
     },
   },
 
   PUBLIC_API: {
-    listKeys: async () => fetchAPI('/api/public/keys'),
-    createKey: async (name: string) => fetchAPI('/api/public/keys', { method: 'POST', body: JSON.stringify({ name }) }),
-    revokeKey: async (id: string) => fetchAPI(`/api/public/keys/${id}`, { method: 'DELETE' }),
+    listKeys: async () => apiFetch('/api/public/keys'),
+    createKey: async (name: string) => apiFetch('/api/public/keys', { method: 'POST', body: JSON.stringify({ name }) }),
+    revokeKey: async (id: string) => apiFetch(`/api/public/keys/${id}`, { method: 'DELETE' }),
   },
 
   TENANT: {
-    getSettings: async () => fetchAPI('/api/tenant/settings'),
+    getSettings: async () => apiFetch('/api/tenant/settings'),
     updateSettings: async (data: Partial<{ appName: string; primaryColor: string; logoUrl: string; subdomain: string }>) => 
-      fetchAPI('/api/tenant/settings', { method: 'PUT', body: JSON.stringify(data) })
+      apiFetch('/api/tenant/settings', { method: 'PUT', body: JSON.stringify(data) }),
+    getDashboard: async () => apiFetch('/api/tenant/dashboard'),
   },
 
   RESELLER: {
-    claimWeeklyPack: async () => fetchAPI('/api/reseller/pack/weekly', { method: 'POST' })
+    claimWeeklyPack: async () => apiFetch('/api/reseller/pack/weekly', { method: 'POST' })
   }
 };
 

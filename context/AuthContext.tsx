@@ -8,7 +8,7 @@ interface NexoUser {
   email: string;
   name: string | null;
   username: string | null;
-  role: 'GUEST' | 'SUBSCRIBER' | 'ADMIN';
+  role: 'GUEST' | 'SUBSCRIBER' | 'RESELLER' | 'FRANCHISEE' | 'ADMIN';
   avatarUrl: string | null;
   subscription: {
     status: string;
@@ -37,6 +37,8 @@ interface AuthContextType {
   isLoggedIn: boolean;
   isSubscriber: boolean;
   isAdmin: boolean;
+  isReseller: boolean;
+  isFranchisee: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (data: { email: string; password: string; name?: string }) => Promise<void>;
   logout: () => Promise<void>;
@@ -129,6 +131,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         new Date(user.subscription.expiresAt) > new Date()
       ),
       isAdmin: user?.role === 'ADMIN',
+      isReseller: user?.role === 'RESELLER' || user?.role === 'ADMIN',
+      isFranchisee: user?.role === 'FRANCHISEE' || user?.role === 'ADMIN',
       login,
       register,
       logout,

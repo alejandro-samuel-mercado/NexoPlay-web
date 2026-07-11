@@ -42,7 +42,7 @@ export default function ResellerDashboard() {
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [todayCount, setTodayCount] = useState(0);
-  const DAILY_LIMIT = user?.subscription?.plan?.dailyLimit ?? 30;
+  const DAILY_LIMIT = user?.subscription?.plan?.dailyDownloadLimit ?? 30;
 
   const loadData = useCallback(async () => {
     try {
@@ -64,12 +64,12 @@ export default function ResellerDashboard() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  const handleDownload = async (contentId: string, contentTitle: string) => {
+  const handleDownload = async (contentId: string, contentTitle: string, quality: string = '1080p') => {
     setDownloadingId(contentId);
     try {
       const res = await apiFetch(API.DOWNLOADS.DOWNLOAD(contentId), {
         method: 'POST',
-        body: JSON.stringify({ quality: '1080p' }),
+        body: JSON.stringify({ quality }),
       });
       if (res?.data?.downloadUrl) {
         window.open(res.data.downloadUrl, '_blank');
@@ -293,6 +293,17 @@ export default function ResellerDashboard() {
                         ? <div className="w-3 h-3 border-2 border-t-transparent rounded-full animate-spin" />
                         : <><Download size={12} /> 1080p</>}
                     </button>
+                    
+                    <button
+                      onClick={() => handleDownload(item.id, item.title || '', '4K HDR')}
+                      disabled={!!downloadingId || remaining === 0}
+                      className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-black transition-all disabled:opacity-50"
+                      style={{ background: 'var(--clay-orange)', color: 'var(--clay-ink)', border: '2px solid var(--clay-ink)', boxShadow: '2px 2px 0 var(--clay-ink)' }}>
+                      {downloadingId === item.id
+                        ? <div className="w-3 h-3 border-2 border-t-transparent rounded-full animate-spin" />
+                        : <><Download size={12} /> 4K HDR</>}
+                    </button>
+
                     {remaining === 0 && (
                       <p className="text-[10px] text-center" style={{ color: '#ff5050' }}>Límite diario alcanzado</p>
                     )}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Users, Download, Film, Key, TrendingUp, Crown, Settings, Code2 } from 'lucide-react';
+import { Users, Download, Film, Key, TrendingUp, Crown, Settings, Code2, Activity } from 'lucide-react';
 import { API, apiFetch } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -26,19 +26,22 @@ function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label:
 }
 
 export default function AdminDashboard() {
-  const { isAdmin, isLoading } = useAuth();
+  const { isAdmin, isFranchisee, isLoading } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isLoading && !isAdmin) { router.push('/'); return; }
-    if (isAdmin) {
+    if (!isLoading && !isAdmin && !isFranchisee) {
+      router.push('/');
+      return;
+    }
+    if (isAdmin || isFranchisee) {
       apiFetch(API.ADMIN.DASHBOARD).then(res => {
         if (res.success) setStats(res.data);
       }).catch(console.error).finally(() => setLoading(false));
     }
-  }, [isAdmin, isLoading]);
+  }, [isAdmin, isFranchisee, isLoading]);
 
   if (isLoading || loading) return (
     <div className="p-8">
@@ -64,11 +67,10 @@ export default function AdminDashboard() {
       </div>
 
       {/* Quick Nav */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        {[
-          { href: '/admin/usuarios', icon: <Users size={20} />, label: 'Gestionar Usuarios', color: 'var(--clay-teal)', desc: 'Ver y administrar cuentas' },
-          { href: '/admin/contenido', icon: <Film size={20} />, label: 'Gestionar Contenido', color: 'var(--clay-orange)', desc: 'Activar/desactivar visibilidad' },
-          { href: '/admin/codigos', icon: <Key size={20} />, label: 'Códigos de Descarga', color: 'var(--clay-yellow)', desc: 'Generar y gestionar códigos' },
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {isAdmin && [
+          { href: '/admin/usuarios', icon: <Users size={20} />, label: 'Usuarios', color: 'var(--clay-primary)', desc: 'Gestionar clientes' },
+          { href: '/admin/contenido', icon: <Film size={20} />, label: 'Contenido', color: 'var(--clay-yellow)', desc: 'Películas y Series' },
           { href: '/admin/planes', icon: <Crown size={20} />, label: 'Planes de Suscripción', color: 'var(--clay-purple)', desc: 'Crear y editar planes' },
           { href: '/admin/ads', icon: <TrendingUp size={20} />, label: 'Publicidad', color: 'var(--clay-teal)', desc: 'Gestión de anuncios' },
           { href: '/admin/api-keys', icon: <Code2 size={20} />, label: 'API Pública', color: 'var(--clay-orange)', desc: 'Tokens para desarrolladores' },
@@ -76,18 +78,30 @@ export default function AdminDashboard() {
           { href: '/admin/configuracion', icon: <Settings size={20} />, label: 'Configuración', color: 'var(--clay-mint)', desc: 'Ajustes del sistema' },
         ].map((item) => (
           <Link key={item.href} href={item.href}
-            className="clay-card-dark p-5 rounded-[18px] border-[2px] border-[#3A3A5C] hover:border-current transition-all group"
-            style={{ '--hover-color': item.color } as any}>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-[10px] border-[2px] border-[#2C2C2C] flex items-center justify-center"
-                style={{ background: item.color, color: '#2C2C2C', boxShadow: '3px 3px 0px #2C2C2C' }}>
-                {item.icon}
-              </div>
-              <h3 className="font-black text-white group-hover:text-[var(--clay-teal)] transition-colors text-sm">
-                {item.label}
-              </h3>
+            className="clay-card-dark p-6 rounded-2xl border border-[var(--border-subtle)] hover:border-[var(--clay-teal)] transition-colors group flex flex-col items-start gap-4">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110" style={{ backgroundColor: `${item.color}20`, color: item.color }}>
+              {item.icon}
             </div>
-            <p className="text-xs text-[#6B7280]">{item.desc}</p>
+            <div>
+              <h3 className="text-lg font-bold text-white mb-1 group-hover:text-[var(--clay-teal)] transition-colors">{item.label}</h3>
+              <p className="text-sm text-[var(--text-muted)]">{item.desc}</p>
+            </div>
+          </Link>
+        ))}
+
+        {isFranchisee && !isAdmin && [
+          { href: '/admin/tenant/dashboard', icon: <Activity size={20} />, label: 'Mi Dashboard', color: 'var(--clay-mint)', desc: 'Estadísticas de mi tienda' },
+          { href: '/admin/tenant', icon: <Settings size={20} />, label: 'Configuración', color: 'var(--clay-primary)', desc: 'Personalizar Marca Blanca' },
+        ].map((item) => (
+          <Link key={item.href} href={item.href}
+            className="clay-card-dark p-6 rounded-2xl border border-[var(--border-subtle)] hover:border-[var(--clay-teal)] transition-colors group flex flex-col items-start gap-4">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110" style={{ backgroundColor: `${item.color}20`, color: item.color }}>
+              {item.icon}
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white mb-1 group-hover:text-[var(--clay-teal)] transition-colors">{item.label}</h3>
+              <p className="text-sm text-[var(--text-muted)]">{item.desc}</p>
+            </div>
           </Link>
         ))}
       </div>
