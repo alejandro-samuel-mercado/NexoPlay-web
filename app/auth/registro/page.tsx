@@ -129,6 +129,7 @@ export default function RegistroPage() {
               Iniciar sesión
             </Link>
           </div>
+          </div>
         </div>
       </div>
     </div>

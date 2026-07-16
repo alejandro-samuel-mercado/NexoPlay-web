@@ -106,6 +106,7 @@ export default function LoginPage() {
           <div className="mt-8 text-center text-sm text-[var(--text-muted)] relative z-10">
             ¿No tienes cuenta? <Link href="/auth/registro" className="text-[var(--color-primary)] font-bold hover:underline">Regístrate</Link>
           </div>
+          </div>
         </div>
       </div>
     </div>
