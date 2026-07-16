@@ -1,12 +1,12 @@
 'use client';
 
-import { Search, Bell, ChevronDown, Sun, Moon } from 'lucide-react';
-import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
-import { useState, useEffect, useRef } from 'react';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { CONTENT_TYPES_LIST, getContentTypeLabel, getContentTypeIcon } from '@/lib/content-types';
 import CustomSelect from '@/components/ui/CustomSelect';
+import { useAuth } from '@/context/AuthContext';
+import { CONTENT_TYPES_LIST, getContentTypeIcon, getContentTypeLabel } from '@/lib/content-types';
+import { ChevronDown, Moon, Search, Sun } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
 export default function PublicTopBar() {
   const { user } = useAuth();
@@ -25,16 +25,15 @@ export default function PublicTopBar() {
 
   // Scroll detection for dynamic background
   useEffect(() => {
-    const handleScroll = (e: Event) => {
-      const target = e.target as HTMLElement;
-      setIsScrolled(target.scrollTop > 10);
+    const scrollContainer = document.querySelector('.serivia-main-content') as HTMLElement;
+    if (!scrollContainer) return;
+
+    const handleScroll = () => {
+      setIsScrolled(scrollContainer.scrollTop > 10);
     };
     
-    const scrollContainer = document.querySelector('.serivia-main-content');
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
-      return () => scrollContainer.removeEventListener('scroll', handleScroll);
-    }
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Load theme on mount
@@ -132,7 +131,16 @@ export default function PublicTopBar() {
   };
 
   return (
-    <header className={`topbar-wrapper transition-colors duration-300 ${isScrolled ? 'bg-[var(--bg-main)]/95 backdrop-blur-2xl border-b border-[var(--border-subtle)] shadow-md' : 'bg-transparent border-b border-transparent'}`}>
+    <header 
+      className="topbar-wrapper transition-all duration-300"
+      style={{
+        background: isScrolled ? 'rgba(11, 15, 25, 0.6)' : 'transparent',
+        backdropFilter: isScrolled ? 'blur(20px)' : 'none',
+        WebkitBackdropFilter: isScrolled ? 'blur(20px)' : 'none',
+        borderBottom: isScrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
+        boxShadow: isScrolled ? '0 2px 12px rgba(0,0,0,0.2)' : 'none',
+      }}
+    >
       {/* Left side: Category Dropdown */}
       {pathname !== '/explorar' && (
         <div className="flex items-center gap-6 shrink-0 relative z-50">
@@ -173,7 +181,11 @@ export default function PublicTopBar() {
                 onKeyDown={(e) => {
                     if (e.key === 'Enter') handleSearchSubmit();
                 }}
-                className="w-full bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-full py-3.5 pl-12 pr-6 text-sm text-[var(--text-main)] placeholder-gray-500 focus:outline-none focus:border-[var(--border-strong)] transition-all shadow-inner"
+                className="w-full bg-[var(--bg-panel)] rounded-full py-3.5 pl-12 pr-6 text-sm placeholder-gray-500 focus:outline-none transition-all shadow-inner"
+                style={{
+                    border: isScrolled ? '1px solid rgba(255,255,255,0.4)' : '1px solid var(--border-subtle)',
+                    color: isScrolled ? '#ffffff' : 'var(--text-main)',
+                }}
             />
         </div>
       </div>

@@ -334,7 +334,7 @@ export default function FilmDetailPage() {
                         {/* Action Buttons */}
                         <div className="film-action-buttons" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                             {canPlay ? (
-                                <Link href={`/contenido/${id}/watch`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 48px', background: 'linear-gradient(135deg, #00E5FF, #0099AA)', color: 'black', fontWeight: 900, borderRadius: 12, textDecoration: 'none', fontSize: 15, boxShadow: '0 10px 30px rgba(0,229,255,0.4)', transition: 'all 0.3s' }}>
+                                <Link href={`/film/${id}/watch`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 48px', background: 'linear-gradient(135deg, #00E5FF, #0099AA)', color: 'black', fontWeight: 900, borderRadius: 12, textDecoration: 'none', fontSize: 15, boxShadow: '0 10px 30px rgba(0,229,255,0.4)', transition: 'all 0.3s' }}>
                                     <Play size={22} fill="black" /> REPRODUCIR
                                 </Link>
                             ) : (

@@ -115,7 +115,7 @@ export default function PublicSidebar() {
             const remainingMins = history.duration ? Math.round((history.duration - history.progress) / 60) : 0;
 
             return (
-              <Link href={`/contenido/${c.slug}`} key={history.id} className="continue-card">
+              <Link href={`/film/${c.slug}`} key={history.id} className="continue-card">
                 {img && <img src={img} alt={title} className="continue-bg" />}
                 <div className="continue-overlay" />
                 <div className="continue-content">

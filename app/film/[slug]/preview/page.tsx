@@ -33,7 +33,7 @@ export default function PreviewPlayerPage() {
       if (res.success) {
         setContent(res.data);
       } else {
-        router.push(`/contenido/${slug}`);
+        router.push(`/film/${slug}`);
       }
     }).finally(() => setLoading(false));
   }, [slug]);
@@ -68,7 +68,7 @@ export default function PreviewPlayerPage() {
       <div className="flex-1 bg-[var(--bg-main)] text-white relative flex items-center justify-center min-h-[80vh]">
         {/* Top Bar */}
         <div className="absolute top-0 left-0 right-0 p-4 lg:p-8 z-50 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent">
-          <button onClick={() => router.push(`/contenido/${slug}`)} 
+          <button onClick={() => router.push(`/film/${slug}`)} 
             className="flex items-center gap-2 text-white/80 hover:text-white transition-colors">
             <ArrowLeft size={24} />
             <span className="font-semibold drop-shadow-md">Volver</span>
@@ -121,13 +121,13 @@ export default function PreviewPlayerPage() {
                       <MessageCircle size={18} fill="currentColor" /> Comprar Código por ${content.price}
                     </button>
                   ) : null}
-                  <Link href={`/contenido/${slug}?action=code`} className="btn-clay btn-clay-yellow w-full flex items-center justify-center gap-2">
+                  <Link href={`/film/${slug}?action=code`} className="btn-clay btn-clay-yellow w-full flex items-center justify-center gap-2">
                     <Key size={18} /> Tengo un código
                   </Link>
                   <Link href="/auth/login" className="btn-clay btn-clay-teal w-full flex items-center justify-center gap-2">
                     Iniciar sesión
                   </Link>
-                  <Link href={`/contenido/${slug}`} className="btn-clay btn-clay-dark w-full">
+                  <Link href={`/film/${slug}`} className="btn-clay btn-clay-dark w-full">
                     Volver al detalle
                   </Link>
                 </div>

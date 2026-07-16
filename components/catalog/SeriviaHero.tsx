@@ -192,7 +192,7 @@ export default function SeriviaHero({ content, contentList }: { content?: any, c
                                  ) : null}
 
                                 <div className="flex items-center gap-4">
-                                    <Link href={`/contenido/${item.slug}`} className="serivia-btn-play bg-white text-black hover:bg-gray-200" onClick={(e) => diff !== 0 && e.preventDefault()}>
+                                    <Link href={`/film/${item.slug}`} className="serivia-btn-play bg-white text-black hover:bg-gray-200" onClick={(e) => diff !== 0 && e.preventDefault()}>
                                         <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center">
                                             <Play size={16} className="text-white fill-white ml-0.5" />
                                         </div>

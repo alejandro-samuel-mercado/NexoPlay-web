@@ -14,7 +14,7 @@ interface ContentCardProps {
 
 export default function ContentCard({ item }: ContentCardProps) {
   return (
-    <Link href={`/contenido/${item.slug}`} className="block group cursor-pointer">
+    <Link href={`/film/${item.slug}`} className="block group cursor-pointer">
       <div className="relative aspect-[2/3] w-full rounded-[20px] overflow-hidden mb-3 bg-[var(--bg-panel)]">
         {item.posterUrl ? (
           <img 

@@ -224,13 +224,13 @@ export default function WatchPage() {
     const handleNextEpisode = () => {
         if (currentEpisodeIndex < 0 || !hasNextEpisode) return;
         const next = allEpisodes[currentEpisodeIndex + 1];
-        router.push(`/contenido/${id}/watch?episodeId=${next.id}`);
+        router.push(`/film/${id}/watch?episodeId=${next.id}`);
     };
 
     const handlePrevEpisode = () => {
         if (currentEpisodeIndex <= 0 || !hasPrevEpisode) return;
         const prev = allEpisodes[currentEpisodeIndex - 1];
-        router.push(`/contenido/${id}/watch?episodeId=${prev.id}`);
+        router.push(`/film/${id}/watch?episodeId=${prev.id}`);
     };
 
     if (loading) {

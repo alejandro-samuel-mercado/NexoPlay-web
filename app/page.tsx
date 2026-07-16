@@ -115,7 +115,7 @@ export default function HomePage() {
                                 : 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=600';
 
                             return (
-                                <a href={`/contenido/${item.slug}`} key={item.id || idx} className="block group flex-shrink-0 w-[160px]" style={{ textDecoration: 'none' }}>
+                                <a href={`/film/${item.slug}`} key={item.id || idx} className="block group flex-shrink-0 w-[160px]" style={{ textDecoration: 'none' }}>
                                     <div className="serivia-poster overflow-hidden rounded-[16px] mb-3 shadow-[0_8px_20px_rgba(0,0,0,0.4)]">
                                         <img 
                                             src={resolvedImage} 

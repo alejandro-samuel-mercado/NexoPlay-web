@@ -116,7 +116,7 @@ export default function BibliotecaPage() {
                   )}
                   
                   <div>
-                    <Link href={`/contenido/${record.slug}`} className="text-lg font-bold text-white hover:text-[var(--clay-teal)] transition-colors line-clamp-1">
+                    <Link href={`/film/${record.slug}`} className="text-lg font-bold text-white hover:text-[var(--clay-teal)] transition-colors line-clamp-1">
                       {record.contentTitle || record.fileName || 'Contenido Desconocido'}
                     </Link>
                     <div className="flex flex-wrap items-center gap-3 mt-2">
@@ -149,7 +149,7 @@ export default function BibliotecaPage() {
                     </div>
                   )}
                   {activeTab === 'compras' && (
-                    <Link href={`/contenido/${record.slug || record.content?.slug}`} className="text-[var(--clay-teal)] font-bold text-xs mt-2 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block">
+                    <Link href={`/film/${record.slug || record.content?.slug}`} className="text-[var(--clay-teal)] font-bold text-xs mt-2 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block">
                       Ver ahora →
                     </Link>
                   )}
