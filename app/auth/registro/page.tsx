@@ -1,4 +1,5 @@
 'use client';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -45,75 +46,92 @@ export default function RegistroPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 md:p-8"
-      style={{
-        background: 'radial-gradient(circle at top right, rgba(139,92,246,0.15), transparent 40%), var(--bg-main)'
-      }}>
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[var(--bg-main)]">
+      {/* Cinematic Glassmorphism Background Shapes */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full opacity-20 blur-[100px]" style={{ background: 'var(--color-primary)' }} />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40vw] h-[40vw] rounded-full opacity-10 blur-[120px]" style={{ background: 'var(--color-primary)' }} />
+      </div>
 
-      <div className="w-full max-w-md">
-        {/* Logo / Header */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center justify-center w-14 h-14 rounded-[16px] mb-6 border-[2px]"
-            style={{ background: 'var(--clay-primary)', borderColor: 'var(--clay-primary)', boxShadow: '0 8px 16px rgba(139,92,246,0.3)' }}>
-            <span className="text-white font-black text-2xl drop-shadow-md">N</span>
+      <div className="relative z-10 w-full max-w-[420px]">
+        {/* Logo */}
+        <div className="text-center mb-10 flex flex-col items-center justify-center">
+          <Link href="/" className="inline-flex items-center gap-3 decoration-transparent">
+            <div className="flex flex-col gap-0.5 items-center">
+              <div className="w-4 h-6 rounded-sm bg-[var(--color-primary)] flex flex-col items-center justify-evenly py-0.5 shadow-[0_0_15px_rgba(255,179,0,0.4)]">
+                <div className="w-1.5 h-1.5 rounded-full bg-black/60"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-black/60"></div>
+              </div>
+              <div className="w-4 h-6 rounded-sm bg-[var(--color-primary)] flex flex-col items-center justify-evenly py-0.5 shadow-[0_0_15px_rgba(255,179,0,0.4)]">
+                <div className="w-1.5 h-1.5 rounded-full bg-black/60"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-black/60"></div>
+              </div>
+            </div>
+            <span className="font-black text-3xl tracking-tight text-[var(--text-main)] lowercase">
+              serivia
+            </span>
           </Link>
         </div>
 
         {/* Card */}
-        <div className="clay-card-dark p-8 rounded-[24px] border-[3px]"
-          style={{ borderColor: '#3A3A5C', boxShadow: '8px 8px 0px #1A1A2E' }}>
-          <h1 className="text-2xl font-black text-white mb-1">Crear Cuenta ✨</h1>
-          <p className="text-sm text-[#6B7280] mb-8">Únete a NexoPlay y guarda tus favoritos</p>
+        <div className="p-8 sm:p-10 rounded-[32px] border border-[var(--border-subtle)] shadow-2xl relative overflow-hidden"
+          style={{ background: 'var(--bg-panel)', backdropFilter: 'blur(24px)' }}>
+          
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--color-primary)] to-transparent opacity-50" />
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <h1 className="text-2xl font-black text-[var(--text-main)] mb-2 tracking-tight">Crear Cuenta ✨</h1>
+          <p className="text-sm text-[var(--text-muted)] mb-8">Únete para guardar tus favoritos</p>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="text-xs font-bold text-[#A8B3C8] mb-1.5 block">Nombre</label>
+              <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 block">Nombre</label>
               <input type="text" value={name} onChange={(e) => setName(e.target.value)}
-                placeholder="Tu nombre" className="clay-input"
+                placeholder="Tu nombre" 
+                className="w-full bg-[var(--input-bg)] border border-[var(--border-subtle)] rounded-xl px-5 py-3 text-[var(--text-main)] outline-none focus:border-[var(--color-primary)] focus:shadow-[0_0_10px_rgba(255,179,0,0.2)] transition-all placeholder:text-[var(--text-muted)]/50"
                 required autoComplete="name" />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-[#A8B3C8] mb-1.5 block">Email</label>
+              <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 block">Email</label>
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu@email.com" className="clay-input"
+                placeholder="tu@email.com" 
+                className="w-full bg-[var(--input-bg)] border border-[var(--border-subtle)] rounded-xl px-5 py-3 text-[var(--text-main)] outline-none focus:border-[var(--color-primary)] focus:shadow-[0_0_10px_rgba(255,179,0,0.2)] transition-all placeholder:text-[var(--text-muted)]/50"
                 required autoComplete="email" />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-[#A8B3C8] mb-1.5 block">Contraseña</label>
+              <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 block">Contraseña</label>
               <div className="relative">
                 <input type={showPwd ? 'text' : 'password'} value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••" className="clay-input pr-12"
+                  placeholder="••••••••" 
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border-subtle)] rounded-xl px-5 py-3 pr-12 text-[var(--text-main)] outline-none focus:border-[var(--color-primary)] focus:shadow-[0_0_10px_rgba(255,179,0,0.2)] transition-all placeholder:text-[var(--text-muted)]/50"
                   required autoComplete="new-password" minLength={8} />
                 <button type="button" onClick={() => setShowPwd(!showPwd)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280] hover:text-white transition-colors">
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">
                   {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
             {error && (
-              <div className="px-4 py-3 rounded-[10px] border-[2px] text-sm font-semibold"
-                style={{ background: 'rgba(255,107,107,0.1)', borderColor: 'var(--clay-red)', color: 'var(--clay-red)' }}>
+              <div className="px-4 py-3 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-sm font-bold flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
                 {error}
               </div>
             )}
 
             <button type="submit" disabled={loading}
-              className="btn-clay btn-clay-primary w-full flex items-center justify-center gap-2 disabled:opacity-60">
+              className="w-full py-3.5 bg-[var(--color-primary)] text-black font-black text-[15px] rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 mt-2 shadow-[0_0_20px_rgba(255,179,0,0.3)]">
               {loading ? 'Creando cuenta...' : <><UserPlus size={18} /> Registrarse</>}
             </button>
           </form>
           
-          <div className="mt-6 text-center">
-            <p className="text-[#A8B3C8] text-sm">
-              ¿Ya tienes cuenta?{' '}
-              <Link href="/auth/login" className="text-white font-bold hover:underline">
-                Iniciar sesión
-              </Link>
-            </p>
+          <div className="mt-8 text-center text-sm text-[var(--text-muted)]">
+            ¿Ya tienes cuenta?{' '}
+            <Link href="/auth/login" className="text-[var(--color-primary)] font-bold hover:underline">
+              Iniciar sesión
+            </Link>
           </div>
         </div>
       </div>

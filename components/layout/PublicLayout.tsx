@@ -30,8 +30,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 
   if (isLoading || checkingProfile) {
     return (
-      <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center">
-        <Loader2 className="w-12 h-12 text-[var(--clay-teal)] animate-spin" />
+      <div className="fixed inset-0 z-[100] bg-[var(--bg-main)] flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-[var(--color-primary)] animate-spin" />
       </div>
     );
   }

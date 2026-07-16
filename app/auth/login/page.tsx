@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, LogIn } from 'lucide-react';
+import { Eye, EyeOff, LogIn, Sparkles } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
@@ -27,65 +27,82 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative">
-      {/* Background */}
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #1A1A2E 0%, #0F0F1A 60%, #1A1A2E 100%)' }}>
-        <div className="absolute top-20 left-1/4 w-64 h-64 rounded-full opacity-10 blur-3xl" style={{ background: 'var(--clay-teal)' }} />
-        <div className="absolute bottom-20 right-1/4 w-48 h-48 rounded-full opacity-10 blur-3xl" style={{ background: 'var(--clay-red)' }} />
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[var(--bg-main)]">
+      {/* Cinematic Glassmorphism Background Shapes */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full opacity-20 blur-[100px]" style={{ background: 'var(--color-primary)' }} />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] rounded-full opacity-10 blur-[120px]" style={{ background: 'var(--color-primary)' }} />
       </div>
 
-      <div className="relative z-10 w-full max-w-md">
+      <div className="relative z-10 w-full max-w-[420px]">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2">
-            <div className="w-12 h-12 rounded-[14px] border-[3px] border-[#2C2C2C] flex items-center justify-center text-xl font-black text-white"
-              style={{ background: 'var(--clay-red)', boxShadow: '4px 4px 0px #2C2C2C' }}>N</div>
-            <span className="font-black text-2xl" style={{ fontFamily: 'Space Grotesk' }}>
-              <span style={{ color: 'var(--clay-red)' }}>Nexo</span><span className="text-white">Play</span>
+        <div className="text-center mb-10 flex flex-col items-center justify-center">
+          <Link href="/" className="inline-flex items-center gap-3 decoration-transparent">
+            <div className="flex flex-col gap-0.5 items-center">
+              <div className="w-4 h-6 rounded-sm bg-[var(--color-primary)] flex flex-col items-center justify-evenly py-0.5 shadow-[0_0_15px_rgba(255,179,0,0.4)]">
+                <div className="w-1.5 h-1.5 rounded-full bg-black/60"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-black/60"></div>
+              </div>
+              <div className="w-4 h-6 rounded-sm bg-[var(--color-primary)] flex flex-col items-center justify-evenly py-0.5 shadow-[0_0_15px_rgba(255,179,0,0.4)]">
+                <div className="w-1.5 h-1.5 rounded-full bg-black/60"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-black/60"></div>
+              </div>
+            </div>
+            <span className="font-black text-3xl tracking-tight text-[var(--text-main)] lowercase">
+              serivia
             </span>
           </Link>
         </div>
 
         {/* Card */}
-        <div className="clay-card-dark p-8 rounded-[24px] border-[3px]"
-          style={{ borderColor: '#3A3A5C', boxShadow: '8px 8px 0px #1A1A2E' }}>
-          <h1 className="text-2xl font-black text-white mb-1">Bienvenido de vuelta 👋</h1>
-          <p className="text-sm text-[#6B7280] mb-8">Ingresá a tu cuenta de NexoPlay</p>
+        <div className="p-8 sm:p-10 rounded-[32px] border border-[var(--border-subtle)] shadow-2xl relative overflow-hidden"
+          style={{ background: 'var(--bg-panel)', backdropFilter: 'blur(24px)' }}>
+          
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--color-primary)] to-transparent opacity-50" />
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <h1 className="text-2xl font-black text-[var(--text-main)] mb-2 tracking-tight">Bienvenido de vuelta 👋</h1>
+          <p className="text-sm text-[var(--text-muted)] mb-8">Inicia sesión para continuar disfrutando</p>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="text-xs font-bold text-[#A8B3C8] mb-1.5 block">Email</label>
+              <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 block">Email</label>
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu@email.com" className="clay-input"
+                placeholder="tu@email.com" 
+                className="w-full bg-[var(--input-bg)] border border-[var(--border-subtle)] rounded-xl px-5 py-3 text-[var(--text-main)] outline-none focus:border-[var(--color-primary)] focus:shadow-[0_0_10px_rgba(255,179,0,0.2)] transition-all placeholder:text-[var(--text-muted)]/50"
                 required autoComplete="email" />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-[#A8B3C8] mb-1.5 block">Contraseña</label>
+              <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 block">Contraseña</label>
               <div className="relative">
                 <input type={showPwd ? 'text' : 'password'} value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••" className="clay-input pr-12"
+                  placeholder="••••••••" 
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border-subtle)] rounded-xl px-5 py-3 pr-12 text-[var(--text-main)] outline-none focus:border-[var(--color-primary)] focus:shadow-[0_0_10px_rgba(255,179,0,0.2)] transition-all placeholder:text-[var(--text-muted)]/50"
                   required autoComplete="current-password" />
                 <button type="button" onClick={() => setShowPwd(!showPwd)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280] hover:text-white transition-colors">
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">
                   {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
             {error && (
-              <div className="px-4 py-3 rounded-[10px] border-[2px] text-sm font-semibold"
-                style={{ background: 'rgba(255,107,107,0.1)', borderColor: 'var(--clay-red)', color: 'var(--clay-red)' }}>
+              <div className="px-4 py-3 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-sm font-bold flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
                 {error}
               </div>
             )}
 
             <button type="submit" disabled={loading}
-              className="btn-clay btn-clay-red w-full flex items-center justify-center gap-2 disabled:opacity-60">
-              {loading ? 'Ingresando...' : <><LogIn size={18} /> Iniciar sesión</>}
+              className="w-full py-3.5 bg-[var(--color-primary)] text-black font-black text-[15px] rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 mt-2 shadow-[0_0_20px_rgba(255,179,0,0.3)]">
+              {loading ? 'Validando credenciales...' : <><LogIn size={18} /> Iniciar Sesión</>}
             </button>
           </form>
+
+          <div className="mt-8 text-center text-sm text-[var(--text-muted)]">
+            ¿No tienes cuenta? <Link href="/auth/registro" className="text-[var(--color-primary)] font-bold hover:underline">Regístrate</Link>
+          </div>
         </div>
       </div>
     </div>
