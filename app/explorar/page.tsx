@@ -143,8 +143,8 @@ function ExploreContent() {
         <PublicLayout>
             <div className="flex-1 min-h-screen text-[var(--text-main)] flex flex-col pb-24">
                 
-                {/* Sticky Filters Bar */}
-                <div className="sticky top-20 z-40 w-full bg-[var(--bg-main)]/80 backdrop-blur-xl border-y border-[var(--border-subtle)] py-4 px-4 sm:px-[2vw] shadow-lg">
+                {/* Filters Bar */}
+                <div className="w-full border-b border-[var(--border-subtle)] py-4 px-4 sm:px-[2vw]">
                     <div className="flex flex-col gap-4 w-full mx-auto">
                         
                         {/* Types & Platforms Row */}
