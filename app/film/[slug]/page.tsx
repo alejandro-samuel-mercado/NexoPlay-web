@@ -1,5 +1,6 @@
 'use client';
 import { userFetch } from '@/lib/api-client';
+import PublicLayout from '@/components/layout/PublicLayout';
 
 import FilmRow from '@/components/catalog/FilmRow';
 import FilmComments from '@/components/film/FilmComments';
@@ -212,13 +213,21 @@ export default function FilmDetailPage() {
         fetchContent();
     }, [id]);
 
-    if (loading) return <div className="w-full flex-1 flex flex-col items-center justify-center min-h-screen text-white">
-        <div className="w-12 h-12 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mb-4"></div>
-        <span className="font-bold tracking-widest text-sm uppercase text-[var(--text-muted)]">Cargando  contenido...</span>
-    </div>;
-    if (!content) return <div className="w-full flex-1 flex flex-col items-center justify-center min-h-screen text-white">
-        <span className="font-bold tracking-widest text-lg uppercase text-[var(--text-muted)]">Contenido no encontrado</span>
-    </div>;
+    if (loading) return (
+        <PublicLayout>
+            <div className="w-full flex-grow flex flex-col items-center justify-center min-h-[60vh] text-white">
+                <div className="w-12 h-12 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mb-4"></div>
+                <span className="font-bold tracking-widest text-sm uppercase text-[var(--text-muted)]">Cargando contenido...</span>
+            </div>
+        </PublicLayout>
+    );
+    if (!content) return (
+        <PublicLayout>
+            <div className="w-full flex-grow flex flex-col items-center justify-center min-h-[60vh] text-white">
+                <span className="font-bold tracking-widest text-lg uppercase text-[var(--text-muted)]">Contenido no encontrado</span>
+            </div>
+        </PublicLayout>
+    );
 
     const translation = content.translations?.[0] || { title: 'Sin título', description: '' };
     const thumbnails = content.thumbnails || [];
@@ -249,7 +258,8 @@ export default function FilmDetailPage() {
     };
 
     return (
-        <main className="relative min-h-screen text-white pb-24 overflow-x-hidden">
+        <PublicLayout>
+            <div className="relative min-h-screen text-white pb-24 overflow-x-hidden">
             <TrailerModal url={content.trailerUrl || ''} isOpen={isTrailerOpen} onClose={() => setIsTrailerOpen(false)} />
 
             {/* ═══ HERO BANNER ═══ */}
@@ -543,7 +553,8 @@ export default function FilmDetailPage() {
                     />
                 )}
             </div>
-        </main>
+            </div>
+        </PublicLayout>
     );
 }
 
