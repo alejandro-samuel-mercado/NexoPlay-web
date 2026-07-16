@@ -120,7 +120,7 @@ export default function PerfilPage() {
                 <div className="text-5xl mb-4 opacity-50">💔</div>
                 <h3 className="text-xl font-bold text-[var(--text-main)] mb-2">Sin suscripción activa</h3>
                 <p className="text-[var(--text-muted)] mb-8">No tenés ningún plan de NexoPlay activo. Actualizá tu cuenta para descargar sin límites.</p>
-                <button onClick={() => router.push('/admin/planes')} className="btn-primary">
+                <button onClick={() => router.push('/tienda')} className="btn-primary">
                   Ver Planes Disponibles
                 </button>
               </div>

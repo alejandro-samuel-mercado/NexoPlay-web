@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Download, Film, Calendar, HardDrive, BookOpen, Key } from 'lucide-react';
-import Navbar from '@/components/layout/Navbar';
+import PublicLayout from '@/components/layout/PublicLayout';
 import { useAuth } from '@/context/AuthContext';
 import { API, apiFetch } from '@/lib/api';
 import Link from 'next/link';
@@ -36,9 +36,8 @@ export default function BibliotecaPage() {
   }, [isLoading, isLoggedIn, router]);
 
   if (isLoading || loading) return (
-    <>
-      <Navbar />
-      <div className="max-w-4xl mx-auto px-4 py-12">
+    <PublicLayout>
+      <div className="flex-1 max-w-4xl mx-auto px-4 py-12 w-full">
         <div className="clay-skeleton h-12 w-64 rounded-[12px] mb-8" />
         <div className="flex gap-4 mb-8">
           <div className="clay-skeleton h-10 w-32 rounded-[12px]" />
@@ -50,7 +49,7 @@ export default function BibliotecaPage() {
           ))}
         </div>
       </div>
-    </>
+    </PublicLayout>
   );
 
   const formatBytes = (bytes?: string | number) => {
@@ -65,9 +64,8 @@ export default function BibliotecaPage() {
   const currentList = activeTab === 'compras' ? library : history;
 
   return (
-    <>
-      <Navbar />
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <PublicLayout>
+      <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <div className="flex items-center gap-3 mb-8">
           <BookOpen size={32} style={{ color: 'var(--clay-teal)' }} />
           <h1 className="text-3xl font-black text-white">Mi Biblioteca</h1>
@@ -161,6 +159,6 @@ export default function BibliotecaPage() {
           </div>
         )}
       </main>
-    </>
+    </PublicLayout>
   );
 }

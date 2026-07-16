@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function Navbar() {
-  const { user, isLoggedIn, isAdmin, logout } = useAuth();
+  const { user, activeProfile, isLoggedIn, isAdmin, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const router = useRouter();
@@ -44,6 +44,9 @@ export default function Navbar() {
             <Link href="/explorar" className="flex items-center gap-1.5 text-sm font-bold text-[#A8B3C8] hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/5 transition-all">
               <Compass size={15} /> Explorar
             </Link>
+            <Link href="/tienda" className="flex items-center gap-1.5 text-sm font-bold text-[#A8B3C8] hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/5 transition-all">
+              <Crown size={15} /> Tienda
+            </Link>
             <Link href="/buscar" className="flex items-center gap-1.5 text-sm font-bold text-[#A8B3C8] hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/5 transition-all">
               <Search size={15} /> Buscar
             </Link>
@@ -55,12 +58,12 @@ export default function Navbar() {
               <div className="relative">
                 <button onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-[10px] border-[2px] border-[#3A3A5C] bg-[#252540] hover:border-[#4ECDC4] transition-all">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black"
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black overflow-hidden"
                     style={{ background: 'var(--clay-teal)', color: 'var(--clay-ink)' }}>
-                    {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
+                    {activeProfile?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
                   </div>
                   <span className="text-sm font-bold text-white max-w-24 truncate">
-                    {user?.name || user?.email?.split('@')[0]}
+                    {activeProfile?.name || 'Perfil'}
                   </span>
                   {user?.subscription && (
                     <Crown size={12} style={{ color: 'var(--clay-yellow)' }} />
@@ -82,9 +85,13 @@ export default function Navbar() {
                       )}
                     </div>
                     <div className="py-1">
+                      <Link href="/perfiles" onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#A8B3C8] hover:text-white hover:bg-white/5 transition-all">
+                        <User size={14} /> Cambiar Perfil
+                      </Link>
                       <Link href="/perfil" onClick={() => setUserMenuOpen(false)}
                         className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#A8B3C8] hover:text-white hover:bg-white/5 transition-all">
-                        <User size={14} /> Mi Perfil
+                        <User size={14} /> Cuenta Global
                       </Link>
                       <Link href="/biblioteca" onClick={() => setUserMenuOpen(false)}
                         className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#A8B3C8] hover:text-white hover:bg-white/5 transition-all">
@@ -132,6 +139,9 @@ export default function Navbar() {
             </Link>
             <Link href="/explorar" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-[#A8B3C8] hover:text-white hover:bg-white/5">
               <Compass size={16} /> Explorar
+            </Link>
+            <Link href="/tienda" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-[#A8B3C8] hover:text-white hover:bg-white/5">
+              <Crown size={16} /> Tienda
             </Link>
             <Link href="/buscar" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-[#A8B3C8] hover:text-white hover:bg-white/5">
               <Search size={16} /> Buscar

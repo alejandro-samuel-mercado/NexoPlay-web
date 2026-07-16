@@ -1,111 +1,299 @@
 'use client';
+import { userFetch } from '@/lib/api-client';
 
-import { useEffect, useState, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, AlertTriangle } from 'lucide-react';
-import Navbar from '@/components/layout/Navbar';
-import { API, apiFetch } from '@/lib/api';
-import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState, useMemo } from 'react';
+import { Loader2, AlertCircle, ChevronRight, Play, X } from 'lucide-react';
+import VideoPlayer from '@/components/video/VideoPlayer';
+import { API_ROUTES, API_ORIGIN, resolveImageUrl } from '@/lib/api-routes';
 
-export default function WatchPlayerPage() {
-  const { slug } = useParams<{ slug: string }>();
-  const router = useRouter();
-  const { isSubscriber, isLoading } = useAuth();
-  const [content, setContent] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const videoRef = useRef<HTMLVideoElement>(null);
+interface ContentData {
+    id: string;
+    type: string;
+    status?: string;
+    translations: { title: string; description: string }[];
+    seasons?: any[];
+    videoFiles: {
+        id: string;
+        masterPlaylist: string;
+        status: string;
+        subtitleTracks?: any[];
+    }[];
+}
 
-  useEffect(() => {
-    if (isLoading) return;
-    
-    if (!isSubscriber) {
-      router.push(`/contenido/${slug}/preview`);
-      return;
+const backendUrl = API_ORIGIN;
+
+export default function WatchPage() {
+    const params = useParams();
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const id = params.slug as string;
+    const episodeId = searchParams.get('episodeId');
+
+    const [content, setContent] = useState<ContentData | null>(null);
+    const [currentEpisode, setCurrentEpisode] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [initialTime, setInitialTime] = useState<number>(0);
+    const [streamSrc, setStreamSrc] = useState<string | null>(null);
+    const [showEpisodes, setShowEpisodes] = useState(false);
+
+    // Flat list of all episodes across all seasons for prev/next navigation
+    const allEpisodes = useMemo(() => {
+        if (!content?.seasons) return [];
+        return content.seasons.flatMap((s: any) =>
+            (s.episodes || []).map((e: any) => ({ ...e, seasonNumber: s.number }))
+        );
+    }, [content?.seasons]);
+
+    const currentEpisodeIndex = useMemo(() => {
+        if (!currentEpisode) return -1;
+        return allEpisodes.findIndex((e: any) => e.id === currentEpisode.id);
+    }, [allEpisodes, currentEpisode]);
+
+    const hasNextEpisode = currentEpisodeIndex >= 0 && currentEpisodeIndex < allEpisodes.length - 1;
+    const hasPrevEpisode = currentEpisodeIndex > 0;
+
+    // 1. Fetch content metadata
+    useEffect(() => {
+        const fetchContent = async () => {
+            setInitialTime(0);
+            try {
+                const res = await fetch(`${API_ROUTES.CONTENT.BASE}/${id}`, { cache: 'no-store' });
+                if (!res.ok) throw new Error('No se pudo cargar el contenido');
+                const resJson = await res.json();
+
+                if (!resJson.success || !resJson.data) {
+                    throw new Error('No se pudo cargar el contenido');
+                }
+
+                const data = resJson.data;
+                setContent(data);
+
+                // Handle Episodic Content
+                if (episodeId && data.seasons) {
+                    let foundEp = null;
+                    for (const s of data.seasons) {
+                        foundEp = s.episodes?.find((e: any) => e.id === episodeId);
+                        if (foundEp) {
+                            foundEp.seasonNumber = s.number;
+                            break;
+                        }
+                    }
+                    if (foundEp) setCurrentEpisode(foundEp);
+                } else if (data.type !== 'MOVIE') {
+                    const firstEp = data.seasons?.[0]?.episodes?.[0];
+                    if (firstEp) {
+                        firstEp.seasonNumber = data.seasons[0].number;
+                        setCurrentEpisode(firstEp);
+                        router.replace(`/watch/${id}?episodeId=${firstEp.id}`, { scroll: false });
+                    }
+                }
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchContent();
+    }, [id, episodeId]);
+
+    // 2. Request a signed streaming token
+    useEffect(() => {
+        if (!content) return;
+
+        const targetVideoFiles = currentEpisode ? currentEpisode.videoFiles : content.videoFiles;
+        if (!targetVideoFiles || targetVideoFiles.length === 0) {
+            if (content.type === 'MOVIE') setStreamSrc(null);
+            return;
+        }
+
+        const requestAccess = async () => {
+            try {
+                const token = localStorage.getItem('accessToken');
+                const profileId = localStorage.getItem('nexo_active_profile_id');
+
+                if (!token) {
+                    setError('Debes iniciar sesión para ver este contenido.');
+                    return;
+                }
+
+                const res = await userFetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        ...(profileId ? { 'X-Profile-Id': profileId } : {}),
+                    },
+                    body: JSON.stringify({
+                        contentId: content.id,
+                        episodeId: currentEpisode?.id
+                    }),
+                });
+
+                if (!res.ok) throw new Error('No se pudo obtener acceso al video.');
+                const resJson = await res.json();
+                if (!resJson.success) throw new Error(resJson.error || 'Acceso denegado.');
+
+                const { token: signedToken, videoFileId, streamBaseUrl, masterPlaylist } = resJson.data;
+                
+                // Use masterPlaylist from the POST request (which is fresh) instead of content (which might be cached)
+                const filename = masterPlaylist?.split('/').pop() || 'master.m3u8';
+                
+                // Use the storage node URL if provided, otherwise fall back to the main API
+                const streamHost = streamBaseUrl || backendUrl;
+                const hlsUrl = `${streamHost}/api/stream/hls/${videoFileId}/${filename}?token=${signedToken}&_t=${Date.now()}`;
+                setStreamSrc(hlsUrl);
+            } catch (err: any) {
+                setError(err.message);
+            }
+        };
+
+        requestAccess();
+    }, [content, currentEpisode]);
+
+    // 3. Restore watch progress
+    useEffect(() => {
+        if (!content) return;
+        const watchId = currentEpisode ? currentEpisode.id : content.id;
+
+        const fetchHistory = async () => {
+            try {
+                const localProgress = localStorage.getItem(`watch_progress_${watchId}`);
+                if (localProgress) setInitialTime(parseInt(localProgress));
+
+                const token = localStorage.getItem('accessToken');
+                const profileId = localStorage.getItem('nexo_active_profile_id');
+                if (!token || !profileId) return;
+
+                const res = await userFetch(`${API_ROUTES.HISTORY.BASE}/${watchId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'X-Profile-Id': profileId,
+                    },
+                });
+
+                if (res.ok) {
+                    const resJson = await res.json();
+                    if (resJson.success && resJson.data?.progress) {
+                        if (!localProgress || resJson.data.progress > parseInt(localProgress) + 5) {
+                            setInitialTime(resJson.data.progress);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('History fetch error:', e);
+            }
+        };
+
+        fetchHistory();
+    }, [content?.id, currentEpisode?.id]);
+
+    // 4. Progress saving
+    const handleProgressUpdate = async (currentTime: number, duration: number) => {
+        if (!content || duration === 0) return;
+        const watchId = currentEpisode ? currentEpisode.id : content.id;
+
+        localStorage.setItem(`watch_progress_${watchId}`, Math.floor(currentTime).toString());
+
+        try {
+            const token = localStorage.getItem('accessToken');
+            const profileId = localStorage.getItem('nexo_active_profile_id');
+            if (!token || !profileId) return;
+
+            await userFetch(API_ROUTES.HISTORY.PROGRESS, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'X-Profile-Id': profileId,
+                },
+                body: JSON.stringify({
+                    contentId: content.id,
+                    episodeId: currentEpisode?.id,
+                    progress: Math.floor(currentTime),
+                    duration: Math.floor(duration),
+                }),
+            });
+        } catch (e) {
+            console.error('Error saving progress:', e);
+        }
+    };
+
+    const handleNextEpisode = () => {
+        if (currentEpisodeIndex < 0 || !hasNextEpisode) return;
+        const next = allEpisodes[currentEpisodeIndex + 1];
+        router.push(`/contenido/${id}/watch?episodeId=${next.id}`);
+    };
+
+    const handlePrevEpisode = () => {
+        if (currentEpisodeIndex <= 0 || !hasPrevEpisode) return;
+        const prev = allEpisodes[currentEpisodeIndex - 1];
+        router.push(`/contenido/${id}/watch?episodeId=${prev.id}`);
+    };
+
+    if (loading) {
+        return (
+            <div className="h-screen w-full bg-black flex flex-col items-center justify-center text-white">
+                <Loader2 className="animate-spin mb-4" size={48} color="var(--color-primary)" />
+                <p className="text-xl font-medium">Preparando tu función...</p>
+            </div>
+        );
     }
 
-    // Fetch full watch info
-    apiFetch(`${API.CONTENT.DETAIL(slug)}/watch`)
-      .then(res => {
-        if (res.success) {
-          setContent(res.data);
-        } else {
-          setError(res.error || 'Error al cargar el video');
-        }
-      })
-      .catch(err => {
-        setError(err.message || 'Error de conexión');
-      })
-      .finally(() => setLoading(false));
-  }, [slug, isSubscriber, isLoading]);
+    if (error || !content) {
+        return (
+            <div className="h-screen w-full bg-black flex flex-col items-center justify-center text-white p-6 text-center">
+                <AlertCircle size={64} className="text-primary mb-6" />
+                <h1 className="text-3xl font-bold mb-4">¡Ups! Algo salió mal</h1>
+                <p className="text-gray-400 mb-8 max-w-md">{error || 'No se encontró el video.'}</p>
+                <button onClick={() => router.back()} className="px-8 py-3 bg-white text-black font-bold rounded-md hover:bg-gray-200 transition">Volver atrás</button>
+            </div>
+        );
+    }
 
-  if (loading || isLoading) {
+    if (!streamSrc) {
+        return (
+            <div className="h-screen w-full bg-black flex flex-col items-center justify-center text-white">
+                <Loader2 className="animate-spin mb-4" size={48} color="var(--color-primary)" />
+                <p className="text-xl font-medium">Cargando contenido
+                    ...</p>
+            </div>
+        );
+    }
+
+    const targetVideos = currentEpisode ? currentEpisode.videoFiles : content.videoFiles;
+    const videoFile = targetVideos?.find((v: any) => v.status === 'COMPLETED') || targetVideos?.[0];
+    const subtitles = videoFile?.subtitleTracks?.map((s: any) => ({
+        url: s.url.startsWith('http') ? s.url : `${backendUrl}${s.url.startsWith('/') ? '' : '/'}${s.url}`,
+        language: s.language,
+        label: s.label,
+    })) || [];
+
     return (
-      <div className="min-h-screen flex flex-col bg-black">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="clay-skeleton w-32 h-32 rounded-full" />
+        <div className="h-screen w-full bg-black relative overflow-hidden group">
+            <VideoPlayer
+                src={streamSrc}
+                title={currentEpisode
+                    ? `${content.translations[0]?.title} — T${currentEpisode.seasonNumber}E${currentEpisode.number}: ${currentEpisode.translations?.[0]?.title || ''}`
+                    : content.translations[0]?.title
+                }
+                initialTime={initialTime}
+                externalSubtitles={subtitles}
+                onProgressUpdate={handleProgressUpdate}
+                onEnded={handleNextEpisode}
+                onNextEpisode={hasNextEpisode ? handleNextEpisode : undefined}
+                onPrevEpisode={hasPrevEpisode ? handlePrevEpisode : undefined}
+                hasNextEpisode={hasNextEpisode}
+                hasPrevEpisode={hasPrevEpisode}
+                episodes={content.seasons || []}
+                currentEpisodeId={currentEpisode?.id}
+                onEpisodeSelect={(episodeId) => {
+                    router.push(`/watch/${id}?episodeId=${episodeId}`);
+                }}
+                onBack={() => router.push(`/film/${id}`)}
+            />
         </div>
-      </div>
     );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex flex-col bg-[#0A0A10]">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center p-4">
-          <div className="clay-card-dark p-8 rounded-[24px] text-center max-w-md border-[3px] border-[var(--clay-red)]">
-            <AlertTriangle size={48} className="mx-auto mb-4 text-[var(--clay-red)]" />
-            <h2 className="text-xl font-bold text-white mb-2">Error</h2>
-            <p className="text-[#A8B3C8] mb-6">{error}</p>
-            <Link href={`/contenido/${slug}`} className="btn-clay btn-clay-dark w-full">Volver</Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!content) return null;
-
-  return (
-    <div className="min-h-screen flex flex-col bg-[#0A0A10]">
-      {/* Absolute top bar for player context */}
-      <div className="absolute top-0 left-0 right-0 p-6 z-50 flex items-center justify-between"
-        style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.8), transparent)' }}>
-        <Link href={`/contenido/${slug}`} className="btn-clay btn-clay-dark btn-clay-sm flex items-center gap-2">
-          <ArrowLeft size={16} /> Volver
-        </Link>
-        <div className="text-right">
-          <h1 className="text-lg font-black text-white">{content.title}</h1>
-          <span className="clay-badge text-[10px] border-[var(--clay-teal)] text-[var(--clay-teal)] bg-[#1A1A2E]/80 backdrop-blur">
-            REPRODUCCIÓN PREMIUM
-          </span>
-        </div>
-      </div>
-
-      {/* Video Container */}
-      <div className="relative flex-1 flex items-center justify-center bg-black">
-        {content.masterPlaylist ? (
-          <video
-            ref={videoRef}
-            src={content.masterPlaylist}
-            className="w-full h-full object-contain max-h-screen"
-            controls
-            autoPlay
-            controlsList="nodownload"
-          >
-            Tu navegador no soporta el reproductor de video.
-          </video>
-        ) : (
-          <div className="text-center p-8">
-            <AlertTriangle size={48} className="mx-auto mb-4 text-[#FF6B6B]" />
-            <h2 className="text-xl font-bold text-white mb-2">Video no disponible</h2>
-            <p className="text-[#A8B3C8]">El archivo de video no fue encontrado en los servidores.</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
 }

@@ -1,547 +1,605 @@
 'use client';
+import { userFetch } from '@/lib/api-client';
 
-import PublicLayout from '@/components/layout/PublicLayout';
-import { useAuth } from '@/context/AuthContext';
-import { API, apiFetch } from '@/lib/api';
-import { ChevronDown, ChevronUp, Crown, Download, Heart, Key, MessageCircle, Play, Star, Volume2 } from 'lucide-react';
+import { useParams } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
+import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
+import { Play, Plus, ThumbsUp, Star, ArrowLeft, MonitorPlay, Clock, Globe, Calendar, DollarSign, Users, Clapperboard, ChevronDown } from 'lucide-react';
+import FilmRow from '@/components/catalog/FilmRow';
+import FilmComments from '@/components/film/FilmComments';
+import TrailerModal from '@/components/film/TrailerModal';
 import Link from 'next/link';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import RewardedAd from '@/components/ads/RewardedAd';
+import { getContentTypeLabel } from '@/lib/content-types';
+import { useAuth } from '@/context/AuthContext';
+import { Check } from 'lucide-react';
 
+// Types that have seasons/episodes
+const SERIES_TYPES = ['SERIES', 'ANIME', 'NOVELA', 'REALITY_SHOW', 'TALK_SHOW', 'VARIETY_SHOW', 'EDUCATIONAL', 'KIDS', 'FAMILY', 'DOCUDRAMA'];
+
+// Friendly type labels
 const TYPE_LABELS: Record<string, string> = {
-  MOVIE: 'Movie', SERIES: 'Series', ANIME: 'Anime',
-  DOCUMENTARY: 'Documentary', NOVELA: 'Novela',
+    // We'll use the central getContentTypeLabel instead
 };
 
-export default function ContentDetailPage() {
-  const { slug } = useParams<{ slug: string }>();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { user, isLoggedIn, isSubscriber } = useAuth();
+export default function FilmDetailPage() {
+    const params = useParams();
+    const id = params.slug as string;
+    const [content, setContent] = useState<any>(null);
+    const [related, setRelated] = useState<any[]>([]);
+    const [trending, setTrending] = useState<any[]>([]);
+    const [recommended, setRecommended] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [isTrailerOpen, setIsTrailerOpen] = useState(false);
+    const [selectedSeason, setSelectedSeason] = useState(0);
+    const { user: authUser, refreshUser } = useAuth();
+    const [isFavorited, setIsFavorited] = useState(false);
+    const [isLiked, setIsLiked] = useState(false);
+    const favToggledRef = useRef(false);
+    const likeToggledRef = useRef(false);
 
-  const [content, setContent] = useState<any>(null);
-  const [config, setConfig] = useState<any>({});
-  const [loading, setLoading] = useState(true);
-  const [expandedSeason, setExpandedSeason] = useState<string | null>(null);
-  const [showCodeModal, setShowCodeModal] = useState(false);
-  const [showQualityModal, setShowQualityModal] = useState(false);
-  const [pendingEpisodeId, setPendingEpisodeId] = useState<string | null>(null);
-  const [selectedQuality, setSelectedQuality] = useState<string | null>(null);
-  const [code, setCode] = useState('');
-  const [codeLoading, setCodeLoading] = useState(false);
-  const [codeResult, setCodeResult] = useState<{ downloadUrl: string; contentTitle: string } | null>(null);
-  const [codeError, setCodeError] = useState('');
-  const [downloadLoading, setDownloadLoading] = useState(false);
-  const [downloadResult, setDownloadResult] = useState<{ downloadUrl: string } | null>(null);
-  const [downloadError, setDownloadError] = useState('');
-  
-  const [inList, setInList] = useState(false);
-  const [listLoading, setListLoading] = useState(false);
+    // ── Sync profileId from server on page load ──────────────────────────────
+    useEffect(() => {
+        if (!authUser) return;
+        const syncProfileId = async () => {
+            const token = localStorage.getItem('accessToken');
+            if (!token) return;
+            try {
+                const res = await userFetch(API_ROUTES.PROFILES.LIST, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+                const profiles: any[] = json?.data ?? [];
+                if (profiles.length > 0) {
+                    const stored = localStorage.getItem('nexo_active_profile_id');
+                    const isValid = profiles.some((p: any) => p.id === stored);
+                    if (!isValid) {
+                        localStorage.setItem('nexo_active_profile_id', profiles[0].id);
+                    }
+                }
+            } catch (e) { console.error('[profileSync]', e); }
+        };
+        syncProfileId();
+    }, [authUser]);
 
-  useEffect(() => {
-    if (searchParams.get('action') === 'code') {
-      setShowCodeModal(true);
-    }
-    
-    // Fetch content and config in parallel
-    Promise.all([
-      apiFetch(`${API.CONTENT.DETAIL(slug)}?lang=es`).catch(() => ({ success: false })),
-      apiFetch(API.CONTENT.CONFIG).catch(() => ({ data: {} }))
-    ]).then(([contentRes, configRes]) => {
-      if (configRes.success && configRes.data) {
-        setConfig(configRes.data);
-      }
-      
-      if (contentRes.success && contentRes.data) {
-        setContent(contentRes.data);
-        if (isLoggedIn) {
-          apiFetch(`${API.MYLIST}/${contentRes.data.id}/check`)
-            .then(r => setInList(r.data?.inList || false))
-            .catch(() => {});
+    // ── Check initial favorite/like state ────────────────────────────────────
+    useEffect(() => {
+        const checkFav = async () => {
+            if (!content?.id) return;
+            const token = localStorage.getItem('accessToken');
+            const profileId = localStorage.getItem('nexo_active_profile_id');
+            if (!token || !profileId) return;
+            try {
+                const res = await userFetch(`${API_ROUTES.FAVORITES.BASE}/check/${content.id}`);
+                const json = await res.json();
+                if (json.success && !favToggledRef.current) setIsFavorited(json.data.isFavorited);
+            } catch (err) { console.error(err); }
+        };
+        if (authUser && content?.id) checkFav();
+    }, [content?.id, authUser]);
+
+    useEffect(() => {
+        const checkLike = async () => {
+            if (!content?.id) return;
+            const token = localStorage.getItem('accessToken');
+            const profileId = localStorage.getItem('nexo_active_profile_id');
+            if (!token || !profileId) return;
+            try {
+                const res = await userFetch(API_ROUTES.LIKES.CHECK(content.id));
+                const json = await res.json();
+                if (json.success && !likeToggledRef.current) setIsLiked(json.data.isLiked);
+            } catch (err) { console.error(err); }
+        };
+        if (authUser && content?.id) checkLike();
+    }, [content?.id, authUser]);
+
+    // ── Handlers ─────────────────────────────────────────────────────────────
+    const handleToggleFavorite = async (e?: any) => {
+        e?.preventDefault();
+        const token = localStorage.getItem('accessToken');
+        const profileId = localStorage.getItem('nexo_active_profile_id');
+        if (!token) { alert('Debes iniciar sesión para guardar favoritos.'); return; }
+        if (!profileId) { alert('Por favor, selecciona un perfil primero.'); return; }
+
+        favToggledRef.current = true;
+        const prev = isFavorited;
+        setIsFavorited(!prev);
+
+        try {
+            const res = await userFetch(API_ROUTES.FAVORITES.TOGGLE, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contentId: content?.id })
+            });
+            const json = await res.json();
+            
+            if (json.success && json.data?.error === 'invalid_reference') {
+                console.warn('[Page] invalid_reference detected, attempting to fix profileId...');
+                try {
+                    const profilesRes = await userFetch(API_ROUTES.PROFILES.LIST, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const profilesJson = await profilesRes.json();
+                    const firstProfile = profilesJson?.data?.[0] || profilesJson?.data?.profiles?.[0];
+                    if (firstProfile?.id) {
+                        console.log('[Page] fixed profileId from', profileId, 'to', firstProfile.id);
+                        localStorage.setItem('nexo_active_profile_id', firstProfile.id);
+                        
+                        const retryRes = await userFetch(API_ROUTES.FAVORITES.TOGGLE, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ contentId: content?.id })
+                        });
+                        const retryJson = await retryRes.json();
+                        if (retryJson.success && !retryJson.data?.error) {
+                            setIsFavorited(retryJson.data.favorited);
+                        } else {
+                            console.error('[Page] retry failed:', retryJson);
+                            setIsFavorited(prev);
+                        }
+                    } else {
+                        console.error('[Page] no valid profiles found during retry');
+                        setIsFavorited(prev);
+                    }
+                } catch (retryErr) {
+                    console.error('[Page] retry exception:', retryErr);
+                    setIsFavorited(prev);
+                }
+            } else if (json.success && !json.data?.error) {
+                setIsFavorited(json.data.favorited);
+            } else {
+                console.error('[Page] normal toggle failed:', json);
+                setIsFavorited(prev);
+            }
+        } catch (err) {
+            console.error('[Page] toggle exception:', err);
+            setIsFavorited(prev);
         }
-      } else {
-        throw new Error();
-      }
-    }).catch(() => {
-      // Fallback to mock data if API is down
-      setContent({
-        id: 'mock-1', slug, type: 'MOVIE', title: 'Pelicula de Prueba', originalTitle: 'Test Movie', releaseYear: 2024, duration: 120, rating: 8.5,
-        overview: 'Esta es una película generada automáticamente para probar el frontend mientras la API está apagada. Todo el diseño y las funciones se mantienen intactas.',
-        posterUrl: 'https://image.tmdb.org/t/p/w500/AHO3Q44E41P0m34pD8I8T4Rz81f.jpg',
-        backdropUrl: 'https://image.tmdb.org/t/p/w1280/AHO3Q44E41P0m34pD8I8T4Rz81f.jpg',
-        downloadAllowed: true, genres: [{ genre: { name: 'Action' } }, { genre: { name: 'Sci-Fi' } }], cast: []
-      });
-    }).finally(() => setLoading(false));
-  }, [slug, isLoggedIn]);
+    };
 
-  const [redeemingEpisodeId, setRedeemingEpisodeId] = useState<string | null>(null);
+    const handleToggleLike = async (e?: any) => {
+        e?.preventDefault();
+        const token = localStorage.getItem('accessToken');
+        const profileId = localStorage.getItem('nexo_active_profile_id');
+        if (!token) { alert('Debes iniciar sesión para dar me gusta.'); return; }
+        if (!profileId) { alert('Por favor, selecciona un perfil primero.'); return; }
 
-  const handleCodeRedeem = async () => {
-    if (!isLoggedIn) {
-      router.push('/auth/login');
-      return;
-    }
-    if (!code.trim()) return;
-    setCodeLoading(true); setCodeError('');
-    try {
-      const bodyParams: any = { code: code.trim().toUpperCase() };
-      if (redeemingEpisodeId) bodyParams.episodeId = redeemingEpisodeId;
-      
-      const res = await apiFetch(API.DOWNLOADS.REDEEM, {
-        method: 'POST',
-        body: JSON.stringify(bodyParams),
-      });
-      setCodeResult(res.data);
-      setContent((prev: any) => ({ ...prev, hasUnlocked: true }));
-    } catch (e: any) {
-      setCodeError(e.message || 'Código inválido o ya utilizado');
-    } finally { setCodeLoading(false); }
-  };
+        likeToggledRef.current = true;
+        const prev = isLiked;
+        setIsLiked(!prev);
 
-  const handleSubscriberDownload = (episodeId?: string) => {
-    if (!isLoggedIn) {
-      router.push('/auth/login');
-      return;
-    }
-    setPendingEpisodeId(episodeId || null);
-    setShowQualityModal(true);
-  };
-
-  const confirmDownload = async () => {
-    setShowQualityModal(false);
-    setDownloadLoading(true); setDownloadError('');
-    try {
-      const url = `${API.DOWNLOADS.DOWNLOAD(content.id)}${pendingEpisodeId ? `?episodeId=${pendingEpisodeId}` : ''}`;
-      const res = await apiFetch(url, { method: 'POST' });
-      if (res.success && res.data?.downloadUrl) {
-        setDownloadResult(res.data);
-        window.open(res.data.downloadUrl, '_blank');
-      } else {
-        setDownloadError(res.error || 'No se pudo generar el enlace de descarga');
-      }
-    } catch (e: any) {
-      setDownloadError(e.message || 'Error de conexión');
-    } finally { setDownloadLoading(false); }
-  };
-  
-  // Get Dynamic Options
-  let currentOptions: { qualities?: any[], audioTracks?: any[] } | null = null;
-  if (content) {
-    if (pendingEpisodeId) {
-      for (const s of content.seasons || []) {
-        const ep = s.episodes?.find((e: any) => e.id === pendingEpisodeId);
-        if (ep && ep.videoOptions) {
-          currentOptions = ep.videoOptions;
-          break;
+        try {
+            const res = await userFetch(API_ROUTES.LIKES.TOGGLE, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contentId: content?.id })
+            });
+            const json = await res.json();
+            if (json.success && !json.data?.error) {
+                setIsLiked(json.data.liked);
+            } else {
+                console.error('[Page] normal toggle like failed:', json);
+                setIsLiked(prev); // rollback on error
+            }
+        } catch (err) {
+            console.error('[Page] toggle like exception:', err);
+            setIsLiked(prev); // rollback on exception
         }
-      }
-    } else {
-      const vf = content.videoFiles?.[0];
-      if (vf) currentOptions = { qualities: vf.qualities, audioTracks: vf.audioTracks };
-    }
-  }
-  const hasQualities = currentOptions?.qualities && currentOptions.qualities.length > 0;
-  const hasAudios = currentOptions?.audioTracks && currentOptions.audioTracks.length > 1;
+    };
+    useEffect(() => {
+        const fetchContent = async () => {
+            try {
+                const res = await fetch(`${API_ROUTES.CONTENT.BASE}/${id}`, { cache: 'no-store' });
+                const resJson = await res.json();
+                if (resJson.success && resJson.data) setContent(resJson.data);
 
-  const toggleMyList = async () => {
-    if (!isLoggedIn) return router.push('/auth/login');
-    setListLoading(true);
-    try {
-      if (inList) {
-        await apiFetch(`${API.MYLIST}/${content.id}`, { method: 'DELETE' });
-        setInList(false);
-      } else {
-        await apiFetch(`${API.MYLIST}/${content.id}`, { method: 'POST' });
-        setInList(true);
-      }
-    } finally { setListLoading(false); }
-  };
+                const [relatedRes, trendingRes, recommendedRes] = await Promise.all([
+                    fetch(`${API_ROUTES.CONTENT.BASE}/${id}/related`),
+                    fetch(`${API_ROUTES.CONTENT.TRENDING}`),
+                    fetch(`${API_ROUTES.CONTENT.FEATURED}`)
+                ]);
 
-  if (loading) {
-    return (
-      <PublicLayout>
-        <div className="pt-8 w-full max-w-5xl mx-auto">
-          <div className="shimmer h-96 rounded-3xl mb-8" />
-          <div className="shimmer h-12 w-1/3 rounded-xl mb-4" />
-          <div className="shimmer h-32 rounded-xl" />
-        </div>
-      </PublicLayout>
+                const [relatedJson, trendingJson, recommendedJson] = await Promise.all([
+                    relatedRes.json(),
+                    trendingRes.json(),
+                    recommendedRes.json()
+                ]);
+
+                if (relatedJson.success && relatedJson.data) setRelated(relatedJson.data);
+                if (trendingJson.success && trendingJson.data) setTrending(trendingJson.data.filter((item: any) => item.id !== id));
+                if (recommendedJson.success && recommendedJson.data) setRecommended(recommendedJson.data.filter((item: any) => item.id !== id));
+            } catch (err) { console.error(err); }
+            finally { setLoading(false); }
+        };
+        fetchContent();
+    }, [id]);
+
+    if (loading) return <div style={{ minHeight: '100vh', background: '#030612', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>Cargando...</div>;
+    if (!content) return <div style={{ minHeight: '100vh', background: '#030612', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>No encontrado</div>;
+
+    const translation = content.translations?.[0] || { title: 'Sin título', description: '' };
+    const thumbnails = content.thumbnails || [];
+    const poster = thumbnails.find((t: any) => t.type === 'POSTER')?.url;
+    const backdrop = thumbnails.find((t: any) => t.type === 'BACKDROP')?.url || poster;
+    const genres = (content.genres || []).map((g: any) => g.genre);
+    const directors = (content.directors || []).map((d: any) => d.director);
+    const cast = (content.actors || []).slice(0, 15);
+    const isSeries = SERIES_TYPES.includes(content.type);
+    const seasons = content.seasons || [];
+    const currentSeason = seasons[selectedSeason];
+
+    const backdropUrl = resolveImageUrl(backdrop);
+    const posterUrl = resolveImageUrl(poster);
+    const hasEpisodesWithVideo = seasons.some((s: any) =>
+        s.episodes?.some((e: any) =>
+            e.videoFiles && e.videoFiles.some((v: any) => v.status === 'COMPLETED')
+        )
     );
-  }
+    const hasDirectVideo = content.videoFiles && content.videoFiles.some((v: any) => v.status === 'COMPLETED');
+    const canPlay = (content.status === 'READY' || content.status === 'ACTIVE') && (hasEpisodesWithVideo || hasDirectVideo);
+    const formatMoney = (n: any) => {
+        if (!n || n === '0' || n === 0) return null;
+        const num = Number(n);
+        if (num >= 1_000_000) return `$${(num / 1_000_000).toFixed(1)}M`;
+        if (num >= 1_000) return `$${(num / 1_000).toFixed(0)}K`;
+        return `$${num}`;
+    };
 
-  if (!content) return null;
+    return (
+        <main style={{ minHeight: '100vh', background: '#030612', color: 'white', position: 'relative' }}>
+            <style dangerouslySetInnerHTML={{ __html: `
+                .film-hero-content { padding: 180px 7% 100px 7% !important; gap: 24px !important; }
+                .film-section { padding: 40px 7% 0 !important; }
+                .film-meta-bar { display: flex !important; align-items: center !important; gap: 20px !important; margin-bottom: 32px !important; }
+                .film-action-buttons { display: flex !important; align-items: center !important; gap: 16px !important; flex-wrap: wrap !important; }
+                .film-detail-grid { display: grid !important; grid-template-columns: 220px 1fr !important; gap: 48px !important; margin-bottom: 64px !important; }
+                .film-info-item { padding: 16px 20px !important; margin-bottom: 6px !important; }
+                .adm-page, .adm-card, .adm-header { padding: 24px !important; gap: 24px !important; margin-bottom: 24px !important; }
+                .episode-card:hover { background: rgba(255,255,255,0.06) !important; border-color: rgba(0,229,255,0.2) !important; transform: translateX(4px) !important; }
+                @media (max-width: 768px) {
+                    .film-hero-content { padding: 140px 4% 80px 4% !important; }
+                    .film-section { padding: 24px 4% 0 !important; }
+                    .film-detail-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+                    .film-action-buttons a, .film-action-buttons button:not([style*="width: 56"]) { 
+                        flex: 1 !important; min-width: 120px !important; justify-content: center !important; padding: 12px 20px !important; font-size: 14px !important;
+                    }
+                }
+                @media (max-width: 640px) {
+                    .film-hero-content { padding: 120px 16px 60px !important; }
+                    .film-section { padding: 20px 16px 0 !important; }
+                }
+            `}} />
+            <TrailerModal url={content.trailerUrl || ''} isOpen={isTrailerOpen} onClose={() => setIsTrailerOpen(false)} />
 
-  const isSeries = ['SERIES', 'ANIME', 'NOVELA'].includes(content.type);
+            {/* ═══ HERO BANNER ═══ */}
+            <section style={{ position: 'relative', minHeight: '85vh', width: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                {backdropUrl && <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${backdropUrl})`, backgroundSize: 'cover', backgroundPosition: 'center 15%', transform: 'scale(1.05)' }} />}
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, #030612 0%, rgba(3,6,18,0.7) 50%, transparent 100%)' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #030612 0%, rgba(3,6,18,0.3) 50%, transparent 100%)' }} />
 
-  return (
-    <PublicLayout>
-      <div className="pt-6 w-full max-w-6xl mx-auto">
-        {/* Backdrop Hero */}
-        <div className="relative w-full h-[45vh] lg:h-[60vh] min-h-[350px] lg:min-h-[400px] mb-6 lg:mb-8 rounded-b-3xl lg:rounded-none overflow-hidden lg:overflow-visible -mt-4 lg:mt-0">
-          {content.backdropUrl ? (
-            <img src={content.backdropUrl} alt={content.title} className="absolute inset-0 w-full h-full object-cover" />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--bg-main)] to-[var(--bg-hover)]" />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-main)] via-[var(--bg-main)]/50 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[var(--bg-main)]/80 via-transparent to-transparent hidden lg:block" />
+                {/* Back */}
+                <div style={{ position: 'absolute', top: 74, left: '7%', zIndex: 50 }}>
+                    <Link href="/" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 48, height: 48, borderRadius: '50%', background: 'rgba(3,6,18,0.5)', backdropFilter: 'blur(12px)', border: '1px solid rgba(0,229,255,0.2)', color: 'white', textDecoration: 'none', transition: 'all 0.3s' }}>
+                        <ArrowLeft size={24} />
+                    </Link>
+                </div>
 
-          <div className="absolute bottom-4 left-4 right-4 lg:bottom-10 lg:left-10 lg:right-auto flex gap-6 lg:gap-8 items-end">
-            {/* Poster Float */}
-            {content.posterUrl && (
-              <img src={content.posterUrl} alt={content.title}
-                className="w-32 lg:w-48 rounded-xl lg:rounded-2xl shadow-2xl hidden md:block border border-[var(--border-subtle)]" />
-            )}
-            <div>
-               <div className="flex flex-wrap gap-1.5 lg:gap-2 mb-3 lg:mb-4">
-                  <span className="glass-pill text-[#FFD700]">
-                    <Star size={12} fill="currentColor" /> {content.rating ? content.rating.toFixed(1) : 'N/A'}
-                  </span>
-                  <span className="glass-pill">{content.releaseYear}</span>
-                  <span className="glass-pill">{TYPE_LABELS[content.type] || content.type}</span>
-                  {content.duration && <span className="glass-pill">{content.duration} min</span>}
-               </div>
-               <h1 className="text-3xl md:text-5xl font-black text-white drop-shadow-lg mb-4 line-clamp-2">{content.title}</h1>
-               
-               <div className="flex flex-wrap items-center gap-3 lg:gap-4">
-                  {/* Watch / Preview */}
-                  {isSubscriber || content.hasUnlocked ? (
-                    <button onClick={() => router.push(`/contenido/${slug}/watch`)}
-                      className="btn-primary flex-1 sm:flex-none justify-center">
-                      <Play size={18} fill="currentColor" /> Reproducir
-                    </button>
-                  ) : (
-                    <>
-                      {content.price > 0 ? (
-                        <button onClick={() => {
-                          const wppNumber = config?.whatsappNumber || '1234567890';
-                          const msg = `Hola, me gustaría comprar el código para el contenido: ${content.title} (${TYPE_LABELS[content.type] || content.type}), que tiene un costo de $${content.price}.`;
-                          window.open(`https://wa.me/${wppNumber.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
-                        }}
-                          className="btn-primary flex-1 sm:flex-none justify-center" style={{ backgroundColor: '#25D366', color: '#fff' }}>
-                          <MessageCircle size={18} fill="currentColor" /> Comprar por ${content.price}
-                        </button>
-                      ) : null}
-                      <button onClick={() => router.push(`/contenido/${slug}/preview`)}
-                        className="btn-clay btn-clay-dark flex-1 sm:flex-none justify-center">
-                        <Key size={18} /> Canjear Código
-                      </button>
-                    </>
-                  )}
+                {/* Hero Content */}
+                <div className="film-hero-content" style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', paddingLeft: '7%', paddingRight: '7%', paddingBottom: 100, paddingTop: 180, flex: 1, justifyContent: 'flex-end' }}>
+                    <div style={{ maxWidth: '900px' }}>
+                        {/* Badges */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 24 }} className="film-action-buttons">
+                            {content.featured && (
+                                <span style={{ background: 'linear-gradient(135deg, #FF6B00, #FF0055)', color: 'white', padding: '4px 12px', fontSize: 11, fontWeight: 900, borderRadius: 4, letterSpacing: 2, textTransform: 'uppercase' }}>TOP 10</span>
+                            )}
+                            <span style={{ background: 'rgba(15,21,50,0.8)', backdropFilter: 'blur(20px)', border: '1px solid rgba(0,229,255,0.3)', color: 'white', padding: '4px 12px', fontSize: 11, fontWeight: 900, borderRadius: 4, letterSpacing: 2, textTransform: 'uppercase' }}>
+                                {getContentTypeLabel(content.type)}
+                            </span>
+                            {content.isAdult && (
+                                <span style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', color: '#fca5a5', padding: '4px 10px', fontSize: 11, fontWeight: 800, borderRadius: 4 }}>+18</span>
+                            )}
+                        </div>
 
-                  <button onClick={toggleMyList} disabled={listLoading}
-                    className={`btn-icon-rounded shrink-0 w-12 h-12 ${inList ? 'text-[#FF6B6B] bg-white/10' : ''}`}>
-                    <Heart size={20} fill={inList ? 'currentColor' : 'none'} />
-                  </button>
-               </div>
-            </div>
-          </div>
-        </div>
+                        <h1 style={{ fontSize: 'clamp(2.5rem, 6vw, 5rem)', fontWeight: 900, marginBottom: 24, textTransform: 'uppercase', letterSpacing: '-0.03em', lineHeight: 0.95, textShadow: '0 10px 20px rgba(0,0,0,0.5)' }}>
+                            {translation.title}
+                        </h1>
 
-        {/* Content Info & Download Section */}
-        <div className="grid lg:grid-cols-3 gap-8 lg:gap-10">
-          
-          <div className="lg:col-span-2 space-y-10">
-             
-             {/* Non-Subscriber CTA Banner */}
-             {!isSubscriber && !content.hasUnlocked && (
-               <div className="bg-gradient-to-r from-[#25D366]/20 to-[var(--clay-primary)]/20 border border-[#25D366]/30 rounded-2xl p-5 flex flex-col md:flex-row items-center gap-4">
-                 <div className="w-12 h-12 bg-[#25D366]/20 rounded-full flex items-center justify-center shrink-0">
-                   <Crown className="text-[var(--clay-yellow)]" size={24} />
-                 </div>
-                 
-                 {!isLoggedIn ? (
-                   <>
-                     <div>
-                       <h3 className="text-white font-bold mb-1">Guarda tu progreso y favoritos</h3>
-                       <p className="text-[var(--text-muted)] text-sm leading-relaxed">
-                         Inicia sesión o regístrate para poder guardar tu historial y lista de descargas. Una vez dentro, podrás decidir si activar una suscripción premium o solicitar un código individual.
-                       </p>
-                     </div>
-                     <div className="shrink-0 flex flex-col gap-2 w-full md:w-auto">
-                       <Link href="/auth/registro" className="btn-clay text-center text-sm py-2 px-4">Crear Cuenta</Link>
-                       <Link href="/auth/login" className="btn-clay btn-clay-dark text-center text-sm py-2 px-4">Ingresar</Link>
-                     </div>
-                   </>
-                 ) : (
-                   <>
-                     <div>
-                       <h3 className="text-white font-bold mb-1">Activa tu Suscripción Premium</h3>
-                       <p className="text-[var(--text-muted)] text-sm leading-relaxed">
-                         Para obtener acceso ilimitado a todo el catálogo sin tener que comprar códigos individuales, solicita la activación de tu suscripción directamente por WhatsApp.
-                       </p>
-                     </div>
-                     <div className="shrink-0 flex flex-col gap-2 w-full md:w-auto">
-                       <button onClick={() => {
-                         const wppNumber = config?.whatsappNumber || '1234567890';
-                         const msg = `Hola, ya tengo una cuenta en NexoPlay (Email: ${user?.email}) y me gustaría activar mi suscripción premium.`;
-                         window.open(`https://wa.me/${wppNumber.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
-                       }} className="btn-clay text-center text-sm py-2 px-4" style={{ backgroundColor: '#25D366', color: '#fff' }}>
-                         Solicitar Suscripción
-                       </button>
-                     </div>
-                   </>
-                 )}
-               </div>
-             )}
-             
-             {/* Rewarded Ad Component */}
-             <RewardedAd />
-
-             {/* Synopsis */}
-             <section>
-                <h3 className="text-xl font-bold text-white mb-4">Synopsis</h3>
-                <p className="text-[#8B8B9B] leading-relaxed text-[15px]">
-                  {content.translations?.[0]?.description || 'Sin descripción disponible.'}
-                </p>
-             </section>
-
-             {/* Genres */}
-             {content.genres?.length > 0 && (
-                <section>
-                  <h3 className="text-xl font-bold text-white mb-4">Genres</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {content.genres.map((g: any) => (
-                      <span key={g.id} className="filter-pill active !py-1.5 !px-4 text-sm">{g.name}</span>
-                    ))}
-                  </div>
-                </section>
-             )}
-
-             {/* Episodes (if Series) */}
-             {isSeries && content.seasons?.length > 0 && (
-                <section>
-                   <h3 className="text-xl font-bold text-white mb-4">Episodes</h3>
-                   <div className="space-y-3">
-                     {content.seasons.sort((a: any, b: any) => a.seasonNumber - b.seasonNumber).map((season: any) => (
-                        <div key={season.id} className="bg-[#1C1C22] rounded-2xl overflow-hidden border border-white/5">
-                          <button onClick={() => setExpandedSeason(expandedSeason === season.id ? null : season.id)}
-                            className="w-full flex items-center justify-between p-4 hover:bg-[#26262D] transition-colors">
-                            <span className="font-bold text-white">Season {season.seasonNumber}</span>
-                            <div className="flex items-center gap-3 text-sm text-[#8B8B9B]">
-                              <span>{season.episodes?.length || 0} episodes</span>
-                              {expandedSeason === season.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                            </div>
-                          </button>
-                          {expandedSeason === season.id && (
-                            <div className="border-t border-white/5 bg-[#121215]/50">
-                              {season.episodes.sort((a: any, b: any) => a.number - b.number).map((ep: any) => (
-                                <div key={ep.id} className="flex items-center justify-between p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
-                                  <div className="flex items-center gap-4">
-                                    <span className="text-lg font-bold text-white/20 w-8">{ep.number}</span>
-                                    {ep.thumbnailUrl && (
-                                      <img src={ep.thumbnailUrl} alt="" className="w-24 h-14 object-cover rounded-lg border border-white/10" />
-                                    )}
-                                    <div>
-                                      <p className="text-sm font-bold text-white mb-1">{ep.title || `Episode ${ep.number}`}</p>
-                                      {ep.duration && <p className="text-xs text-[#8B8B9B]">{ep.duration} min</p>}
-                                    </div>
-                                  </div>
-                                  <div className="flex gap-2">
-                                    {content.downloadAllowed && (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          if (isSubscriber || content.hasUnlocked) {
-                                            handleSubscriberDownload(ep.id);
-                                          } else if (!isLoggedIn) {
-                                            router.push('/auth/login');
-                                          } else {
-                                            setRedeemingEpisodeId(ep.id);
-                                            setShowCodeModal(true);
-                                          }
-                                        }}
-                                        className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/50 hover:text-white"
-                                        title="Descargar Episodio"
-                                      >
-                                        <Download size={18} />
-                                      </button>
-                                    )}
-                                  </div>
+                        {/* Meta bar */}
+                        <div className="film-meta-bar" style={{ display: 'flex', alignItems: 'center', gap: 20, color: '#d1d5db', fontSize: 15, fontWeight: 700, marginBottom: 32, flexWrap: 'wrap' }}>
+                            {content.releaseYear && <span style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 10px', borderRadius: 4, color: 'white' }}>{content.releaseYear}</span>}
+                            {content.ageRating && <span style={{ border: '2px solid rgba(255,255,255,0.4)', padding: '2px 8px', borderRadius: 4, fontSize: 12, color: 'white' }}>{content.ageRating.code}</span>}
+                            {content.duration && !isSeries && <span>{content.duration} min</span>}
+                            {isSeries && seasons.length > 0 && <span>{seasons.length} temporada{seasons.length > 1 ? 's' : ''}</span>}
+                            {content.rating > 0 && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(245,197,24,0.1)', padding: '4px 12px', borderRadius: 20, border: '1px solid rgba(245,197,24,0.2)' }}>
+                                    <Star size={16} fill="#f5c518" style={{ color: '#f5c518' }} />
+                                    <span style={{ color: 'white', fontWeight: 900 }}>{content.rating}</span>
                                 </div>
-                              ))}
-                            </div>
-                          )}
+                            )}
                         </div>
-                     ))}
-                   </div>
-                </section>
-             )}
-          </div>
 
-          {/* Download Sidebar */}
-          <div className="lg:col-span-1">
-             <div className="sticky top-28 bg-[var(--bg-panel)] rounded-3xl p-6 border border-[var(--border-subtle)] shadow-xl">
-               <h3 className="text-lg font-bold text-[var(--text-main)] mb-6 flex items-center gap-2">
-                 <Download size={20} className="text-[#FFD700]" /> Download {isSeries ? 'Complete Series' : 'Movie'}
-               </h3>
-               
-               {content.downloadAllowed ? (
-                 <div className="space-y-6">
-                    {/* Subscription Download */}
-                    <div>
-                      {isSubscriber || content.hasUnlocked ? (
-                        <>
-                          <button onClick={() => handleSubscriberDownload()} disabled={downloadLoading}
-                            className="w-full bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] rounded-xl font-bold py-3.5 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50">
-                            {downloadLoading ? 'Procesando...' : (isSubscriber ? 'Descargar Ahora (1 Crédito)' : 'Descargar Ahora (Desbloqueado)')}
-                          </button>
-                          <p className="text-center text-xs text-[var(--text-muted)] mt-2">
-                            {isSubscriber ? 'La re-descarga de este contenido es gratuita.' : 'Tienes acceso permanente a esta descarga.'}
-                          </p>
-                        </>
-                      ) : (
-                        <div className="text-center bg-[var(--bg-hover)] rounded-xl p-4 border border-[var(--border-subtle)]">
-                          <Crown size={24} className="text-[#FFD700] mx-auto mb-2" />
-                          <p className="text-sm text-[var(--text-main)] font-semibold mb-2">Exclusivo para Suscriptores</p>
-                          <button onClick={() => router.push('/admin/planes')} className="text-xs text-[var(--text-muted)] underline">Ver planes premium</button>
+                        {/* Synopsis */}
+                        <div style={{ 
+                            maxHeight: '200px', 
+                            overflowY: 'auto', 
+                            marginBottom: 32, 
+                            paddingRight: 10,
+                            scrollbarWidth: 'thin',
+                            scrollbarColor: 'rgba(0,229,255,0.3) transparent'
+                        }} className="custom-scrollbar">
+                            <p style={{ color: '#e5e7eb', fontSize: 'clamp(0.9rem, 1.5vw, 1.15rem)', lineHeight: 1.7, margin: 0, fontWeight: 500, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                                {translation.description}
+                            </p>
                         </div>
-                      )}
+
+                        {/* Action Buttons */}
+                        <div className="film-action-buttons" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                            {canPlay ? (
+                                <Link href={`/contenido/${id}/watch`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 48px', background: 'linear-gradient(135deg, #00E5FF, #0099AA)', color: 'black', fontWeight: 900, borderRadius: 12, textDecoration: 'none', fontSize: 15, boxShadow: '0 10px 30px rgba(0,229,255,0.4)', transition: 'all 0.3s' }}>
+                                    <Play size={22} fill="black" /> REPRODUCIR
+                                </Link>
+                            ) : (
+                                <button disabled style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 48px', background: 'rgba(107,114,128,0.5)', color: 'rgba(255,255,255,0.5)', fontWeight: 900, borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', cursor: 'not-allowed', fontSize: 15 }}>
+                                    <Play size={22} fill="currentColor" /> PRÓXIMAMENTE
+                                </button>
+                            )}
+                            {content.trailerUrl && (
+                                <button onClick={() => setIsTrailerOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 40px', background: 'rgba(8,13,36,0.6)', backdropFilter: 'blur(20px)', border: '1px solid rgba(0,229,255,0.3)', color: 'white', fontWeight: 700, borderRadius: 12, cursor: 'pointer', fontSize: 15, transition: 'all 0.3s' }}>
+                                    <MonitorPlay size={22} /> TRÁILER
+                                </button>
+                            )}
+                            {content.downloadAllowed && (
+                                <button style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 40px', background: 'rgba(255,193,7,0.2)', backdropFilter: 'blur(20px)', border: '1px solid #FFC107', color: '#FFC107', fontWeight: 900, borderRadius: 12, cursor: 'pointer', fontSize: 15, transition: 'all 0.3s' }}>
+                                    <DollarSign size={22} /> USAR TOKENS
+                                </button>
+                            )}
+                            <button
+                                onClick={handleToggleFavorite}
+                                style={{ width: 56, height: 56, borderRadius: '50%', border: isFavorited ? '1px solid #00E5FF' : '1px solid rgba(0,229,255,0.3)', background: isFavorited ? 'rgba(0,229,255,0.1)' : 'rgba(8,13,36,0.6)', backdropFilter: 'blur(20px)', color: isFavorited ? '#00E5FF' : 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}
+                                title={isFavorited ? "Quitar de mi lista" : "Añadir a mi lista"}
+                            >
+                                {isFavorited ? <Check size={26} /> : <Plus size={26} />}
+                            </button>
+                             <button
+                                onClick={handleToggleLike}
+                                style={{ width: 56, height: 56, borderRadius: '50%', border: isLiked ? '1px solid #00E5FF' : '1px solid rgba(0,229,255,0.3)', background: isLiked ? 'rgba(0,229,255,0.1)' : 'rgba(8,13,36,0.6)', backdropFilter: 'blur(20px)', color: isLiked ? '#00E5FF' : 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}
+                                title="Me gusta"
+                            >
+                                <ThumbsUp size={22} fill={isLiked ? "currentColor" : "none"} />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* ═══ SEASONS & EPISODES (Moved Higher) ═══ */}
+            {isSeries && seasons.length > 0 && (
+                <section style={{ padding: '40px 7% 0', position: 'relative', zIndex: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+                        <h3 style={{ fontSize: 13, fontWeight: 900, letterSpacing: 4, color: 'rgba(0,229,255,0.8)', textTransform: 'uppercase', margin: 0 }}>
+                            Temporadas
+                        </h3>
+                        {seasons.length > 1 && (
+                            <div style={{ position: 'relative' }}>
+                                <select
+                                    value={selectedSeason}
+                                    onChange={e => setSelectedSeason(Number(e.target.value))}
+                                    style={{ appearance: 'none', background: 'rgba(15,21,50,0.8)', border: '1px solid rgba(0,229,255,0.3)', color: 'white', padding: '8px 36px 8px 16px', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+                                >
+                                    {seasons.map((s: any, i: number) => (
+                                        <option key={s.id} value={i} style={{ background: '#0f1532' }}>
+                                            Temporada {s.number} {s.translations?.[0]?.title ? `— ${s.translations[0].title}` : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown size={16} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#00E5FF' }} />
+                            </div>
+                        )}
                     </div>
 
-                    {downloadResult && (
-                      <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-center">
-                        <a href={downloadResult.downloadUrl} target="_blank" rel="noopener"
-                          className="text-green-600 dark:text-green-400 font-bold text-sm flex items-center justify-center gap-2">
-                          <Download size={16} /> Link Generado (Click para iniciar)
-                        </a>
-                      </div>
-                    )}
-                    {downloadError && <p className="text-red-500 text-xs text-center">{downloadError}</p>}
-
-                    {!content.hasUnlocked && (
-                      <>
-                        {/* Divider */}
-                        <div className="flex items-center gap-3">
-                          <div className="flex-1 h-px bg-[var(--border-strong)]" />
-                          <span className="text-[10px] uppercase text-[var(--text-muted)] font-bold">O usa un código</span>
-                          <div className="flex-1 h-px bg-[var(--border-strong)]" />
-                        </div>
-
-                        {/* Code Redeem */}
-                        <div>
-                          <button onClick={() => setShowCodeModal(true)}
-                            className="w-full bg-transparent border border-[var(--border-focus)] text-[var(--text-main)] rounded-xl font-semibold py-3 flex items-center justify-center gap-2 hover:bg-[var(--bg-hover)] transition-colors">
-                            <Key size={16} /> Canjear código de invitado
-                          </button>
-                        </div>
-                      </>
-                    )}
-                 </div>
-               ) : (
-                 <div className="text-center py-6">
-                   <p className="text-[var(--text-muted)] text-sm">Este contenido no está disponible para descarga.</p>
-                 </div>
-               )}
-             </div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* Code Redeem Modal */}
-      {showCodeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[var(--bg-panel)] w-full max-w-sm rounded-3xl p-6 border border-[var(--border-strong)] shadow-2xl relative">
-            <button onClick={() => { setShowCodeModal(false); setCodeResult(null); setCodeError(''); setCode(''); setRedeemingEpisodeId(null); }}
-              className="absolute top-4 right-4 text-[var(--text-muted)] hover:text-[var(--text-main)]">✕</button>
-            
-            <div className="text-center mb-6">
-              <div className="w-12 h-12 bg-[var(--border-strong)] rounded-full flex items-center justify-center mx-auto mb-3">
-                <Key size={20} className="text-[var(--text-main)]" />
-              </div>
-              <h3 className="text-lg font-bold text-[var(--text-main)]">Canjear Código</h3>
-              <p className="text-xs text-[var(--text-muted)] mt-1">Ingresa el código proporcionado por un administrador.</p>
-            </div>
-
-            {codeResult ? (
-              <div className="text-center">
-                <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl mb-4 text-green-600 dark:text-green-400">
-                  <p className="text-xs mb-2">¡Código validado correctamente!</p>
-                  <p className="font-bold">{codeResult.contentTitle}</p>
-                </div>
-                <a href={codeResult.downloadUrl} target="_blank" rel="noopener"
-                  className="w-full bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] font-bold rounded-xl py-3 flex items-center justify-center gap-2">
-                  <Download size={18} /> Iniciar descarga
-                </a>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <input type="text" placeholder="EJ: NEXO-XXXX-XXXX" value={code}
-                  onChange={e => setCode(e.target.value.toUpperCase())}
-                  className="w-full bg-[var(--bg-main)] border border-[var(--border-strong)] rounded-xl px-4 py-3 text-center font-mono font-bold text-[var(--text-main)] uppercase focus:border-[var(--border-focus)] focus:outline-none" />
-                
-                {codeError && <p className="text-red-500 text-xs text-center">{codeError}</p>}
-                
-                <button onClick={handleCodeRedeem} disabled={codeLoading || !code}
-                  className="w-full bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] font-bold rounded-xl py-3 flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50">
-                  {codeLoading ? 'Verificando...' : 'Canjear'}
-                </button>
-              </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
+                        {(currentSeason?.episodes || []).map((ep: any) => {
+                            const epTitle = ep.translations?.[0]?.title || `Episodio ${ep.number}`;
+                            const epDesc = ep.translations?.[0]?.description || '';
+                            const epThumb = ep.thumbnails?.[0]?.url;
+                            const epReady = ep.videoFiles?.some((v: any) => v.status === 'COMPLETED');
+                            return (
+                                <Link
+                                    href={`/watch/${id}?episodeId=${ep.id}`}
+                                    key={ep.id}
+                                    className="episode-card"
+                                    style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 12, borderRadius: 16, textDecoration: 'none', transition: 'all 0.3s', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.03)' }}
+                                >
+                                    <div style={{ position: 'relative', width: 120, aspectRatio: '16/9', borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: 'rgba(255,255,255,0.05)' }}>
+                                        {epThumb ? <img src={resolveImageUrl(epThumb)} alt={epTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.7)' }} /> : <div style={{ width: '100%', height: '100%', background: 'rgba(255,255,255,0.03)' }} />}
+                                        {epReady && (
+                                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(0,229,255,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <Play size={16} fill="black" style={{ color: 'black', marginLeft: 2 }} />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <h5 style={{ fontSize: 14, fontWeight: 800, color: 'white', marginBottom: 2 }}>
+                                            <span style={{ color: '#00E5FF', marginRight: 6 }}>{ep.number}.</span>
+                                            {epTitle}
+                                        </h5>
+                                        {epDesc && <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{epDesc}</p>}
+                                    </div>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </section>
             )}
-          </div>
-        </div>
-      )}
 
-      {/* Visual Info Modal */}
-      {showQualityModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[var(--bg-panel)] w-full max-w-sm rounded-3xl p-6 border border-[var(--border-strong)] shadow-2xl relative">
-            <button onClick={() => setShowQualityModal(false)}
-              className="absolute top-4 right-4 text-[var(--text-muted)] hover:text-[var(--text-main)]">✕</button>
-            
-            <div className="text-center mb-6">
-              <div className="w-12 h-12 bg-[var(--border-strong)] rounded-full flex items-center justify-center mx-auto mb-3">
-                <Download size={20} className="text-[var(--text-main)]" />
-              </div>
-              <h3 className="text-lg font-bold text-[var(--text-main)]">Detalles de Descarga</h3>
-              <p className="text-xs text-[var(--text-muted)] mt-1">
-                El archivo incluye las siguientes resoluciones y pistas:
-              </p>
-            </div>
+            {/* ═══ MAIN CONTENT AREA ═══ */}
+            <section className="film-section" style={{ padding: '60px 7% 0', position: 'relative', zIndex: 10 }}>
 
-            <div className="space-y-4 max-h-[60vh] overflow-y-auto mb-6">
-              {/* Qualities */}
-              <div>
-                <h4 className="text-xs font-bold text-[var(--text-muted)] uppercase mb-2">Resoluciones Incluidas</h4>
-                <div className="flex flex-wrap gap-2">
-                  {hasQualities ? (
-                    currentOptions!.qualities!.map((q: any) => (
-                      <span key={q.resolution} className="bg-[var(--bg-main)] border border-[var(--border-strong)] rounded-full px-3 py-1 text-sm text-[var(--text-main)]">
-                        ✔️ {q.resolution}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="bg-[var(--bg-main)] border border-[var(--border-strong)] rounded-full px-3 py-1 text-sm text-[var(--text-main)]">
-                      ✔️ Mejor Calidad Disponible
-                    </span>
-                  )}
+                {/* ── Info Grid: Poster + Details ── */}
+                <div className="film-detail-grid" style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 48, marginBottom: 64 }}>
+                    {/* Poster */}
+                    {posterUrl && (
+                        <div style={{ borderRadius: 16, overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.08)', aspectRatio: '2/3' }}>
+                            <img src={posterUrl} alt={translation.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                    )}
+
+                    {/* Details Grid */}
+                    <div>
+                        {/* Technical Details */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 20, marginBottom: 36 }}>
+                            {directors.length > 0 && (
+                                <DetailItem icon={<Clapperboard size={16} />} label="Director" value={directors.map((d: any) => d.name).join(', ')} />
+                            )}
+                            {content.originalLanguage && (
+                                <DetailItem icon={<Globe size={16} />} label="Idioma Original" value={content.originalLanguage.toUpperCase()} />
+                            )}
+                            {content.releaseYear && (
+                                <DetailItem icon={<Calendar size={16} />} label="Año" value={String(content.releaseYear)} />
+                            )}
+                            {content.duration && !isSeries && (
+                                <DetailItem icon={<Clock size={16} />} label="Duración" value={`${Math.floor(content.duration / 60)}h ${content.duration % 60}m`} />
+                            )}
+                            {content.country && (
+                                <DetailItem icon={<Globe size={16} />} label="País" value={content.country} />
+                            )}
+                            {content.platform && (
+                                <DetailItem icon={<MonitorPlay size={16} />} label="Plataforma" value={content.platform.name} />
+                            )}
+                            {formatMoney(content.budget) && (
+                                <DetailItem icon={<DollarSign size={16} />} label="Presupuesto" value={formatMoney(content.budget)!} />
+                            )}
+                            {formatMoney(content.revenue) && (
+                                <DetailItem icon={<DollarSign size={16} />} label="Ingresos" value={formatMoney(content.revenue)!} />
+                            )}
+                        </div>
+
+                        {/* Genres */}
+                        {genres.length > 0 && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 28 }}>
+                                {genres.map((g: any) => (
+                                    <Link href={`/explorar?genreId=${g.id}`} key={g.id} style={{ padding: '6px 16px', background: 'rgba(0,229,255,0.06)', border: '1px solid rgba(0,229,255,0.25)', borderRadius: 20, fontSize: 12, fontWeight: 800, color: '#4DEDFF', textDecoration: 'none', letterSpacing: 1.5, textTransform: 'uppercase', transition: 'all 0.3s' }}>
+                                        {g.name}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Tags */}
+                        {content.tags?.length > 0 && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 28 }}>
+                                {content.tags.map((t: any) => (
+                                    <Link href={`/explorar?tagId=${t.tag.id}`} key={t.tag.id} style={{ padding: '4px 12px', background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 6, fontSize: 11, fontWeight: 700, color: '#c084fc', textDecoration: 'none' }}>
+                                        #{t.tag.name}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
-              </div>
 
-              {/* Audio Tracks */}
-              {hasAudios && (
-                <div>
-                  <h4 className="text-xs font-bold text-[var(--text-muted)] uppercase mb-2">Audios Incluidos</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {currentOptions!.audioTracks!.map((a: any) => (
-                      <span key={a.language} className="bg-[var(--bg-main)] border border-[var(--border-strong)] rounded-full px-3 py-1 text-sm text-[var(--text-main)] flex items-center gap-1">
-                        <Volume2 size={12}/> {a.label || a.language}
-                      </span>
-                    ))}
-                  </div>
+                {/* ── Cast Section ── */}
+                {cast.length > 0 && (
+                    <div style={{ marginBottom: 64 }}>
+                        <h3 style={{ fontSize: 13, fontWeight: 900, letterSpacing: 4, color: 'rgba(0,229,255,0.8)', textTransform: 'uppercase', marginBottom: 24 }}>
+                            <Users size={16} style={{ display: 'inline', marginRight: 8, verticalAlign: 'middle' }} />
+                            Reparto Principal
+                        </h3>
+                        <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 12 }}>
+                            {cast.map((a: any, i: number) => (
+                                <div key={i} style={{ flexShrink: 0, width: 120, textAlign: 'center' }}>
+                                    <div style={{ width: 90, height: 90, borderRadius: '50%', overflow: 'hidden', margin: '0 auto 10px', border: '2px solid rgba(0,229,255,0.15)', background: 'rgba(255,255,255,0.05)' }}>
+                                        {a.actor.photoUrl ? (
+                                            <img src={a.actor.photoUrl} alt={a.actor.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        ) : (
+                                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.3)', fontSize: 28, fontWeight: 900 }}>
+                                                {a.actor.name?.[0]}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <p style={{ fontSize: 13, fontWeight: 700, color: 'white', marginBottom: 2, lineHeight: 1.3 }}>{a.actor.name}</p>
+                                    {a.character && <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.3 }}>{a.character}</p>}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+            </section>
+
+            {/* ── Comments ── */}
+            {canPlay && (
+                <div style={{ padding: '0 4%', position: 'relative', zIndex: 10 }}>
+                    <FilmComments contentId={id as string} />
                 </div>
-              )}
-            </div>
+            )}
 
-            <button onClick={() => confirmDownload()}
-              className="w-full bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] font-bold rounded-xl py-4 flex items-center justify-center gap-2 hover:opacity-90">
-              <Download size={18} /> Confirmar Descarga
-            </button>
-          </div>
+            {/* ── Related Content Rows ── */}
+            <div style={{ padding: '48px 4% 80px', position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '48px' }}>
+                {related.length > 0 && (
+                    <div style={{ borderTop: '1px solid rgba(0,229,255,0.1)', paddingTop: 48 }}>
+                        <FilmRow
+                            title="Contenido Relacionado"
+                            items={related.map(item => ({
+                                id: item.id,
+                                title: item.translations?.[0]?.title || item.slug,
+                                posterUrl: resolveImageUrl(item.thumbnails?.find((th: any) => th.type === 'POSTER')?.url),
+                                backdropUrl: resolveImageUrl(item.thumbnails?.find((th: any) => th.type === 'BACKDROP')?.url),
+                                rating: item.rating,
+                                year: item.releaseYear,
+                                type: item.type
+                            }))}
+                        />
+                    </div>
+                )}
+
+                {recommended.length > 0 && (
+                    <FilmRow
+                        title="Te Puede Gustar"
+                        subtitle="Recomendaciones basadas en nuestro contenido destacado"
+                        items={recommended.map(item => ({
+                            id: item.id,
+                            title: item.translations?.[0]?.title || item.slug,
+                            posterUrl: resolveImageUrl(item.thumbnails?.find((th: any) => th.type === 'POSTER')?.url),
+                            backdropUrl: resolveImageUrl(item.thumbnails?.find((th: any) => th.type === 'BACKDROP')?.url),
+                            rating: item.rating,
+                            year: item.releaseYear,
+                            type: item.type
+                        }))}
+                    />
+                )}
+
+                {trending.length > 0 && (
+                    <FilmRow
+                        title="Tendencias Actuales"
+                        subtitle="Lo más visto en la plataforma"
+                        variant="numbered"
+                        items={trending.map(item => ({
+                            id: item.id,
+                            title: item.translations?.[0]?.title || item.slug,
+                            posterUrl: resolveImageUrl(item.thumbnails?.find((th: any) => th.type === 'POSTER')?.url),
+                            backdropUrl: resolveImageUrl(item.thumbnails?.find((th: any) => th.type === 'BACKDROP')?.url),
+                            rating: item.rating,
+                            year: item.releaseYear,
+                            type: item.type
+                        }))}
+                    />
+                )}
+            </div>
+        </main>
+    );
+}
+
+// ── Small helper component ──
+function DetailItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+    return (
+        <div style={{ padding: '16px 20px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16, transition: 'all 0.3s' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <span style={{ color: 'rgba(0,229,255,0.6)' }}>{icon}</span>
+                <span style={{ fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.35)', letterSpacing: 2, textTransform: 'uppercase' }}>{label}</span>
+            </div>
+            <p style={{ fontSize: 18, fontWeight: 800, color: 'rgba(255,255,255,0.9)', margin: 0 }}>{value}</p>
         </div>
-      )}
-    </PublicLayout>
-  );
+    );
 }

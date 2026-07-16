@@ -1,260 +1,245 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { Filter, SlidersHorizontal, X } from 'lucide-react';
-import Navbar from '@/components/layout/Navbar';
-import ContentCard from '@/components/content/ContentCard';
-import { API } from '@/lib/api';
+import SeriviaGrid from '@/components/catalog/SeriviaGrid';
 import PublicLayout from '@/components/layout/PublicLayout';
+import { API_ROUTES } from '@/lib/api-routes';
+import { CONTENT_TYPES_LIST, getContentTypeLabel, getContentTypeIcon } from '@/lib/content-types';
+import CustomSelect from '@/components/ui/CustomSelect';
+import { Clapperboard, Globe, Loader2, Tv, ChevronDown, Sparkles, Flame, Calendar as CalendarIcon } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 
-const TYPES = [
-  { value: '', label: 'Todo el catálogo' },
-  { value: 'MOVIE', label: '🎬 Películas' },
-  { value: 'SERIES', label: '📺 Series' },
-  { value: 'ANIME', label: '⚡ Anime' },
-  { value: 'DOCUMENTARY', label: '🎙️ Documentales' },
-  { value: 'NOVELA', label: '💫 Novelas' },
-  { value: 'ANIMATION', label: '🎨 Animación' },
-  { value: 'BIOGRAPHY', label: '📖 Biografías' },
-];
+function ExploreContent() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
 
-const SORTS = [
-  { value: 'recent', label: 'Más recientes' },
-  { value: 'popular', label: 'Más populares' },
-  { value: 'rating', label: 'Mejor puntuados' },
-  { value: 'releaseYear', label: 'Año de estreno' },
-  { value: 'az', label: 'A → Z' },
-  { value: 'za', label: 'Z → A' },
-];
+    const [content, setContent] = useState<any[]>([]);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    
+    const [genres, setGenres] = useState<any[]>([]);
+    const [platforms, setPlatforms] = useState<any[]>([]);
 
-interface Genre { id: string; name: string; slug: string; }
+    // URL parameters
+    const search = searchParams.get('search') || '';
+    const type = searchParams.get('type') || null;
+    const genreId = searchParams.get('genreId') || null;
+    const platformId = searchParams.get('platformId') || null;
+    const quick = searchParams.get('quick') || null;
 
-function ExplorarContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+    const observerTarget = useRef<HTMLDivElement>(null);
 
-  const [items, setItems] = useState<any[]>([]);
-  const [genres, setGenres] = useState<Genre[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [total, setTotal] = useState(0);
-  const [showFilters, setShowFilters] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const observerTarget = useRef<HTMLDivElement>(null);
-  
-  // page state is now internal for infinite scroll, not from URL
-  const [page, setPage] = useState(1);
-  const type = searchParams.get('type') || '';
-  const sort = searchParams.get('sort') || 'recent';
-  const genreId = searchParams.get('genreId') || '';
-  const minYear = searchParams.get('minYear') || '';
-  const maxYear = searchParams.get('maxYear') || '';
-  const LIMIT = 24;
-
-  const fetchContent = useCallback(async (pageNum = 1, shouldAppend = false) => {
-    if (pageNum === 1) setLoading(true);
-    else setLoadingMore(true);
-
-    try {
-      const params = new URLSearchParams({
-        page: String(pageNum), limit: String(LIMIT), sort, lang: 'es',
-        ...(type ? { type } : {}),
-        ...(genreId ? { genreId } : {}),
-        ...(minYear ? { minYear } : {}),
-        ...(maxYear ? { maxYear } : {}),
-      });
-      const res = await fetch(`${API.CONTENT.BASE}?${params}`).then(r => r.json());
-      if (res.success && res.data?.length) { 
-        if (shouldAppend) setItems(prev => [...prev, ...res.data]);
-        else setItems(res.data);
+    // Filter update helper
+    const updateFilters = (key: string, value: string | null) => {
+        const params = new URLSearchParams(searchParams.toString());
+        if (value) params.set(key, value);
+        else params.delete(key);
         
-        setTotal(res.meta?.total || 0);
-        setHasMore(res.data.length === LIMIT);
-        setPage(pageNum);
-      } else {
-        if (!shouldAppend) setItems([]);
-        setHasMore(false);
-      }
-    } catch (e) {
-      console.warn('API fetch failed, loading mock data');
-      const MOCK_ITEMS = [
-        { id: '1', title: 'Arcane', slug: 'arcane', type: 'SERIES', releaseYear: 2021, rating: 9.1, posterUrl: 'https://image.tmdb.org/t/p/w500/AHO3Q44E41P0m34pD8I8T4Rz81f.jpg' },
-        { id: '2', title: 'Blade Runner 2049', slug: 'blade-runner', type: 'MOVIE', releaseYear: 2017, rating: 8.0, posterUrl: 'https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg' },
-        { id: '3', title: 'Dune', slug: 'dune', type: 'MOVIE', releaseYear: 2021, rating: 8.0, posterUrl: 'https://image.tmdb.org/t/p/w500/d5NXSklXo0qyIYkgV94XAgMIckC.jpg' },
-        { id: '4', title: 'Interstellar', slug: 'interstellar', type: 'MOVIE', releaseYear: 2014, rating: 8.6, posterUrl: 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg' },
-        { id: '5', title: 'The Batman', slug: 'the-batman', type: 'MOVIE', releaseYear: 2022, rating: 7.8, posterUrl: 'https://image.tmdb.org/t/p/w500/74xTEgt7R36Fpooo50r9T25onhq.jpg' },
-        { id: '6', title: 'Joker', slug: 'joker', type: 'MOVIE', releaseYear: 2019, rating: 8.4, posterUrl: 'https://image.tmdb.org/t/p/w500/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg' },
-        { id: '7', title: 'The Matrix', slug: 'the-matrix', type: 'MOVIE', releaseYear: 1999, rating: 8.7, posterUrl: 'https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg' },
-        { id: '8', title: 'Inception', slug: 'inception', type: 'MOVIE', releaseYear: 2010, rating: 8.8, posterUrl: 'https://image.tmdb.org/t/p/w500/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg' }
-      ];
-      setItems(MOCK_ITEMS);
-      setTotal(8);
-      setHasMore(false);
-    }
-    finally { 
-      setLoading(false); 
-      setLoadingMore(false);
-    }
-  }, [type, sort, genreId, minYear, maxYear]);
+        // Reset state on filter change
+        setContent([]);
+        setPage(1);
+        setHasMore(true);
+        setLoading(true);
+        router.replace(`/explorar?${params.toString()}`, { scroll: false });
+    };
 
-  // Reset and fetch page 1 on filter changes
-  useEffect(() => { 
-    fetchContent(1, false); 
-  }, [fetchContent]);
+    // Metadata fetch
+    useEffect(() => {
+        const fetchMetadata = async () => {
+            try {
+                const [gRes, pRes] = await Promise.all([
+                    fetch(API_ROUTES.CATEGORIES.GENRES),
+                    fetch(API_ROUTES.PLATFORMS.LIST)
+                ]);
+                const gJson = await gRes.json();
+                const pJson = await pRes.json();
+                if (gJson.success) setGenres(gJson.data);
+                if (pJson.success) setPlatforms(pJson.data);
+            } catch (err) {
+                console.error('Error fetching metadata:', err);
+            }
+        };
+        fetchMetadata();
+    }, []);
 
-  // Infinite Scroll Observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
-          fetchContent(page + 1, true);
+    // Content fetch effect based on filters AND page
+    const fetchContent = useCallback(async (currentPage: number, isNewFilter: boolean) => {
+        try {
+            if (isNewFilter) setLoading(true);
+            else setLoadingMore(true);
+
+            const queryParams = new URLSearchParams({
+                page: currentPage.toString(),
+                limit: '30',
+                ...(search && { search }),
+                ...(type && { type }),
+                ...(genreId && { genreId }),
+                ...(platformId && { platformId }),
+                ...(quick === 'recommended' && { featured: 'true' }),
+                ...(quick === 'premieres' && { minYear: new Date().getFullYear().toString() }),
+            });
+
+            if (!quick || quick === 'latest') {
+                queryParams.set('sort', 'recent');
+            }
+
+            const res = await fetch(`${API_ROUTES.CONTENT.LIST}?${queryParams.toString()}`);
+            const result = await res.json();
+
+            if (result.success) {
+                let newItems = [];
+                if (Array.isArray(result.data)) {
+                    newItems = result.data;
+                } else if (result.data && Array.isArray(result.data.items)) {
+                    newItems = result.data.items;
+                } else if (result.data && Array.isArray(result.data.content)) {
+                    newItems = result.data.content;
+                }
+
+                setContent(prev => isNewFilter ? newItems : [...prev, ...newItems]);
+                
+                const totalItems = result.meta?.total || result.pagination?.total || 0;
+                const currentTotal = isNewFilter ? newItems.length : content.length + newItems.length;
+                setHasMore(currentTotal < totalItems && newItems.length > 0);
+            }
+        } catch (err) {
+            console.error('Error fetching content:', err);
+        } finally {
+            setLoading(false);
+            setLoadingMore(false);
         }
-      },
-      { threshold: 0.1, rootMargin: '400px' }
+    }, [search, type, genreId, platformId, quick, content.length]);
+
+    // Initial load and filter change trigger
+    useEffect(() => {
+        fetchContent(1, true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search, type, genreId, platformId, quick]);
+
+    // Infinite scroll observer
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
+                    const nextPage = page + 1;
+                    setPage(nextPage);
+                    fetchContent(nextPage, false);
+                }
+            },
+            { threshold: 1.0 }
+        );
+
+        if (observerTarget.current) {
+            observer.observe(observerTarget.current);
+        }
+
+        return () => observer.disconnect();
+    }, [hasMore, loading, loadingMore, page, fetchContent]);
+
+    return (
+        <PublicLayout>
+            <div className="flex-1 min-h-screen text-[var(--text-main)] flex flex-col pb-24">
+                
+                {/* Sticky Filters Bar */}
+                <div className="sticky top-20 z-40 w-full bg-[var(--bg-main)]/80 backdrop-blur-xl border-y border-[var(--border-subtle)] py-4 px-4 sm:px-[2vw] shadow-lg">
+                    <div className="flex flex-col gap-4 w-full mx-auto">
+                        
+                        {/* Types & Platforms Row */}
+                        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 relative z-50">
+                            
+                            {/* Content Types */}
+                            <div className="flex items-center gap-3 shrink-0">
+                                <span className="text-[var(--text-muted)] text-xs font-black uppercase tracking-widest hidden xl:block">Tipo:</span>
+                                <div className="w-48 lg:w-56">
+                                    <CustomSelect 
+                                        options={CONTENT_TYPES_LIST.map(t => ({
+                                            id: t,
+                                            name: getContentTypeLabel(t),
+                                            icon: getContentTypeIcon(t, 16)
+                                        }))}
+                                        value={type || null}
+                                        onChange={(val) => updateFilters('type', val)}
+                                        showClearOption={true}
+                                        clearOptionLabel="Todos los tipos"
+                                        placeholder="Todos los tipos"
+                                        buttonClassName={`border ${!type ? 'bg-[var(--color-primary)] text-black border-transparent shadow-[0_0_15px_rgba(255,179,0,0.3)]' : 'bg-[var(--bg-panel)] text-[var(--text-main)] border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]'}`}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Platforms Row */}
+                            <div className="flex flex-wrap items-center gap-3 pt-1 pb-1">
+                                <span className="text-[var(--text-muted)] text-xs font-black uppercase tracking-widest hidden md:block mr-2">Streaming:</span>
+                                <button onClick={() => updateFilters('platformId', null)} className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 border transition-all ${!platformId ? 'bg-[var(--color-primary)] border-transparent text-black shadow-lg shadow-[var(--color-primary)]/30' : 'bg-[var(--bg-panel)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--text-main)]'}`}>
+                                    <Globe size={18} />
+                                </button>
+                                {platforms.map(p => (
+                                    <button key={p.id} onClick={() => updateFilters('platformId', p.id)} title={p.name} className={`w-10 h-10 rounded-full shrink-0 border transition-all overflow-hidden ${platformId === p.id ? 'border-[var(--color-primary)] scale-110 shadow-lg shadow-[var(--color-primary)]/40' : 'border-[var(--border-subtle)] opacity-60 hover:opacity-100 hover:border-[var(--text-main)]'}`}>
+                                        {p.logoUrl ? <img src={p.logoUrl} alt={p.name} className="w-full h-full object-cover bg-white" /> : <div className="w-full h-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-white">{p.name.slice(0,2)}</div>}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Genres Row (Wrapped) */}
+                        <div className="flex flex-wrap items-center gap-2 pt-1 pb-1">
+                            <button onClick={() => updateFilters('genreId', null)} className={`px-5 py-2 rounded-full whitespace-nowrap text-sm font-bold transition-all border ${!genreId ? 'bg-[var(--color-primary)] text-black border-transparent shadow-[0_0_15px_rgba(255,179,0,0.3)]' : 'bg-[var(--bg-panel)] text-[var(--text-main)] border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]'}`}>
+                                Todos los géneros
+                            </button>
+                            {genres.map(g => (
+                                <button key={g.id} onClick={() => updateFilters('genreId', g.id)} className={`px-5 py-2 rounded-full whitespace-nowrap text-sm font-bold transition-all border ${genreId === g.id ? 'bg-[var(--color-primary)] text-black border-transparent shadow-[0_0_15px_rgba(255,179,0,0.3)]' : 'bg-[var(--bg-panel)] text-[var(--text-muted)] border-[var(--border-subtle)] hover:text-[var(--text-main)] hover:border-[var(--text-main)]'}`}>
+                                    {g.name}
+                                </button>
+                            ))}
+                        </div>
+
+                    </div>
+                </div>
+
+                {/* Grid Area */}
+                <main className="flex-1 w-full mx-auto px-4 sm:px-[2vw] mt-8">
+                    {loading && content.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-32 text-[var(--text-faint)]">
+                            <Loader2 size={48} className="animate-spin text-[var(--color-primary)] mb-4" />
+                            <p className="text-xl font-bold uppercase tracking-widest">Cargando catálogo...</p>
+                        </div>
+                    ) : content.length === 0 && !loading ? (
+                        <div className="text-center py-32 text-[var(--text-faint)]">
+                            <Globe size={64} className="mx-auto mb-6 opacity-30" />
+                            <h2 className="text-3xl font-black mb-2 text-[var(--text-main)]">Sin resultados</h2>
+                            <p className="text-xl">Intenta ajustar tus filtros para descubrir más contenido.</p>
+                            <button onClick={() => router.push('/explorar')} className="mt-8 px-8 py-3 bg-[var(--text-main)] text-[var(--bg-main)] font-bold rounded-full hover:scale-105 transition">Limpiar filtros</button>
+                        </div>
+                    ) : (
+                        <>
+                            <SeriviaGrid items={content} />
+                            
+                            {/* Infinite Scroll Trigger */}
+                            <div ref={observerTarget} className="w-full h-24 flex items-center justify-center mt-12">
+                                {loadingMore && (
+                                    <div className="flex items-center gap-3 text-[var(--color-primary)]">
+                                        <Loader2 size={24} className="animate-spin" />
+                                        <span className="font-bold text-sm tracking-widest uppercase">Cargando más...</span>
+                                    </div>
+                                )}
+                                {!hasMore && content.length > 0 && (
+                                    <p className="text-[var(--text-faint)] font-bold text-sm uppercase tracking-widest">Has llegado al final del catálogo</p>
+                                )}
+                            </div>
+                        </>
+                    )}
+                </main>
+            </div>
+        </PublicLayout>
     );
-
-    if (observerTarget.current) observer.observe(observerTarget.current);
-    return () => observer.disconnect();
-  }, [fetchContent, hasMore, loading, loadingMore, page]);
-
-  useEffect(() => {
-    fetch(API.CONTENT.GENRES).then(r => r.json()).then(res => {
-      if (res.success && res.data?.length) setGenres(res.data);
-      else throw new Error();
-    }).catch(() => {
-      setGenres([
-        { id: '1', name: 'Movies', slug: 'movies' },
-        { id: '2', name: 'Series', slug: 'series' },
-        { id: '3', name: 'Anime', slug: 'anime' },
-        { id: '4', name: 'Action', slug: 'action' },
-        { id: '5', name: 'Sci-Fi', slug: 'sci-fi' }
-      ]);
-    });
-  }, []);
-
-  const setParam = (key: string, value: string) => {
-    const p = new URLSearchParams(searchParams.toString());
-    if (value) p.set(key, value); else p.delete(key);
-    router.push(`/explorar?${p.toString()}`);
-  };
-
-  return (
-    <PublicLayout>
-      <div className="pt-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-[var(--text-main)] tracking-tight">Explorar</h1>
-            <p className="text-sm text-[var(--text-muted)] mt-1">
-              {loading ? 'Cargando...' : `${total.toLocaleString()} títulos disponibles`}
-            </p>
-          </div>
-          <button onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 bg-[var(--bg-panel)] hover:bg-[var(--bg-hover)] transition-colors border border-[var(--border-subtle)] rounded-full px-5 py-2.5 text-sm font-semibold text-[var(--text-main)]">
-            <SlidersHorizontal size={15} />
-            Filtros
-            {(type || genreId || minYear || maxYear) && (
-              <span className="w-2 h-2 rounded-full bg-red-500 ml-1"></span>
-            )}
-          </button>
-        </div>
-
-        {/* Type tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-4 mb-4 hide-scrollbar -mx-4 px-4 lg:mx-0 lg:px-0">
-          {TYPES.map((t) => (
-            <button key={t.value} onClick={() => setParam('type', t.value)}
-              className={`filter-pill ${type === t.value ? 'active' : ''} shrink-0`}>
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Filter panel */}
-        {showFilters && (
-          <div className="bg-[var(--bg-panel)] p-6 rounded-3xl mb-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-6 border border-[var(--border-subtle)] shadow-xl">
-            {/* Sort */}
-            <div>
-              <label className="text-xs font-semibold text-[var(--text-muted)] mb-2 block uppercase tracking-wider">Ordenar por</label>
-              <select value={sort} onChange={(e) => setParam('sort', e.target.value)}
-                className="w-full bg-[var(--bg-main)] text-[var(--text-main)] border border-[var(--border-strong)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[var(--border-focus)] transition-colors">
-                {SORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </select>
-            </div>
-            {/* Genre */}
-            <div>
-              <label className="text-xs font-semibold text-[var(--text-muted)] mb-2 block uppercase tracking-wider">Género</label>
-              <select value={genreId} onChange={(e) => setParam('genreId', e.target.value)}
-                className="w-full bg-[var(--bg-main)] text-[var(--text-main)] border border-[var(--border-strong)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[var(--border-focus)] transition-colors">
-                <option value="">Todos los géneros</option>
-                {genres.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-              </select>
-            </div>
-            {/* Min Year */}
-            <div>
-              <label className="text-xs font-semibold text-[var(--text-muted)] mb-2 block uppercase tracking-wider">Año desde</label>
-              <input type="number" placeholder="ej: 2000" value={minYear}
-                onChange={(e) => setParam('minYear', e.target.value)}
-                className="w-full bg-[var(--bg-main)] text-[var(--text-main)] border border-[var(--border-strong)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[var(--border-focus)] transition-colors placeholder:text-[var(--text-muted)]" min={1900} max={2030} />
-            </div>
-            {/* Max Year */}
-            <div>
-              <label className="text-xs font-semibold text-[var(--text-muted)] mb-2 block uppercase tracking-wider">Año hasta</label>
-              <input type="number" placeholder="ej: 2025" value={maxYear}
-                onChange={(e) => setParam('maxYear', e.target.value)}
-                className="w-full bg-[var(--bg-main)] text-[var(--text-main)] border border-[var(--border-strong)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[var(--border-focus)] transition-colors placeholder:text-[var(--text-muted)]" min={1900} max={2030} />
-            </div>
-
-            {/* Clear */}
-            <div className="sm:col-span-2 lg:col-span-4 flex justify-end">
-              <button onClick={() => { router.push('/explorar'); setShowFilters(false); }}
-                className="flex items-center gap-2 bg-[var(--bg-hover)] hover:bg-[var(--bg-hover-strong)] transition-colors border border-[var(--border-subtle)] rounded-full px-5 py-2.5 text-sm font-semibold text-[var(--text-main)]">
-                <X size={15} /> Limpiar filtros
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-6">
-          {loading
-            ? Array.from({ length: LIMIT }).map((_, i) => (
-              <div key={i} className="aspect-[2/3] shimmer rounded-[16px] md:rounded-[20px]" />
-            ))
-            : items.map((item) => <ContentCard key={item.id} item={item} />)
-          }
-        </div>
-
-        {/* Empty state */}
-        {!loading && items.length === 0 && (
-          <div className="text-center py-24 bg-[var(--bg-panel)]/50 rounded-3xl border border-[var(--border-subtle)] mt-8">
-            <div className="text-5xl mb-6 opacity-50">🔍</div>
-            <h2 className="text-2xl font-bold text-[var(--text-main)] mb-2">Sin resultados</h2>
-            <p className="text-[var(--text-muted)]">Probá con otros filtros o categorías</p>
-          </div>
-        )}
-
-        {/* Infinite Scroll Loader */}
-        {hasMore && (
-          <div ref={observerTarget} className="flex justify-center mt-12 mb-8 py-4">
-            {loadingMore && <div className="clay-skeleton w-12 h-12 rounded-full animate-spin" />}
-          </div>
-        )}
-      </div>
-    </PublicLayout>
-  );
 }
 
-export default function ExplorarPage() {
-  return (
-    <Suspense fallback={
-      <PublicLayout>
-        <div className="flex-1 flex justify-center items-center min-h-[50vh]">
-          <div className="w-8 h-8 rounded-full border-4 border-t-[var(--clay-teal)] border-r-[var(--clay-teal)] border-b-transparent border-l-transparent animate-spin"></div>
-        </div>
-      </PublicLayout>
-    }>
-      <ExplorarContent />
-    </Suspense>
-  );
+export default function ExplorePage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center"><Loader2 className="animate-spin text-[var(--color-primary)]" size={48} /></div>}>
+            <ExploreContent />
+        </Suspense>
+    );
 }

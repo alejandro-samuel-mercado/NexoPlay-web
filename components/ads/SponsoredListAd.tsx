@@ -13,9 +13,9 @@ export default function SponsoredListAd() {
     if (!isLoading && !isSubscriber) {
       // Fetch a sponsored list ad (could just reuse the display ad logic or a specific sponsored list)
       // For MVP, we simulate a sponsored list ad block that matches the UI of a content carousel
-      const fetchAd = async () => {
+        const fetchAd = async () => {
         try {
-          const res = await apiFetch(`${API.ADS.DISPLAY}?location=HOME_FEED_INJECT`);
+          const res = await API.ADS.active();
           if (res.success && res.data) {
             setAd(res.data);
           }
@@ -40,7 +40,7 @@ export default function SponsoredListAd() {
         href={ad.targetUrl} 
         target="_blank" 
         rel="noopener noreferrer"
-        onClick={() => apiFetch(API.ADS.CLICK, { method: 'POST', body: JSON.stringify({ campaignId: ad.id }) }).catch(()=>null)}
+        onClick={() => API.ADS.click({ campaignId: ad.id }).catch(()=>null)}
         className="block relative rounded-2xl overflow-hidden group border-2 border-gray-800 hover:border-[var(--clay-teal)] transition-all cursor-pointer"
       >
         {/* We use an aspect ratio similar to a banner but shaped like a content row */}

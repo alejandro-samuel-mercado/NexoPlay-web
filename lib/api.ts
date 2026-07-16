@@ -44,7 +44,7 @@ export const API = {
     WALLET: `${API_BASE}/api/tokens/wallet`,
     HISTORY: `${API_BASE}/api/tokens/history`,
     PACKAGES: `${API_BASE}/api/tokens/packages`,
-    GIFT_SUBSCRIPTION: `${API_BASE}/api/tokens/gift-subscription`,
+    BUY_SUBSCRIPTION: `${API_BASE}/api/tokens/buy-subscription`,
     REWARD_WATCH: `${API_BASE}/api/tokens/reward/watch`,
     WEEKLY_PACK: `${API_BASE}/api/tokens/weekly-pack`,
     ADMIN_GRANT: `${API_BASE}/api/tokens/admin/grant`,
@@ -56,18 +56,20 @@ export const API = {
 
   PROFILES: {
     list: async () => apiFetch('/api/profiles'),
-    create: async (data: { name: string; avatarUrl?: string; isKids?: boolean; pinCode?: string }) =>
+    create: async (data: { name: string; avatarUrl?: string; pinCode?: string }) =>
       apiFetch('/api/profiles', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
-    update: async (id: string, data: Partial<{ name: string; avatarUrl: string; isKids: boolean; pinCode: string }>) =>
+    update: async (id: string, data: Partial<{ name: string; avatarUrl: string; pinCode: string }>) =>
       apiFetch(`/api/profiles/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
     delete: async (id: string) =>
       apiFetch(`/api/profiles/${id}`, { method: 'DELETE' }),
+    switch: async (id: string) => 
+      apiFetch(`/api/profiles/${id}/switch`, { method: 'POST' }),
   },
 
   ADS: {
@@ -99,16 +101,20 @@ export const API = {
   },
 
   RESELLER: {
-    claimWeeklyPack: async () => apiFetch('/api/reseller/pack/weekly', { method: 'POST' })
+    getWeeklyPack: async () => apiFetch('/api/reseller/pack/weekly', { method: 'POST' }),
+    buyLimits: async (amount: number) => apiFetch('/api/reseller/buy-limits', { method: 'POST', body: JSON.stringify({ amount }) }),
   }
 };
 
 // Fetch wrapper with auth
 export async function apiFetch(url: string, options: RequestInit = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('nexo_access_token') : null;
+  const activeProfileId = typeof window !== 'undefined' ? localStorage.getItem('nexo_active_profile_id') : null;
+  
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(activeProfileId ? { 'x-profile-id': activeProfileId } : {}),
     ...(options.headers || {}),
   };
   const res = await fetch(url, { ...options, headers });

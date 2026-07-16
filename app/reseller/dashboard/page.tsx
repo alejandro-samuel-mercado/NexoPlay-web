@@ -88,8 +88,22 @@ export default function ResellerDashboard() {
     return matchSearch && matchType && item.hasVideo;
   });
 
-  const remaining = Math.max(0, DAILY_LIMIT - todayCount);
-  const pct = Math.min(100, (todayCount / DAILY_LIMIT) * 100);
+  const DAILY_EFFECTIVE = user?.downloadStats?.effectiveLimit ?? DAILY_LIMIT;
+  const remaining = Math.max(0, DAILY_EFFECTIVE - todayCount);
+  const pct = Math.min(100, (todayCount / DAILY_EFFECTIVE) * 100);
+
+  const handleBuyLimitsAPI = async () => {
+    if (!confirm('¿Seguro que quieres comprar 10 descargas extra por 100 tokens?')) return;
+    try {
+      const res = await API.RESELLER.buyLimits(10);
+      if (res.success) {
+        alert('Límites comprados exitosamente');
+        loadData();
+      }
+    } catch (e: any) {
+      alert(e.message || 'Error al comprar límites');
+    }
+  };
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-main)' }}>
@@ -138,14 +152,20 @@ export default function ResellerDashboard() {
             </div>
             <div className="flex items-end gap-2 mb-2">
               <span className="text-4xl font-black text-white">{todayCount}</span>
-              <span className="text-lg font-bold mb-1" style={{ color: 'var(--text-muted)' }}>/ {DAILY_LIMIT}</span>
+              <span className="text-lg font-bold mb-1" style={{ color: 'var(--text-muted)' }}>/ {DAILY_EFFECTIVE}</span>
             </div>
             {/* Progress bar */}
             <div className="h-2 rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }}>
               <div className="h-full rounded-full transition-all duration-500"
                 style={{ width: `${pct}%`, background: pct >= 90 ? '#ff5050' : 'var(--clay-teal)' }} />
             </div>
-            <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>Se reinicia a las 00:00. Podés comprar más descargas con tokens.</p>
+            <div className="flex items-center justify-between mt-3">
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Se reinicia a las 00:00.</p>
+              <button onClick={handleBuyLimitsAPI} className="text-xs font-bold px-3 py-1 rounded border-2 hover:opacity-80"
+                style={{ borderColor: 'var(--clay-yellow)', color: 'var(--clay-yellow)', background: 'rgba(255,210,63,0.1)' }}>
+                +10 (100 Tokens)
+              </button>
+            </div>
           </div>
 
           {/* Token balance card */}
@@ -184,7 +204,7 @@ export default function ResellerDashboard() {
                   onClick={async () => {
                     try {
                       setDownloadingId('pack');
-                      const res = await API.RESELLER.claimWeeklyPack();
+                      const res = await API.RESELLER.getWeeklyPack();
                       if (res.success) {
                         alert(res.message);
                         loadData();

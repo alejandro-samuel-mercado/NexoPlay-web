@@ -1,105 +1,196 @@
 'use client';
 
-import { Search, Bell, ChevronDown, SlidersHorizontal, Sun, Moon } from 'lucide-react';
+import { Search, Bell, ChevronDown, Sun, Moon } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { API, apiFetch } from '@/lib/api';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { CONTENT_TYPES_LIST, getContentTypeLabel, getContentTypeIcon } from '@/lib/content-types';
+import CustomSelect from '@/components/ui/CustomSelect';
 
 export default function PublicTopBar() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  
+  const currentSearch = searchParams.get('search') || '';
+  const [inputValue, setInputValue] = useState('');
   const [theme, setTheme] = useState('dark');
-  const { user, isLoggedIn } = useAuth();
-  const [genres, setGenres] = useState<any[]>([]);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const lastUpdatedUrlSearch = useRef(currentSearch);
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load theme on mount
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    setTheme(savedTheme);
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    
-    // Fetch genres for the dropdown
-    apiFetch(API.CONTENT.GENRES)
-      .then(res => {
-        if (res.success && res.data) {
-          setGenres(res.data);
-        }
-      })
-      .catch(() => {
-        // Fallback to mock data
-        setGenres([
-          { id: '1', name: 'Movies' },
-          { id: '2', name: 'Series' },
-          { id: '3', name: 'Anime' }
-        ]);
-      });
+    const stored = localStorage.getItem('serivia-theme') || 'dark';
+    setTheme(stored);
+    document.documentElement.setAttribute('data-theme', stored);
   }, []);
+
+  // Sync search input with URL param, but ONLY if the URL changed externally
+  // (not from our own typing)
+  useEffect(() => {
+      if (pathname === '/explorar') {
+          const pendingVal = sessionStorage.getItem('pending-search-val');
+          if (pendingVal !== null) {
+              // Restore keystrokes that happened while navigating
+              setInputValue(pendingVal);
+              lastUpdatedUrlSearch.current = pendingVal;
+              sessionStorage.removeItem('pending-search-val');
+              
+              // Ensure the URL catches up to the restored keystrokes
+              const params = new URLSearchParams(searchParams.toString());
+              if (pendingVal.trim()) {
+                  params.set('search', pendingVal);
+              } else {
+                  params.delete('search');
+              }
+              router.replace(`/explorar?${params.toString()}`);
+          } else if (currentSearch !== lastUpdatedUrlSearch.current) {
+              setInputValue(currentSearch);
+              lastUpdatedUrlSearch.current = currentSearch;
+          }
+      } else {
+          setInputValue('');
+          lastUpdatedUrlSearch.current = '';
+          sessionStorage.removeItem('pending-search-val');
+      }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, currentSearch]);
+
+  // Restore focus if coming from another page's auto-navigate
+  useEffect(() => {
+      if (typeof window !== 'undefined' && sessionStorage.getItem('focus-search') === 'true') {
+          sessionStorage.removeItem('focus-search');
+          if (inputRef.current) {
+              inputRef.current.focus();
+              const len = inputRef.current.value.length;
+              inputRef.current.setSelectionRange(len, len);
+          }
+      }
+  }, [pathname]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
+    localStorage.setItem('serivia-theme', newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
-  const displayName = isLoggedIn && user ? user.name || 'Usuario' : 'Guest User';
-  const displayPlan = isLoggedIn && user ? ((user as any).subscription?.plan?.name || 'Gratis') : 'Explorador';
-  const displayAvatar = isLoggedIn && user 
-    ? `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`
-    : 'https://i.pravatar.cc/150?u=a042581f4e29026704d';
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputValue(val); // Update immediately for UI
+    sessionStorage.setItem('pending-search-val', val); // Save keystrokes instantly!
+    
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    
+    debounceTimer.current = setTimeout(() => {
+        if (pathname === '/explorar') {
+            const params = new URLSearchParams(searchParams.toString());
+            if (val.trim()) {
+                params.set('search', val);
+            } else {
+                params.delete('search');
+            }
+            lastUpdatedUrlSearch.current = val; // Mark that WE caused this URL change
+            router.replace(`/explorar?${params.toString()}`);
+        } else {
+            if (val.trim()) {
+                sessionStorage.setItem('focus-search', 'true');
+                lastUpdatedUrlSearch.current = val;
+                router.push(`/explorar?search=${encodeURIComponent(val)}`);
+            }
+        }
+    }, 200); // 200ms debounce
+  };
+
+  const handleSearchSubmit = () => {
+      if (pathname !== '/explorar') {
+          if (inputValue.trim()) {
+              router.push(`/explorar?search=${encodeURIComponent(inputValue)}`);
+          } else {
+              router.push('/explorar');
+          }
+      }
+  };
 
   return (
-    <header className="sticky top-0 z-40 bg-[var(--bg-main)]/80 backdrop-blur-xl border-b border-transparent py-3 lg:py-4 px-4 lg:px-8 flex items-center justify-between gap-2 lg:gap-4">
+    <header className="topbar-wrapper">
       {/* Left side: Category Dropdown */}
-      <div className="relative group shrink-0">
-        <button className="flex items-center gap-2 lg:gap-3 bg-[var(--bg-panel)] hover:bg-[var(--bg-hover)] transition-colors border border-[var(--border-subtle)] rounded-full px-3 lg:px-5 py-2 lg:py-2.5 text-sm font-semibold text-[var(--text-main)]">
-          <span className="hidden sm:inline">{genres.length > 0 ? genres[0].name : 'Explorar'}</span>
-          <span className="sm:hidden text-xs">Cat</span>
-          <ChevronDown size={16} className="text-[var(--text-muted)] group-hover:rotate-180 transition-transform" />
-        </button>
-        <div className="absolute top-full mt-2 w-48 bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-          {genres.map(g => (
-            <Link key={g.id} href={`/explorar?genreId=${g.id}`} className="block px-4 py-2 text-sm text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)] first:rounded-t-2xl last:rounded-b-2xl">
-              {g.name}
-            </Link>
-          ))}
+      {pathname !== '/explorar' && (
+        <div className="flex items-center gap-6 shrink-0 relative z-50">
+          <div className="w-48">
+              <CustomSelect 
+                  options={[
+                      { id: '/explorar', name: 'Explorar Todo', icon: <Search size={16} /> },
+                      ...CONTENT_TYPES_LIST.map(t => ({
+                          id: `/explorar?type=${t}`,
+                          name: getContentTypeLabel(t),
+                          icon: getContentTypeIcon(t, 16)
+                      }))
+                  ]}
+                  value="/explorar"
+                  onChange={(val) => val && router.push(val)}
+                  placeholder="Explorar Todo"
+              />
+          </div>
+        </div>
+      )}
+
+      {/* Center: Search */}
+      <div className="topbar-search hidden md:block w-full max-w-xl mx-8">
+        <div className="relative">
+            <button 
+                onClick={handleSearchSubmit}
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-[var(--text-main)] transition z-10"
+                title="Buscar"
+            >
+                <Search size={18} />
+            </button>
+            <input 
+                ref={inputRef}
+                type="text" 
+                placeholder="Películas, series, shows..." 
+                value={inputValue}
+                onChange={handleSearchChange}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSearchSubmit();
+                }}
+                className="w-full bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-full py-3.5 pl-12 pr-6 text-sm text-[var(--text-main)] placeholder-gray-500 focus:outline-none focus:border-[var(--border-strong)] transition-all shadow-inner"
+            />
         </div>
       </div>
 
-      {/* Center: Search Bar */}
-      <div className="flex-1 max-w-xl mx-1 lg:mx-8">
-        <div className="search-bar-oval flex items-center px-3 lg:px-4 py-2 lg:py-2.5 w-full">
-          <Search size={18} className="text-[var(--text-muted)] mr-2 lg:mr-3 shrink-0" />
-          <input 
-            type="text" 
-            placeholder="Buscar..." 
-            className="search-input text-sm lg:text-base min-w-0"
-          />
-          <button className="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors ml-2 lg:ml-3 hidden sm:block shrink-0">
-            <SlidersHorizontal size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* Right side: Notifications & Profile */}
-      <div className="flex items-center gap-2 lg:gap-4 shrink-0">
-        <button onClick={toggleTheme} className="btn-icon-rounded w-8 h-8 lg:w-10 lg:h-10">
-          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+      {/* Right side: Theme & Profile */}
+      <div className="flex items-center gap-5">
+        <button 
+            onClick={toggleTheme}
+            className="relative w-10 h-10 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition shadow-inner"
+            title="Cambiar tema"
+        >
+          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
         </button>
 
-        <button className="btn-icon-rounded relative w-8 h-8 lg:w-10 lg:h-10 hidden sm:flex">
-          <Bell size={16} />
-          <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-[var(--bg-main)]"></span>
-        </button>
-
-        <Link href={isLoggedIn ? "/perfil" : "/auth/login"} className="flex items-center gap-2 lg:gap-3 bg-[var(--bg-panel)] hover:bg-[var(--bg-hover)] transition-colors border border-[var(--border-subtle)] rounded-full p-1 lg:p-1.5 lg:pr-4 cursor-pointer">
-          <div className="w-7 h-7 lg:w-8 lg:h-8 rounded-full overflow-hidden">
-            <img src={displayAvatar} alt="Profile" className="w-full h-full object-cover" />
+        {user ? (
+          <div className="flex items-center gap-3 cursor-pointer group bg-[var(--bg-panel)] pl-2 pr-4 py-1.5 rounded-full border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-all shadow-inner">
+            <img 
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Yuki" 
+                alt="Profile" 
+                className="w-9 h-9 rounded-full border border-[var(--border-strong)]"
+            />
+            <div className="hidden sm:flex flex-col justify-center">
+              <span className="text-sm font-bold text-[var(--text-main)] group-hover:text-[var(--color-primary)] transition-colors leading-tight">{user.name || 'Usuario'}</span>
+              <span className="text-[10px] text-[var(--color-primary)] font-black uppercase tracking-wider leading-tight mt-0.5">Premium</span>
+            </div>
+            <ChevronDown size={16} className="text-[var(--text-muted)] hidden sm:block ml-1" />
           </div>
-          <div className="hidden lg:flex flex-col">
-            <span className="text-xs font-bold text-[var(--text-main)] leading-tight">{displayName}</span>
-            <span className="text-[10px] text-[#FFD700] font-semibold">{displayPlan}</span>
-          </div>
-          <ChevronDown size={14} className="text-[var(--text-muted)] hidden lg:block ml-2" />
-        </Link>
+        ) : (
+          <Link href="/auth/login" className="bg-[var(--color-primary)] text-black px-5 py-2 rounded-full font-bold text-sm hover:brightness-110 transition">
+            Iniciar Sesión
+          </Link>
+        )}
       </div>
     </header>
   );

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Heart } from 'lucide-react';
 import PublicLayout from '@/components/layout/PublicLayout';
-import ContentCard from '@/components/content/ContentCard';
+import SeriviaGrid from '@/components/catalog/SeriviaGrid';
 import { API, apiFetch } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
@@ -44,10 +44,10 @@ export default function MiListaPage() {
     return (
       <PublicLayout>
         <div className="pt-8 w-full max-w-7xl mx-auto">
-          <div className="shimmer h-12 w-48 rounded-2xl mb-8" />
+          <div className="shimmer h-12 w-48 rounded-2xl mb-8 bg-white/5" />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
             {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="aspect-[2/3] shimmer rounded-[20px]" />
+              <div key={i} className="aspect-[2/3] shimmer bg-white/5 rounded-[16px]" />
             ))}
           </div>
         </div>
@@ -75,17 +75,15 @@ export default function MiListaPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-6">
-            {items.map(item => (
-              <ContentCard key={item.contentId} item={{
-                id: item.contentId,
-                slug: item.slug,
-                title: item.title,
-                posterUrl: item.posterUrl,
-                releaseYear: item.releaseYear,
-                rating: item.rating
-              }} />
-            ))}
+          <div className="mt-8">
+            <SeriviaGrid items={items.map(i => ({
+              id: i.contentId,
+              slug: i.slug,
+              translations: [{ title: i.title }],
+              thumbnails: [{ type: 'POSTER', url: i.posterUrl }],
+              releaseYear: i.releaseYear,
+              rating: i.rating
+            }))} />
           </div>
         )}
       </div>
