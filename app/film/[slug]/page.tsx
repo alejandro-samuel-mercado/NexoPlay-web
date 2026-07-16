@@ -240,7 +240,15 @@ export default function FilmDetailPage() {
     );
     const hasDirectVideo = content.videoFiles && content.videoFiles.some((v: any) => v.status === 'COMPLETED');
     const canPlay = (content.status === 'READY' || content.status === 'ACTIVE') && (hasEpisodesWithVideo || hasDirectVideo);
-    const formatMoney = (n:    return (
+    const formatMoney = (n: any) => {
+        if (!n || n === '0' || n === 0) return null;
+        const num = Number(n);
+        if (num >= 1_000_000) return `$${(num / 1_000_000).toFixed(1)}M`;
+        if (num >= 1_000) return `$${(num / 1_000).toFixed(0)}K`;
+        return `$${num}`;
+    };
+
+    return (
         <main className="relative min-h-screen text-white pb-24 overflow-x-hidden">
             <TrailerModal url={content.trailerUrl || ''} isOpen={isTrailerOpen} onClose={() => setIsTrailerOpen(false)} />
 
@@ -459,11 +467,11 @@ export default function FilmDetailPage() {
                     </h3>
                     
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-10">
-                        {directors.length > 0 && <DetailItem icon={<Clapperboard />} label="Director" value={directors.map((d: any) => d.name).join(', ')} />}
-                        {content.originalLanguage && <DetailItem icon={<Globe />} label="Idioma" value={content.originalLanguage.toUpperCase()} />}
-                        {content.releaseYear && <DetailItem icon={<Calendar />} label="Año" value={String(content.releaseYear)} />}
-                        {content.country && <DetailItem icon={<Globe />} label="País" value={content.country} />}
-                        {content.platform && <DetailItem icon={<MonitorPlay />} label="Plataforma" value={content.platform.name} />}
+                        {directors.length > 0 && <DetailItem icon={<Clapperboard size={14} />} label="Director" value={directors.map((d: any) => d.name).join(', ')} />}
+                        {content.originalLanguage && <DetailItem icon={<Globe size={14} />} label="Idioma" value={content.originalLanguage.toUpperCase()} />}
+                        {content.releaseYear && <DetailItem icon={<Calendar size={14} />} label="Año" value={String(content.releaseYear)} />}
+                        {content.country && <DetailItem icon={<Globe size={14} />} label="País" value={content.country} />}
+                        {content.platform && <DetailItem icon={<MonitorPlay size={14} />} label="Plataforma" value={content.platform.name} />}
                     </div>
 
                     {/* Genres & Tags */}
@@ -544,7 +552,7 @@ function DetailItem({ icon, label, value }: { icon: React.ReactNode; label: stri
     return (
         <div className="p-4 bg-white/5 border border-white/5 rounded-2xl backdrop-blur-sm">
             <div className="flex items-center gap-2 mb-2 text-gray-400">
-                {React.cloneElement(icon as React.ReactElement, { size: 14 })}
+                {icon}
                 <span className="text-[10px] font-black tracking-widest uppercase">{label}</span>
             </div>
             <p className="text-base font-bold text-white truncate">{value}</p>
