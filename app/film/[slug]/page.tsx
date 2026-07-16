@@ -213,8 +213,13 @@ export default function FilmDetailPage() {
         fetchContent();
     }, [id]);
 
-    if (loading) return <div style={{ minHeight: '100vh', background: '#030612', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>Cargando...</div>;
-    if (!content) return <div style={{ minHeight: '100vh', background: '#030612', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>No encontrado</div>;
+    if (loading) return <div className="w-full flex-1 flex flex-col items-center justify-center min-h-screen text-white">
+        <div className="w-12 h-12 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <span className="font-bold tracking-widest text-sm uppercase text-[var(--text-muted)]">Cargando película...</span>
+    </div>;
+    if (!content) return <div className="w-full flex-1 flex flex-col items-center justify-center min-h-screen text-white">
+        <span className="font-bold tracking-widest text-lg uppercase text-[var(--text-muted)]">Contenido no encontrado</span>
+    </div>;
 
     const translation = content.translations?.[0] || { title: 'Sin título', description: '' };
     const thumbnails = content.thumbnails || [];
