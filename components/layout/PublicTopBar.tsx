@@ -17,10 +17,25 @@ export default function PublicTopBar() {
   const currentSearch = searchParams.get('search') || '';
   const [inputValue, setInputValue] = useState('');
   const [theme, setTheme] = useState('dark');
+  const [isScrolled, setIsScrolled] = useState(false);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const lastUpdatedUrlSearch = useRef(currentSearch);
 
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Scroll detection for dynamic background
+  useEffect(() => {
+    const handleScroll = (e: Event) => {
+      const target = e.target as HTMLElement;
+      setIsScrolled(target.scrollTop > 10);
+    };
+    
+    const scrollContainer = document.querySelector('.serivia-main-content');
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+      return () => scrollContainer.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
 
   // Load theme on mount
   useEffect(() => {
@@ -117,7 +132,7 @@ export default function PublicTopBar() {
   };
 
   return (
-    <header className="topbar-wrapper">
+    <header className={`topbar-wrapper transition-colors duration-300 ${isScrolled ? 'bg-[var(--bg-main)]/95 backdrop-blur-2xl border-b border-[var(--border-subtle)] shadow-md' : 'bg-transparent border-b border-transparent'}`}>
       {/* Left side: Category Dropdown */}
       {pathname !== '/explorar' && (
         <div className="flex items-center gap-6 shrink-0 relative z-50">

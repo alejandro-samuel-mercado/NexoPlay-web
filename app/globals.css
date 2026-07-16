@@ -226,11 +226,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 20px 40px;
-    background: var(--bg-main);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border-bottom: 1px solid var(--border-subtle);
+    padding: 24px 40px;
+    background: transparent;
 }
 .topbar-search {
     flex: 1;
