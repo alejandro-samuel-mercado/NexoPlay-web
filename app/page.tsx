@@ -88,13 +88,14 @@ export default function HomePage() {
         );
     }
 
-    const heroContent = data?.recent?.[0] || MOCK_FILMS[0];
+    const heroList = data?.featured?.length > 0 ? data.featured.slice(0, 10) : (data?.recent?.length > 0 ? data.recent.slice(0, 10) : MOCK_FILMS.slice(0, 10));
+    const heroContent = heroList[0];
 
     return (
         <PublicLayout>
             <div className="page-container">
                 {/* 1. Hero Card */}
-                <SeriviaHero content={heroContent} contentList={data?.recent?.length > 0 ? data.recent : MOCK_FILMS} />
+                <SeriviaHero content={heroContent} contentList={heroList} />
 
                 {/* 2. Category Filter Pills */}
                 <SeriviaFilters 

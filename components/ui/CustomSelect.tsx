@@ -59,7 +59,9 @@ export default function CustomSelect({
             </button>
 
             {isOpen && (
-                <div className="absolute top-full left-0 mt-2 w-full min-w-max bg-[var(--bg-panel)]/95 border border-[var(--border-subtle)] rounded-2xl shadow-xl z-50 overflow-hidden backdrop-blur-xl max-h-80 overflow-y-auto hide-scrollbar">
+                <div className="absolute top-full left-0 mt-2 w-full min-w-max border border-[var(--border-subtle)] rounded-2xl shadow-2xl z-50 overflow-hidden max-h-80 overflow-y-auto hide-scrollbar"
+                    style={{ background: 'rgba(20, 22, 28, 0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
+                >
                     {showClearOption && (
                         <button
                             onClick={() => {

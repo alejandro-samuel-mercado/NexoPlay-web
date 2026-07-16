@@ -79,6 +79,7 @@ function ExploreContent() {
                 ...(platformId && { platformId }),
                 ...(quick === 'recommended' && { featured: 'true' }),
                 ...(quick === 'premieres' && { minYear: new Date().getFullYear().toString() }),
+                ...(quick === 'trending' && { sort: 'trending' }),
             });
 
             if (!quick || quick === 'latest') {
@@ -164,7 +165,7 @@ function ExploreContent() {
                                         showClearOption={true}
                                         clearOptionLabel="Todos los tipos"
                                         placeholder="Todos los tipos"
-                                        buttonClassName={`border ${!type ? 'bg-[var(--color-primary)] text-black border-transparent shadow-[0_0_15px_rgba(255,179,0,0.3)]' : 'bg-[var(--bg-panel)] text-[var(--text-main)] border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]'}`}
+                                        buttonClassName={`border ${type ? 'bg-[var(--color-primary)] text-black border-transparent shadow-[0_0_15px_rgba(255,179,0,0.3)]' : 'bg-[var(--bg-panel)] text-[var(--text-main)] border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]'}`}
                                     />
                                 </div>
                             </div>
@@ -181,6 +182,24 @@ function ExploreContent() {
                                     </button>
                                 ))}
                             </div>
+                        </div>
+
+                        {/* Quick Filters */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                            {[
+                                { id: null, label: 'Todos', icon: null },
+                                { id: 'premieres', label: '🎬 Estrenos', icon: null },
+                                { id: 'trending', label: '🔥 Tendencias', icon: null },
+                                { id: 'latest', label: '🆕 Recién Agregados', icon: null },
+                            ].map(q => (
+                                <button key={q.id ?? 'all'} onClick={() => updateFilters('quick', q.id)}
+                                    className={`px-4 py-1.5 rounded-full whitespace-nowrap text-sm font-bold transition-all border ${
+                                        quick === q.id ? 'bg-[var(--color-primary)] text-black border-transparent shadow-[0_0_15px_rgba(255,179,0,0.3)]'
+                                        : 'bg-[var(--bg-panel)] text-[var(--text-main)] border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]'
+                                    }`}>
+                                    {q.label}
+                                </button>
+                            ))}
                         </div>
 
                         {/* Genres Row (Wrapped) */}

@@ -2,51 +2,34 @@
 
 import { useAuth } from '@/context/AuthContext';
 import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
-import { Calendar, Clapperboard, Heart, HelpCircle, Home, Play, Settings, TrendingUp } from 'lucide-react';
+import { Clapperboard, Clock, Flame, Heart, Home, Play, Settings, Sparkles, TrendingUp, Video } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function PublicSidebar() {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, isAdmin, isReseller } = useAuth();
   const [continueWatching, setContinueWatching] = useState<any[]>([]);
 
   useEffect(() => {
+    if (!user) {
+      setContinueWatching([]);
+      return;
+    }
     const fetchHistory = async () => {
       const token = localStorage.getItem('accessToken');
       const profileId = localStorage.getItem('nexo_active_profile_id');
-      
-      let hasRealData = false;
-      if (token && profileId) {
-        try {
-          const r = await fetch(`${API_ROUTES.HISTORY.BASE}/continue`, {
-            headers: { 'Authorization': `Bearer ${token}`, 'X-Profile-Id': profileId }
-          });
-          const res = await r.json();
-          if (res.success && res.data && res.data.length > 0) {
-            setContinueWatching(res.data.slice(0, 3));
-            hasRealData = true;
-          }
-        } catch (e) {}
-      }
-
-      // Fallback a datos mock si no hay datos reales (Requisito estricto: la sección DEBE existir y verse real)
-      if (!hasRealData) {
-        setContinueWatching([
-          {
-            id: 'mock-1',
-            progress: 3000,
-            duration: 7200,
-            content: {
-              id: 'c1',
-              slug: 'mission-impossible',
-              translations: [{ title: 'Mission: Impossible' }],
-              thumbnails: [{ type: 'BACKDROP', url: 'https://images.unsplash.com/photo-1534809027769-b00d750a6bac?q=80&w=600' }]
-            }
-          }
-        ]);
-      }
+      if (!token || !profileId) return;
+      try {
+        const r = await fetch(`${API_ROUTES.HISTORY.BASE}/continue`, {
+          headers: { 'Authorization': `Bearer ${token}`, 'X-Profile-Id': profileId }
+        });
+        const res = await r.json();
+        if (res.success && res.data?.length > 0) {
+          setContinueWatching(res.data.slice(0, 3));
+        }
+      } catch (e) {}
     };
     fetchHistory();
   }, [user]);
@@ -54,14 +37,27 @@ export default function PublicSidebar() {
   const mainNavItems = [
     { name: 'Inicio', icon: Home, path: '/' },
     { name: 'Favoritos', icon: Heart, path: '/favoritos' },
-    { name: 'Próximamente', icon: Calendar, path: '/proximamente' },
-    { name: 'Tendencias', icon: TrendingUp, path: '/tendencias' },
+    { name: 'Estrenos', icon: Sparkles, path: '/explorar?quick=premieres' },
+    { name: 'Tendencias', icon: TrendingUp, path: '/explorar?quick=trending' },
+    { name: 'Recién Agregados', icon: Clock, path: '/explorar?quick=latest' },
   ];
 
-  const systemNavItems = [
-    { name: 'Configuración', icon: Settings, path: '/configuracion' },
-    { name: 'Soporte', icon: HelpCircle, path: '/soporte' },
-  ];
+  // Extra section based on role
+  const getRoleSection = () => {
+    if (isAdmin) return { name: 'Panel Admin', icon: Settings, path: '/admin' };
+    if (isReseller) return { name: 'Panel Revendedor', icon: Video, path: '/reseller/dashboard' };
+    return null;
+  };
+  const roleItem = getRoleSection();
+
+  const isActiveLink = (path: string) => {
+    const base = path.split('?')[0];
+    const query = path.includes('?') ? path.split('?')[1] : null;
+    if (query) {
+      return pathname === base && (typeof window !== 'undefined' && window.location.search === `?${query}`);
+    }
+    return pathname === base;
+  };
 
   return (
     <aside className="sticky left-0 top-[1.5vh] h-[calc(100vh-3vh)] w-[250px] bg-transparent flex flex-col pt-8 pb-6 overflow-y-auto hide-scrollbar z-40 border-r border-white/5 shrink-0">
@@ -78,35 +74,35 @@ export default function PublicSidebar() {
             <div className="w-1 h-1 rounded-full bg-black/60"></div>
           </div>
         </div>
-        <span className="text-[22px] font-bold text-white lowercase tracking-tight ml-1">serivia</span>
+        <span className="text-[22px] font-bold text-[var(--text-main)] lowercase tracking-tight ml-1">serivia</span>
       </Link>
 
       {/* Menú Principal */}
-      <nav className="flex-1 px-4 space-y-1 mb-8">
+      <nav className="flex-1 px-4 space-y-1 mb-4">
         {mainNavItems.map((item) => {
-          const isActive = pathname === item.path;
+          const active = isActiveLink(item.path);
           return (
             <Link 
               key={item.name} 
               href={item.path}
               className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-300 font-bold text-sm tracking-wide ${
-                isActive 
-                  ? 'bg-white/10 text-white' 
-                  : 'text-gray-500 hover:text-white hover:bg-white/5'
+                active 
+                  ? 'bg-white/10 text-[var(--text-main)]' 
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white/5'
               }`}
               style={{ textDecoration: 'none' }}
             >
-              <item.icon size={20} className={isActive ? 'text-white' : 'text-gray-500'} />
+              <item.icon size={20} className={active ? 'text-[var(--color-primary)]' : ''} />
               {item.name}
             </Link>
           );
         })}
       </nav>
 
-      {/* Continue Watching Section */}
-      {continueWatching.length > 0 && (
-        <div className="px-6 mb-10 flex flex-col gap-3">
-          <span className="px-8 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+      {/* Continuar Viendo — SOLO SI ESTÁ LOGUEADO y tiene datos reales */}
+      {user && continueWatching.length > 0 && (
+        <div className="px-6 mb-6 flex flex-col gap-3">
+          <span className="px-2 text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1 flex items-center gap-2">
             <Clapperboard size={14} /> Continuar Viendo
           </span>
           
@@ -119,8 +115,8 @@ export default function PublicSidebar() {
             const remainingMins = history.duration ? Math.round((history.duration - history.progress) / 60) : 0;
 
             return (
-              <Link href={`/film/${c.id}`} key={history.id} className="continue-card">
-                <img src={img} alt={title} className="continue-bg" />
+              <Link href={`/contenido/${c.slug}`} key={history.id} className="continue-card">
+                {img && <img src={img} alt={title} className="continue-bg" />}
                 <div className="continue-overlay" />
                 <div className="continue-content">
                   <span className="continue-title">{title}</span>
@@ -143,26 +139,53 @@ export default function PublicSidebar() {
         </div>
       )}
 
-      {/* Menú Sistema */}
-      <nav className="px-4 space-y-1 mb-10">
-        {systemNavItems.map((item) => {
-          const isActive = pathname === item.path;
-          return (
-            <Link 
-              key={item.name} 
-              href={item.path}
-              className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-300 font-bold text-sm tracking-wide ${
-                isActive 
-                  ? 'bg-white/10 text-white' 
-                  : 'text-gray-500 hover:text-white hover:bg-white/5'
-              }`}
-              style={{ textDecoration: 'none' }}
-            >
-              <item.icon size={20} className={isActive ? 'text-gray-500' : 'text-gray-500'} />
-              {item.name}
-            </Link>
-          );
-        })}
+      {/* Sección Sistema */}
+      <nav className="px-4 space-y-1 mt-auto">
+        {/* Historial — solo si logueado */}
+        {user && (
+          <Link
+            href="/historial"
+            className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-300 font-bold text-sm tracking-wide ${
+              pathname === '/historial'
+                ? 'bg-white/10 text-[var(--text-main)]'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white/5'
+            }`}
+            style={{ textDecoration: 'none' }}
+          >
+            <Clock size={20} className={pathname === '/historial' ? 'text-[var(--color-primary)]' : ''} />
+            Historial
+          </Link>
+        )}
+
+        {/* Rol-specific link */}
+        {user && roleItem && (
+          <Link
+            href={roleItem.path}
+            className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-300 font-bold text-sm tracking-wide ${
+              pathname.startsWith(roleItem.path)
+                ? 'bg-[var(--color-primary)]/15 text-[var(--color-primary)]'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white/5'
+            }`}
+            style={{ textDecoration: 'none' }}
+          >
+            <roleItem.icon size={20} />
+            {roleItem.name}
+          </Link>
+        )}
+
+        {/* Configuración */}
+        <Link
+          href="/configuracion"
+          className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-300 font-bold text-sm tracking-wide ${
+            pathname === '/configuracion'
+              ? 'bg-white/10 text-[var(--text-main)]'
+              : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white/5'
+          }`}
+          style={{ textDecoration: 'none' }}
+        >
+          <Settings size={20} className={pathname === '/configuracion' ? 'text-[var(--color-primary)]' : ''} />
+          Configuración
+        </Link>
       </nav>
     </aside>
   );

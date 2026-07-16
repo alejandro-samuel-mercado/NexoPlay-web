@@ -123,7 +123,7 @@ export default function SeriviaHero({ content, contentList }: { content?: any, c
     const getPoster = (item: any) => resolveImageUrl(item?.thumbnails?.find((t: any) => t.type === 'BACKDROP')?.url || item?.thumbnails?.find((t: any) => t.type === 'POSTER')?.url);
 
     return (
-        <div className="relative w-full h-[60vh] md:h-[70vh] mb-8 flex items-center perspective-1000 group">
+        <div className="serivia-hero-root relative w-full h-[60vh] md:h-[70vh] mb-8 flex items-center perspective-1000 group">
             {heroList.map((item, idx) => {
                 const diff = (idx - activeIndex + heroList.length) % heroList.length;
                 
@@ -180,8 +180,16 @@ export default function SeriviaHero({ content, contentList }: { content?: any, c
                                 <h1 className="serivia-hero-title">
                                     {item.translations?.[0]?.title || item.title || item.slug || 'Título Desconocido'}
                                 </h1>
-                                
-                                <p className="text-gray-400 font-medium mb-8">Ver tráiler 2:30</p>
+                                {item.translations?.[0]?.description || item.description ? (
+                                     <p className="text-gray-400 font-normal mb-8 text-sm md:text-base leading-relaxed max-w-xl" style={{
+                                         display: '-webkit-box',
+                                         WebkitLineClamp: 3,
+                                         WebkitBoxOrient: 'vertical',
+                                         overflow: 'hidden'
+                                     }}>
+                                         {item.translations?.[0]?.description || item.description}
+                                     </p>
+                                 ) : null}
 
                                 <div className="flex items-center gap-4">
                                     <Link href={`/contenido/${item.slug}`} className="serivia-btn-play bg-white text-black hover:bg-gray-200" onClick={(e) => diff !== 0 && e.preventDefault()}>
