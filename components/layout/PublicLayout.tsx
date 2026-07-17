@@ -8,7 +8,15 @@ import PublicSidebar from './PublicSidebar';
 import PublicTopBar from './PublicTopBar';
 import MobileBottomNav from './MobileBottomNav';
 
-export default function PublicLayout({ children }: { children: React.ReactNode }) {
+export default function PublicLayout({ 
+  children, 
+  hideSidebar = false,
+  hideTopBar = false
+}: { 
+  children: React.ReactNode; 
+  hideSidebar?: boolean;
+  hideTopBar?: boolean;
+}) {
   const { isLoggedIn, isLoading, activeProfile, profiles } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -39,13 +47,15 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   return (
     <div className="serivia-layout">
       {/* Sidebar - Desktop */}
-      <div className="hidden lg:block z-50">
-        <PublicSidebar />
-      </div>
+      {!hideSidebar && (
+        <div className="hidden lg:block z-50">
+          <PublicSidebar />
+        </div>
+      )}
 
       {/* Main Content Area */}
       <div className="serivia-main-content overflow-x-hidden">
-        <PublicTopBar />
+        {!hideTopBar && <PublicTopBar />}
         {/* pb-20 on mobile for BottomNav */}
         <main className="flex-1 pb-24 lg:pb-12">
           {children}

@@ -144,10 +144,10 @@ export default function PublicTopBar() {
       {/* Left side: Category Dropdown */}
       {pathname !== '/explorar' && (
         <div className="flex items-center gap-6 shrink-0 relative z-50">
-          <div className="w-48">
+          <div className="w-34">
               <CustomSelect 
                   options={[
-                      { id: '/explorar', name: 'Explorar Todo', icon: <Search size={16} /> },
+                      { id: '/explorar', name: 'Explorar' },
                       ...CONTENT_TYPES_LIST.map(t => ({
                           id: `/explorar?type=${t}`,
                           name: getContentTypeLabel(t),
@@ -156,39 +156,42 @@ export default function PublicTopBar() {
                   ]}
                   value="/explorar"
                   onChange={(val) => val && router.push(val)}
-                  placeholder="Explorar Todo"
+                  placeholder="Explorar"
               />
           </div>
         </div>
       )}
 
       {/* Center: Search */}
-      <div className="topbar-search hidden md:block w-full max-w-xl mx-8">
-        <div className="relative">
-            <button 
-                onClick={handleSearchSubmit}
-                className="absolute left-4 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-[var(--text-main)] transition z-10"
-                title="Buscar"
-            >
-                <Search size={18} />
-            </button>
-            <input 
-                ref={inputRef}
-                type="text" 
-                placeholder="Películas, series, shows..." 
-                value={inputValue}
-                onChange={handleSearchChange}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleSearchSubmit();
-                }}
-                className="w-full bg-[var(--bg-panel)] rounded-full py-3.5 pl-12 pr-6 text-sm placeholder-gray-500 focus:outline-none transition-all shadow-inner"
-                style={{
-                    border: isScrolled ? '1px solid rgba(255,255,255,0.4)' : '1px solid var(--border-subtle)',
-                    color: isScrolled ? '#ffffff' : 'var(--text-main)',
-                }}
-            />
-        </div>
-      </div>
+      {!pathname.startsWith('/film') && (
+          <div className="topbar-search hidden md:block w-full max-w-xl mx-8">
+            <div className="relative">
+                <button 
+                    onClick={handleSearchSubmit}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-[var(--text-main)] transition z-10"
+                    title="Buscar"
+                >
+                    <Search size={18} />
+                </button>
+                <input 
+                    ref={inputRef}
+                    type="text" 
+                    placeholder="Películas, series, shows..." 
+                    value={inputValue}
+                    onChange={handleSearchChange}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSearchSubmit();
+                    }}
+                    className="w-full bg-[var(--bg-panel)] rounded-full py-3.5 pl-12 pr-6 text-sm placeholder-gray-500 focus:outline-none transition-all shadow-inner"
+                    style={{
+                        border: theme === 'dark' ? '2px solid rgba(255,255,255,0.5)' : (isScrolled ? '1px solid rgba(255,255,255,0.4)' : '1px solid var(--border-subtle)'),
+                        color: theme === 'dark' ? '#ffffff' : (isScrolled ? '#ffffff' : 'var(--text-main)'),
+                        fontWeight: theme === 'dark' ? '600' : 'normal',
+                    }}
+                />
+            </div>
+          </div>
+      )}
 
       {/* Right side: Theme & Profile */}
       <div className="flex items-center gap-5">
