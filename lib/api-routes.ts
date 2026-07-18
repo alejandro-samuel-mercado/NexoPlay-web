@@ -73,9 +73,9 @@ export const API_ROUTES = {
         REQUEST_ACCESS: `${API_BASE_URL}/stream/request-access`,
     },
     FAVORITES: {
-        BASE: `${API_BASE_URL}/favorites`,
-        LIST: `${API_BASE_URL}/favorites`,
-        TOGGLE: `${API_BASE_URL}/favorites/toggle`,
+        BASE: `${API_BASE_URL}/mylist`,
+        LIST: `${API_BASE_URL}/mylist`,
+        TOGGLE: `${API_BASE_URL}/mylist/toggle`,
     },
     LIKES: {
         BASE: `${API_BASE_URL}/likes`,
@@ -173,11 +173,26 @@ export const API_ROUTES = {
     TOKENS: {
         BASE: `${API_BASE_URL}/tokens`,
         WALLET: `${API_BASE_URL}/tokens/wallet`,
+        HISTORY: `${API_BASE_URL}/tokens/history`,
+        PACKAGES: `${API_BASE_URL}/tokens/packages`,
+        PLANS: `${API_BASE_URL}/tokens/plans`,
+        BUY_SUBSCRIPTION: `${API_BASE_URL}/tokens/buy-subscription`,
+        WEEKLY_PACK: `${API_BASE_URL}/tokens/weekly-pack`,
+        REWARD_WATCH: `${API_BASE_URL}/tokens/reward/watch`,
+        ADMIN_GRANT: `${API_BASE_URL}/tokens/admin/grant`,
+        ADMIN_PACKAGES: `${API_BASE_URL}/tokens/admin/packages`,
+        ADMIN_WEEKLY_PACK: `${API_BASE_URL}/tokens/admin/weekly-pack`,
     },
     DOWNLOADS: {
         BASE: `${API_BASE_URL}/downloads`,
         HISTORY: `${API_BASE_URL}/downloads/history`,
         LIBRARY: `${API_BASE_URL}/downloads/library`,
+        DOWNLOAD: (contentId: string) => `${API_BASE_URL}/downloads/content/${contentId}`,
+    },
+    RESELLER_DASHBOARD: {
+        STATS: `${API_BASE_URL}/reseller/stats`,
+        BUY_LIMITS: `${API_BASE_URL}/reseller/buy-limits`,
+        WEEKLY_PACK: `${API_BASE_URL}/reseller/pack/weekly`,
     }
 } as const;
 

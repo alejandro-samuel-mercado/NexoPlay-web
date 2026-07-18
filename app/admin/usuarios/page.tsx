@@ -201,7 +201,7 @@ export default function UsuariosAdminPage() {
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors mb-6">
               <option value="" className="bg-black">Ninguno (Remover)</option>
               {plans.map(p => (
-                <option key={p.id} value={p.id} className="bg-black">{p.name}</option>
+                <option key={p.id} value={p.id} className="bg-black">{p.name} ({p.role} - {p.tier})</option>
               ))}
             </select>
 

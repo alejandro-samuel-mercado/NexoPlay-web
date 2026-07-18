@@ -1,44 +1,79 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
-import { API_ROUTES } from '@/lib/api-routes';
+import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
 import { userFetch } from '@/lib/api-client';
 import { useState, useEffect } from 'react';
 import PublicLayout from '@/components/layout/PublicLayout';
-import { Wallet, Download, Clock, Play, Lock, ChevronRight, Coins } from 'lucide-react';
+import { Wallet, Download, Play, Lock, ChevronRight, Coins, Clock, Trash2, Heart } from 'lucide-react';
 import Link from 'next/link';
-import { resolveImageUrl } from '@/lib/api-routes';
 
 export default function B2CPanelPage() {
     const { user } = useAuth();
     
     const [wallet, setWallet] = useState<{ balance: number, recentTransactions: any[] } | null>(null);
     const [downloads, setDownloads] = useState<any[]>([]);
+    const [history, setHistory] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+    const fetchData = async () => {
         if (!user) return;
-        
-        const fetchData = async () => {
-            try {
-                // Fetch Wallet
-                const resWallet = await userFetch(API_ROUTES.TOKENS.WALLET);
-                const jsonWallet = await resWallet.json();
-                if (jsonWallet.success) setWallet(jsonWallet.data);
+        try {
+            // Fetch Wallet
+            const resWallet = await userFetch(API_ROUTES.TOKENS.WALLET);
+            const jsonWallet = await resWallet.json();
+            if (jsonWallet.success) setWallet(jsonWallet.data);
 
-                // Fetch Downloads History
-                const resDownloads = await userFetch(`${API_ROUTES.DOWNLOADS.HISTORY}?limit=10`);
-                const jsonDownloads = await resDownloads.json();
-                if (jsonDownloads.success) setDownloads(jsonDownloads.data || []);
-            } catch (error) {
-                console.error("Error loading panel data:", error);
-            } finally {
-                setLoading(false);
+            // Fetch Downloads History
+            const resDownloads = await userFetch(`${API_ROUTES.DOWNLOADS.HISTORY}?limit=10`);
+            const jsonDownloads = await resDownloads.json();
+            if (jsonDownloads.success) {
+                const rawDownloads = jsonDownloads.data || [];
+                const uniqueDownloads = Array.from(new Map(rawDownloads.map((item: any) => [item.slug, item])).values());
+                setDownloads(uniqueDownloads as any[]);
             }
-        };
 
+            const profileId = localStorage.getItem('nexo_active_profile_id');
+            const accessToken = localStorage.getItem('accessToken');
+            
+            if (profileId && accessToken) {
+                // Fetch History
+                const resHist = await userFetch(API_ROUTES.HISTORY.BASE, {
+                    headers: { 'X-Profile-Id': profileId }
+                });
+                const jsonHist = await resHist.json();
+                if (jsonHist.data) setHistory(jsonHist.data);
+            }
+        } catch (error) {
+            console.error("Error loading panel data:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchData();
     }, [user]);
+
+    const handleDeleteHistory = async (e: React.MouseEvent, contentId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const profileId = localStorage.getItem('nexo_active_profile_id');
+        if (!profileId) return;
+
+        setHistory(prev => prev.filter(item => item.content?.id !== contentId));
+        try {
+            await userFetch(`${API_ROUTES.HISTORY.BASE}/${contentId}`, {
+                method: 'DELETE',
+                headers: { 'X-Profile-Id': profileId }
+            });
+        } catch (err) {
+            console.error(err);
+            fetchData();
+        }
+    };
+
+
 
     if (!user) {
         return (
@@ -52,6 +87,8 @@ export default function B2CPanelPage() {
         );
     }
 
+    const isSubscriber = user.role === 'SUBSCRIBER';
+
     return (
         <PublicLayout>
             <div className="page-container max-w-5xl mx-auto py-10">
@@ -60,11 +97,8 @@ export default function B2CPanelPage() {
                         <h1 className="text-3xl font-black text-[var(--text-main)] mb-2 flex items-center gap-3">
                             <Wallet size={32} className="text-[var(--color-primary)]" /> Panel de Cuenta
                         </h1>
-                        <p className="text-[var(--text-muted)]">Administra tus tokens, descargas y beneficios de suscriptor.</p>
+                        <p className="text-[var(--text-muted)]">Administra tus tokens, descargas y beneficios.</p>
                     </div>
-                    <Link href="/historial" className="flex items-center justify-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all font-bold text-sm shadow-sm backdrop-blur-md">
-                        <Clock size={18} className="text-[var(--color-primary)]" /> Historial de Visualización
-                    </Link>
                 </div>
 
                 {loading ? (
@@ -72,115 +106,110 @@ export default function B2CPanelPage() {
                         <div className="w-8 h-8 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin"></div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        
-                        {/* ─── LEFT COLUMN (Tokens) ─── */}
-                        <div className="lg:col-span-1 flex flex-col gap-6">
-                            
-                            {/* Wallet Balance */}
-                            <section className="rounded-2xl border border-[var(--border-subtle)] overflow-hidden flex flex-col"
-                                style={{ background: 'var(--bg-panel)', backdropFilter: 'blur(20px)' }}>
-                                <div className="p-6 bg-gradient-to-br from-[var(--color-primary)]/10 to-transparent">
-                                    <div className="flex items-center gap-2 text-[var(--color-primary)] font-bold mb-4 uppercase tracking-wider text-xs">
-                                        <Coins size={16} /> Billetera de Tokens
+                    <div className="flex flex-col gap-10">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* ─── LEFT COLUMN (Tokens) ─── */}
+                            <div className="lg:col-span-1 flex flex-col gap-6">
+                                {/* Wallet Balance */}
+                                <section className="rounded-2xl border border-[var(--border-subtle)] overflow-hidden flex flex-col"
+                                    style={{ background: 'var(--bg-panel)', backdropFilter: 'blur(20px)' }}>
+                                    <div className="p-6 bg-gradient-to-br from-[var(--color-primary)]/10 to-transparent">
+                                        <div className="flex items-center gap-2 text-[var(--color-primary)] font-bold mb-4 uppercase tracking-wider text-xs">
+                                            <Coins size={16} /> Billetera de Tokens
+                                        </div>
+                                        <h2 className="text-5xl font-black text-[var(--text-main)] drop-shadow-md flex items-end gap-2">
+                                            {wallet?.balance || 0} <span className="text-sm font-bold text-[var(--text-muted)] mb-2 uppercase">Tokens</span>
+                                        </h2>
+                                        <p className="text-xs text-[var(--text-muted)] mt-2">Gana 1 Token por cada hora que veas contenido en NexoPlay.</p>
                                     </div>
-                                    <h2 className="text-5xl font-black text-[var(--text-main)] drop-shadow-md flex items-end gap-2">
-                                        {wallet?.balance || 0} <span className="text-sm font-bold text-[var(--text-muted)] mb-2 uppercase">Tokens</span>
-                                    </h2>
-                                    <p className="text-xs text-[var(--text-muted)] mt-2">Gana 1 Token por cada hora que veas contenido en NexoPlay.</p>
+                                </section>
+                            </div>
+
+                            {/* ─── RIGHT COLUMN (Downloads / Guardados) ─── */}
+                            <div className="lg:col-span-2 flex flex-col gap-6">
+                                <section className="rounded-2xl border border-[var(--border-subtle)] overflow-hidden h-full flex flex-col"
+                                    style={{ background: 'var(--bg-panel)', backdropFilter: 'blur(20px)' }}>
+                                    <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center gap-3">
+                                        <Download size={18} className="text-[var(--color-primary)]" />
+                                        <h2 className="font-bold text-[var(--text-main)]">
+                                            {isSubscriber ? "Guardado para ver sin conexión" : "Mis Descargas B2B (Historial)"}
+                                        </h2>
+                                    </div>
                                     
-                                    <div className="mt-6">
-                                        <div className="w-full h-2 bg-[var(--bg-main)] rounded-full overflow-hidden border border-[var(--border-subtle)]">
-                                            <div className="h-full bg-[var(--color-primary)] transition-all duration-1000" style={{ width: `${Math.min(((wallet?.balance || 0) / 1000) * 100, 100)}%` }}></div>
-                                        </div>
-                                        <p className="text-xs text-[var(--text-muted)] mt-2 text-center">
-                                            {wallet?.balance || 0} / 1000 para <strong className="text-[var(--color-primary)]">1 mes Gratis</strong>
-                                        </p>
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* Recent Transactions */}
-                            <section className="rounded-2xl border border-[var(--border-subtle)] overflow-hidden"
-                                style={{ background: 'var(--bg-panel)', backdropFilter: 'blur(20px)' }}>
-                                <div className="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
-                                    <h3 className="font-bold text-[var(--text-main)] text-sm">Transacciones</h3>
-                                </div>
-                                <div className="p-0">
-                                    {wallet?.recentTransactions && wallet.recentTransactions.length > 0 ? (
-                                        <div className="flex flex-col">
-                                            {wallet.recentTransactions.slice(0, 5).map((tx, idx) => (
-                                                <div key={idx} className="flex items-center justify-between px-5 py-3 border-b border-[var(--border-subtle)] last:border-0">
-                                                    <div>
-                                                        <p className="text-sm font-semibold text-[var(--text-main)]">{tx.type === 'EARNED_WATCHTIME' ? 'Ganado por ver contenido' : tx.type}</p>
-                                                        <p className="text-xs text-[var(--text-muted)]">{new Date(tx.createdAt).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
-                                                    </div>
-                                                    <span className={`font-bold ${tx.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                                        {tx.amount > 0 ? '+' : ''}{tx.amount}
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="px-5 py-8 text-center text-sm text-[var(--text-muted)]">
-                                            Aún no tienes movimientos.
-                                        </div>
-                                    )}
-                                </div>
-                            </section>
-                        </div>
-
-                        {/* ─── RIGHT COLUMN (Downloads) ─── */}
-                        <div className="lg:col-span-2 flex flex-col gap-6">
-                            <section className="rounded-2xl border border-[var(--border-subtle)] overflow-hidden h-full flex flex-col"
-                                style={{ background: 'var(--bg-panel)', backdropFilter: 'blur(20px)' }}>
-                                <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center gap-3">
-                                    <Download size={18} className="text-emerald-400" />
-                                    <h2 className="font-bold text-[var(--text-main)]">Mis Descargas (Historial)</h2>
-                                </div>
-                                
-                                <div className="p-0 flex-1">
-                                    {downloads && downloads.length > 0 ? (
-                                        <div className="flex flex-col">
-                                            {downloads.map((dl, idx) => (
-                                                <Link href={`/film/${dl.slug}`} key={idx} className="flex items-center gap-4 px-6 py-4 border-b border-[var(--border-subtle)] last:border-0 hover:bg-white/5 transition group">
-                                                    <div className="w-12 h-16 bg-[var(--bg-main)] rounded-md overflow-hidden shrink-0 border border-[var(--border-strong)] relative">
-                                                        {dl.posterUrl ? (
-                                                            <img src={resolveImageUrl(dl.posterUrl)} className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)]">
-                                                                <Play size={16} />
+                                    <div className="p-0 flex-1">
+                                        {downloads && downloads.length > 0 ? (
+                                            <div className="flex flex-col">
+                                                {downloads.map((dl, idx) => (
+                                                    <div key={idx} className="flex items-center gap-4 px-6 py-4 border-b border-[var(--border-subtle)] last:border-0 hover:bg-white/5 transition group">
+                                                        <div className="w-12 h-16 bg-[var(--bg-main)] rounded-md overflow-hidden shrink-0 border border-[var(--border-strong)] relative">
+                                                            {dl.posterUrl ? (
+                                                                <img src={resolveImageUrl(dl.posterUrl)} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)]">
+                                                                    <Play size={16} />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <Link href={`/film/${dl.slug}`}>
+                                                                <h4 className="font-bold text-[var(--text-main)] truncate text-sm md:text-base group-hover:text-[var(--color-primary)] transition-colors">{dl.contentTitle}</h4>
+                                                            </Link>
+                                                            <div className="flex items-center gap-3 mt-1 text-xs text-[var(--text-muted)]">
+                                                                <span className="flex items-center gap-1"><Clock size={12} /> {new Date(dl.downloadedAt).toLocaleDateString()}</span>
+                                                                <span className="uppercase font-bold tracking-wide">{dl.quality || 'Auto'}</span>
                                                             </div>
+                                                        </div>
+                                                        {isSubscriber && (
+                                                            <Link href={`/film/${dl.slug}/watch`} className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-[var(--color-primary)] text-black hover:scale-110 transition-transform">
+                                                                <Play size={18} className="ml-1" />
+                                                            </Link>
                                                         )}
                                                     </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <h4 className="font-bold text-[var(--text-main)] truncate text-sm md:text-base group-hover:text-[var(--color-primary)] transition-colors">{dl.contentTitle}</h4>
-                                                        <div className="flex items-center gap-3 mt-1 text-xs text-[var(--text-muted)]">
-                                                            <span className="flex items-center gap-1"><Clock size={12} /> {new Date(dl.downloadedAt).toLocaleDateString()}</span>
-                                                            <span className="uppercase font-bold tracking-wide">{dl.quality || 'Auto'}</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="shrink-0 flex items-center gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
-                                                        <span className="hidden md:inline text-xs font-bold uppercase tracking-wider text-[var(--color-primary)]">Ver Detalle</span>
-                                                        <ChevronRight size={16} className="text-[var(--text-main)]" />
-                                                    </div>
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-col items-center justify-center h-full py-12 text-center px-4">
-                                            <div className="w-16 h-16 rounded-full bg-[var(--bg-main)] flex items-center justify-center border border-[var(--border-strong)] mb-4">
-                                                <Download size={24} className="text-[var(--text-muted)]" />
+                                                ))}
                                             </div>
-                                            <h3 className="font-bold text-[var(--text-main)] mb-2">No has descargado nada aún</h3>
-                                            <p className="text-sm text-[var(--text-muted)] max-w-sm">
-                                                Usa el botón de descargar en las películas o series para verlas sin conexión, y aparecerán en este historial.
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            </section>
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center h-full py-12 text-center px-4">
+                                                <div className="w-16 h-16 rounded-full bg-[var(--bg-main)] flex items-center justify-center border border-[var(--border-strong)] mb-4">
+                                                    <Download size={24} className="text-[var(--text-muted)]" />
+                                                </div>
+                                                <h3 className="font-bold text-[var(--text-main)] mb-2">No tienes nada guardado aún</h3>
+                                            </div>
+                                        )}
+                                    </div>
+                                </section>
+                            </div>
                         </div>
+
+                        {/* ─── HISTORY SECTION ─── */}
+                        <section className="rounded-2xl border border-[var(--border-subtle)] overflow-hidden flex flex-col"
+                            style={{ background: 'var(--bg-panel)', backdropFilter: 'blur(20px)' }}>
+                            <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center gap-3">
+                                <Clock size={18} className="text-[var(--color-primary)]" />
+                                <h2 className="font-bold text-[var(--text-main)]">Historial de Visualización</h2>
+                            </div>
+                            <div className="p-6">
+                                {history && history.length > 0 ? (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                        {history.map(item => {
+                                            const c = item.content;
+                                            const poster = c.thumbnails?.find((t: any) => t.type === 'POSTER')?.url || '';
+                                            return (
+                                                <Link href={`/film/${c.id}`} key={c.id} className="block group relative aspect-[2/3] w-full bg-[var(--bg-main)] rounded-lg overflow-hidden shadow-xl border border-[var(--border-subtle)] hover:border-[var(--color-primary)] transition-colors">
+                                                    <img src={resolveImageUrl(poster)} alt={c.translations?.[0]?.title} className="w-full h-full object-cover group-hover:brightness-110 transition" />
+                                                    <button onClick={(e) => handleDeleteHistory(e, c.id)} className="absolute top-2 right-2 p-2 bg-black/60 rounded-full text-white/50 hover:text-red-500 hover:bg-black/80 transition-all opacity-0 group-hover:opacity-100">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-[var(--text-muted)]">No hay historial de visualización reciente.</p>
+                                )}
+                            </div>
+                        </section>
+
+
 
                     </div>
                 )}

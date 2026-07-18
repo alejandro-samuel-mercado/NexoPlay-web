@@ -14,11 +14,11 @@ export default function FavoritosPage() {
 
     useEffect(() => {
         const fetchFavorites = async () => {
-            const accessToken = localStorage.getItem('accessToken');
+            const accessToken = localStorage.getItem('nexo_access_token');
             const profileId = localStorage.getItem('nexo_active_profile_id');
             if (!accessToken || !profileId) {
                 // If not logged in, fetch from localStorage
-                const localFavorites = JSON.parse(localStorage.getItem('localFavorites') || '[]');
+                const localFavorites = JSON.parse(localStorage.getItem('local_favorites') || '[]');
                 if (localFavorites.length === 0) {
                     setLoading(false);
                     return;
@@ -47,7 +47,7 @@ export default function FavoritosPage() {
                 });
                 const resJson = await res.json();
                 if (resJson.success && resJson.data) {
-                    setFavorites(resJson.data.data || []);
+                    setFavorites(resJson.data || []);
                 }
             } catch (e) {
                 console.error(e);

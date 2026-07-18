@@ -27,13 +27,14 @@ interface VideoPlayerProps {
     onEpisodeSelect?: (episodeId: string) => void;
     onBack?: () => void;
     currentEpisodeId?: string;
+    showAds?: boolean;
 }
 
 export default function VideoPlayer({
     src, title, poster, initialTime = 0, externalSubtitles = [],
     onProgressUpdate, onEnded, onNextEpisode, onPrevEpisode,
     hasNextEpisode, hasPrevEpisode, onShowEpisodes,
-    episodes = [], onEpisodeSelect, onBack, currentEpisodeId
+    episodes = [], onEpisodeSelect, onBack, currentEpisodeId, showAds = false
 }: VideoPlayerProps) {
     const router = useRouter();
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -73,6 +74,28 @@ export default function VideoPlayer({
     const [isBuffering, setIsBuffering] = useState(true);
     const [showLoading, setShowLoading] = useState(true);
     const [loadingStats, setLoadingStats] = useState({ loaded: 0, total: 0, speed: 0 });
+
+    // Ads State
+    const [isPreRollAdPlaying, setIsPreRollAdPlaying] = useState(showAds);
+    const [preRollTimeLeft, setPreRollTimeLeft] = useState(5);
+    
+    // Countdown for pre-roll
+    useEffect(() => {
+        if (!isPreRollAdPlaying) return;
+        const timer = setInterval(() => {
+            setPreRollTimeLeft((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timer);
+                    setIsPreRollAdPlaying(false);
+                    // Start video once ad is done
+                    videoRef.current?.play().catch(() => {});
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [isPreRollAdPlaying]);
 
     useEffect(() => {
         const acquireWakeLock = async () => {
@@ -358,7 +381,7 @@ export default function VideoPlayer({
             <video
                 ref={videoRef}
                 poster={poster}
-                autoPlay
+                autoPlay={!showAds}
                 crossOrigin="anonymous"
                 className="w-full h-full object-contain pointer-events-none"
                 onTimeUpdate={handleTimeUpdate}
@@ -369,10 +392,49 @@ export default function VideoPlayer({
                 onPlaying={() => setIsBuffering(false)}
                 onCanPlay={() => {
                     setIsBuffering(false);
-                    videoRef.current?.play().catch(() => { }); // Try to force play if autoplay blocked
+                    if (!isPreRollAdPlaying) {
+                        videoRef.current?.play().catch(() => { }); // Try to force play if autoplay blocked
+                    }
                 }}
                 onLoadedData={() => setIsBuffering(false)}
             />
+
+            {/* PRE-ROLL AD */}
+            {isPreRollAdPlaying && (
+                <div className="absolute inset-0 bg-black/90 z-[300] flex flex-col items-center justify-center">
+                    <div className="max-w-2xl text-center flex flex-col items-center">
+                        <span className="text-[10px] font-black uppercase tracking-[4px] text-yellow-500 mb-4 block">Publicidad</span>
+                        <h2 className="text-3xl md:text-5xl font-black text-white italic tracking-tighter mb-4">
+                            Nexoplay Patrocinado
+                        </h2>
+                        <p className="text-white/60 mb-8 max-w-lg mx-auto">
+                            Estás usando el plan Básico o sin suscripción. Disfruta de esta breve publicidad antes de tu contenido. Para quitar los anuncios, actualiza a nuestro plan Premium.
+                        </p>
+                        
+                        <div className="w-16 h-16 rounded-full border-4 border-yellow-500 flex items-center justify-center mb-8">
+                            <span className="text-2xl font-black text-yellow-500">{preRollTimeLeft}</span>
+                        </div>
+                    </div>
+                    {preRollTimeLeft === 0 && (
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); setIsPreRollAdPlaying(false); videoRef.current?.play().catch(()=>{}); }}
+                            className="mt-4 px-8 py-3 bg-white text-black font-bold rounded-full hover:scale-105 transition-transform"
+                        >
+                            Saltar Anuncio
+                        </button>
+                    )}
+                </div>
+            )}
+
+            {/* BANNER AD (Shown during playback if showAds is true) */}
+            {showAds && !isPreRollAdPlaying && (
+                <div className={`absolute bottom-32 left-1/2 -translate-x-1/2 z-[90] transition-opacity duration-500 ${isControlsVisible && !isLocked ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                    <div className="bg-black/60 backdrop-blur-xl border border-yellow-500/30 px-6 py-2 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-black/80 transition-colors">
+                        <span className="bg-yellow-500 text-black text-[10px] font-black uppercase px-2 py-0.5 rounded">Ad</span>
+                        <span className="text-white/80 text-xs md:text-sm">¿Quieres ver sin publicidad? ¡Actualiza a Premium hoy mismo!</span>
+                    </div>
+                </div>
+            )}
 
 
 

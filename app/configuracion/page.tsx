@@ -12,6 +12,25 @@ export default function ConfiguracionPage() {
     const [saving, setSaving] = useState(false);
     const [msg, setMsg] = useState('');
     const [form, setForm] = useState({ name: user?.name || '', email: user?.email || '', currentPassword: '', newPassword: '' });
+    
+    // Usage state
+    const [usage, setUsage] = useState<any>(null);
+    const [loadingUsage, setLoadingUsage] = useState(true);
+
+    // Fetch usage
+    useState(() => {
+        if (!user) return;
+        const token = localStorage.getItem('accessToken');
+        fetch(API_ROUTES.TOKENS.BASE + '/subscriptions/my-usage', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(r => r.json())
+        .then(j => {
+            if (j.success) setUsage(j.data);
+            setLoadingUsage(false);
+        })
+        .catch(() => setLoadingUsage(false));
+    });
 
     const handleSaveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -61,24 +80,56 @@ export default function ConfiguracionPage() {
                         style={{ background: 'var(--bg-panel)', backdropFilter: 'blur(20px)' }}>
                         <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center gap-3">
                             <Star size={18} className="text-[var(--color-primary)]" />
-                            <h2 className="font-bold text-[var(--text-main)]">Mi Suscripción</h2>
+                            <h2 className="font-bold text-[var(--text-main)]">Mi Suscripción y Uso</h2>
                         </div>
-                        <div className="px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                            {user.subscription ? (
-                                <div>
-                                    <h3 className="text-xl font-black text-[var(--color-primary)] mb-1 uppercase tracking-wide">
-                                        Plan {user.subscription.plan?.name || 'Básico'}
-                                    </h3>
-                                    <p className="text-sm text-[var(--text-muted)]">
-                                        Estado: <span className={`font-bold ${user.subscription.status === 'ACTIVE' ? 'text-green-400' : 'text-red-400'}`}>
-                                            {user.subscription.status === 'ACTIVE' ? 'Activo' : 'Vencido/Inactivo'}
-                                        </span>
-                                    </p>
-                                    <p className="text-sm text-[var(--text-muted)]">
-                                        Próximo pago / Vencimiento: <span className="font-bold text-[var(--text-main)]">
-                                            {new Date(user.subscription.expiresAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
-                                        </span>
-                                    </p>
+                        <div className="px-6 py-5 flex flex-col gap-6">
+                            {loadingUsage ? (
+                                <p className="text-[var(--text-muted)] animate-pulse">Cargando...</p>
+                            ) : usage?.subscription ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <h3 className="text-xl font-black text-[var(--color-primary)] mb-1 uppercase tracking-wide">
+                                            Plan {usage.subscription.planName}
+                                        </h3>
+                                        <p className="text-sm text-[var(--text-muted)]">
+                                            Rol: <span className="font-bold">{usage.subscription.role}</span> | Nivel: <span className="font-bold">{usage.subscription.tier}</span>
+                                        </p>
+                                        <p className="text-sm text-[var(--text-muted)] mt-2">
+                                            Estado: <span className={`font-bold ${usage.subscription.status === 'ACTIVE' ? 'text-green-400' : 'text-yellow-400'}`}>
+                                                {usage.subscription.status === 'ACTIVE' ? 'Activo' : usage.subscription.status}
+                                            </span>
+                                        </p>
+                                        <p className="text-sm text-[var(--text-muted)]">
+                                            Vence: <span className="font-bold text-[var(--text-main)]">
+                                                {new Date(usage.subscription.expiresAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
+                                            </span>
+                                            {' '}({usage.subscription.daysRemaining} días restantes)
+                                        </p>
+                                    </div>
+                                    <div className="bg-black/20 p-4 rounded-xl border border-white/5 flex flex-col gap-2">
+                                        <h4 className="font-bold text-sm text-[var(--text-main)] mb-1 border-b border-white/10 pb-1">Uso de Límites</h4>
+                                        
+                                        {usage.subscription.role === 'SUBSCRIBER' && (
+                                            <div className="flex justify-between items-center text-sm">
+                                                <span className="text-[var(--text-muted)]">Offline Semanal:</span>
+                                                <span className="font-black text-[var(--color-primary)]">{usage.weeklyOfflineUsed} / {usage.weeklyOfflineLimit}</span>
+                                            </div>
+                                        )}
+                                        
+                                        {usage.subscription.role === 'RESELLER' && (
+                                            <div className="flex justify-between items-center text-sm">
+                                                <span className="text-[var(--text-muted)]">Descargas Diarias:</span>
+                                                <span className="font-black text-[var(--color-primary)]">
+                                                    {usage.unlimitedDownloads ? 'Ilimitadas' : `${usage.dailyDownloadUsed} / ${usage.dailyDownloadLimit}`}
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-[var(--text-muted)]">Publicidad:</span>
+                                            <span className="font-bold">{usage.showAds ? 'Sí' : 'No'}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             ) : (
                                 <div>
@@ -86,7 +137,6 @@ export default function ConfiguracionPage() {
                                     <p className="text-sm text-[var(--text-muted)]">Actualmente no cuentas con un plan de pago.</p>
                                 </div>
                             )}
-                       
                         </div>
                     </section>
 

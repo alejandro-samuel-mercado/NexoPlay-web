@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { userFetch } from '@/lib/api-client';
 import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
 import { getContentTypeLabel } from '@/lib/content-types';
-import { ArrowLeft, Check, ChevronDown, Download, MonitorPlay, Play, Plus, Star, Tag } from 'lucide-react';
+import { ArrowLeft, Check, ChevronDown, Download, MonitorPlay, Play, Plus, Star, Tag, Heart } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -41,7 +41,7 @@ export default function FilmDetailPage() {
     useEffect(() => {
         if (!authUser) return;
         const syncProfileId = async () => {
-            const token = localStorage.getItem('accessToken');
+            const token = localStorage.getItem('nexo_access_token');
             if (!token) return;
             try {
                 const res = await userFetch(API_ROUTES.PROFILES.LIST, {
@@ -71,16 +71,16 @@ export default function FilmDetailPage() {
 
         // 2. Check API if logged in
         if (!authUser) return;
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem('nexo_access_token');
         const profileId = localStorage.getItem('nexo_active_profile_id');
         if (!token || !profileId) return;
 
         const checkData = async () => {
             try {
-                const favRes = await userFetch(`${API_ROUTES.FAVORITES.BASE}/check/${content.id}`);
+                const favRes = await userFetch(`${API_ROUTES.FAVORITES.BASE}/${content.id}/check`);
                 const favJson = await favRes.json();
                 
-                if (favJson.success && !favToggledRef.current) setIsFavorited(favJson.data.isFavorited);
+                if (favJson.success && !favToggledRef.current) setIsFavorited(favJson.data.inList);
             } catch (err) { console.error(err); }
         };
         checkData();
@@ -131,7 +131,7 @@ export default function FilmDetailPage() {
         const prev = isFavorited;
         setIsFavorited(!prev);
 
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem('nexo_access_token');
         const profileId = localStorage.getItem('nexo_active_profile_id');
         
         // If guest, save in local storage
@@ -150,7 +150,7 @@ export default function FilmDetailPage() {
 
         try {
             const method = prev ? 'DELETE' : 'POST';
-            const res = await userFetch(`${API_ROUTES.HISTORY.BASE.replace('/history', '/mylist')}/${content?.id}`, {
+            const res = await userFetch(`${API_ROUTES.FAVORITES.BASE}/${content?.id}`, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
             });
@@ -299,39 +299,47 @@ export default function FilmDetailPage() {
 
                         {/* Actions */}
                         <div className="flex flex-wrap items-center gap-3 mt-2">
-                            {canPlay ? (
-                                <Link href={`/film/${id}/watch`} className="serivia-btn-play bg-white text-black hover:bg-gray-200 shadow-xl px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-transform hover:scale-105 text-sm md:text-base">
-                                    <div className="w-6 h-6 rounded-full bg-black flex items-center justify-center">
-                                        <Play size={14} className="text-white fill-white ml-0.5" />
-                                    </div>
-                                    <span className="tracking-wide">REPRODUCIR</span>
-                                </Link>
-                            ) : (
-                                <button disabled className="serivia-btn-play bg-white/10 text-white/50 border border-white/20 shadow-xl px-6 py-3 rounded-full font-bold cursor-not-allowed tracking-wide text-sm md:text-base">
-                                    PRÓXIMAMENTE
-                                </button>
-                            )}
+                            {authUser ? (
+                                <>
+                                    {canPlay ? (
+                                        <Link href={`/film/${id}/watch`} className="serivia-btn-play bg-white text-black hover:bg-gray-200 shadow-xl px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-transform hover:scale-105 text-sm md:text-base">
+                                            <div className="w-6 h-6 rounded-full bg-black flex items-center justify-center">
+                                                <Play size={14} className="text-white fill-white ml-0.5" />
+                                            </div>
+                                            <span className="tracking-wide">REPRODUCIR</span>
+                                        </Link>
+                                    ) : (
+                                        <button disabled className="serivia-btn-play bg-white/10 text-white/50 border border-white/20 shadow-xl px-6 py-3 rounded-full font-bold cursor-not-allowed tracking-wide text-sm md:text-base">
+                                            PRÓXIMAMENTE
+                                        </button>
+                                    )}
 
+                                    {isReseller && !isSeries && content.downloadAllowed && (
+                                        <button onClick={handleDownload} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
+                                            <Download size={18} /> {isDownloading ? 'Iniciando...' : 'Descargar MP4'}
+                                        </button>
+                                    )}
+
+                                    {!isReseller && !isSeries && (
+                                        <button onClick={handleDownload} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
+                                            <Download size={18} /> {isDownloading ? 'Iniciando...' : 'Descargar Offline'}
+                                        </button>
+                                    )}
+                                </>
+                            ) : (
+                                <Link href="/login" className="serivia-btn-play bg-[var(--color-primary)] text-black hover:bg-[var(--color-primary)]/80 shadow-xl px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-transform hover:scale-105 text-sm md:text-base">
+                                    <Star size={18} className="fill-black" />
+                                    <span className="tracking-wide">SUSCRIBIRSE</span>
+                                </Link>
+                            )}
                             {content.trailerUrl && (
                                 <button onClick={() => setIsTrailerOpen(true)} className="px-6 py-3 rounded-full border border-white/20 bg-white/10 text-white font-bold hover:bg-white/20 flex items-center gap-2 transition-all text-sm md:text-base">
                                     <MonitorPlay size={18} /> Tráiler
                                 </button>
                             )}
                             
-                            {isReseller && !isSeries && content.downloadAllowed && (
-                                <button onClick={handleDownload} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
-                                    <Download size={18} /> {isDownloading ? 'Iniciando...' : 'Descargar MP4'}
-                                </button>
-                            )}
-
-                            {!isReseller && !isSeries && (
-                                <button onClick={handleDownload} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
-                                    <Download size={18} /> {isDownloading ? 'Iniciando...' : 'Descargar Offline'}
-                                </button>
-                            )}
-                            
                             <button onClick={handleToggleFavorite} className="w-12 h-12 rounded-full border border-[var(--border-strong)] bg-[var(--bg-panel)] flex items-center justify-center text-[var(--text-main)] hover:bg-[var(--bg-hover-strong)] transition ml-auto md:ml-3">
-                                {isFavorited ? <Check size={20} className="text-[var(--color-primary)]" /> : <Plus size={20} />}
+                                <Heart size={20} className={isFavorited ? "text-[var(--color-primary)] fill-[var(--color-primary)]" : ""} />
                             </button>
                         </div>
                     </div>
@@ -484,25 +492,35 @@ export default function FilmDetailPage() {
                                             )}
                                             
                                             <div className="flex items-center justify-between mt-auto pt-2 border-t border-[var(--border-subtle)]">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-3 py-1.5 rounded-full hover:bg-[var(--color-primary)]/20 transition-colors">
-                                                        <Play size={14} fill="currentColor" /> Reproducir
-                                                    </div>
-                                                    {ep.duration && (
-                                                        <span className="text-[10px] text-[var(--text-muted)] font-medium">
-                                                            {Math.floor(ep.duration/60)}m
+                                                {authUser ? (
+                                                    <>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-3 py-1.5 rounded-full hover:bg-[var(--color-primary)]/20 transition-colors">
+                                                                <Play size={14} fill="currentColor" /> Reproducir
+                                                            </div>
+                                                            {ep.duration && (
+                                                                <span className="text-[10px] text-[var(--text-muted)] font-medium">
+                                                                    {Math.floor(ep.duration/60)}m
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        
+                                                        {epReady && (
+                                                            <button
+                                                                onClick={e => { e.preventDefault(); e.stopPropagation(); handleEpisodeDownload(ep, epTitle); }}
+                                                                title={`Descargar ${epTitle}`}
+                                                                className="flex items-center justify-center p-2 rounded-full bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 transition-all border border-emerald-500/20"
+                                                            >
+                                                                <Download size={16} strokeWidth={2.5} />
+                                                            </button>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <div className="flex items-center justify-center w-full">
+                                                        <span className="text-xs font-bold text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-4 py-1.5 rounded-full uppercase tracking-wider text-center flex-1">
+                                                            Suscribirse para ver
                                                         </span>
-                                                    )}
-                                                </div>
-                                                
-                                                {epReady && (
-                                                    <button
-                                                        onClick={e => { e.preventDefault(); e.stopPropagation(); handleEpisodeDownload(ep, epTitle); }}
-                                                        title={`Descargar ${epTitle}`}
-                                                        className="flex items-center justify-center p-2 rounded-full bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 transition-all border border-emerald-500/20"
-                                                    >
-                                                        <Download size={16} strokeWidth={2.5} />
-                                                    </button>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>

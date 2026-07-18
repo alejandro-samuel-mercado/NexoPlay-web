@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Play, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
-import Link from 'next/link';
 import { userFetch } from '@/lib/api-client';
 import { API_ROUTES } from '@/lib/api-routes';
+import { ChevronLeft, ChevronRight, Heart, Play } from 'lucide-react';
+import Link from 'next/link';
+import React, { useEffect, useState } from 'react';
 
 const resolveImageUrl = (url?: string) => {
     if (!url) return null;
@@ -170,7 +170,7 @@ export default function SeriviaHero({ content, contentList }: { content?: any, c
 
                             <div className="absolute inset-0 p-8 md:p-14 flex flex-col justify-end w-full md:max-w-[70%]">
                                 <div className="flex flex-wrap items-center gap-2 mb-4">
-                                    {item.duration && <span className="serivia-badge">{Math.floor(item.duration/60)}h {item.duration%60}min</span>}
+                                 
                                     {item.genres?.[0] && <span className="serivia-badge bg-white/20 text-white">{item.genres[0].name || item.genres[0].genre?.name}</span>}
                                     {item.type && <span className="serivia-badge">{item.type === 'MOVIE' ? 'Película' : 'Serie'}</span>}
                                     {item.releaseYear && <span className="serivia-badge">{item.releaseYear}</span>}

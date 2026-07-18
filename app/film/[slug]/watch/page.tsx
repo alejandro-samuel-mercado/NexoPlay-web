@@ -36,6 +36,7 @@ export default function WatchPage() {
     const [error, setError] = useState<string | null>(null);
     const [initialTime, setInitialTime] = useState<number>(0);
     const [streamSrc, setStreamSrc] = useState<string | null>(null);
+    const [showAds, setShowAds] = useState<boolean>(false);
     const [showEpisodes, setShowEpisodes] = useState(false);
 
     // Flat list of all episodes across all seasons for prev/next navigation
@@ -86,7 +87,7 @@ export default function WatchPage() {
                     if (firstEp) {
                         firstEp.seasonNumber = data.seasons[0].number;
                         setCurrentEpisode(firstEp);
-                        router.replace(`/watch/${id}?episodeId=${firstEp.id}`, { scroll: false });
+                        router.replace(`/film/${id}/watch?episodeId=${firstEp.id}`, { scroll: false });
                     }
                 }
             } catch (err: any) {
@@ -103,9 +104,11 @@ export default function WatchPage() {
     useEffect(() => {
         if (!content) return;
 
-        const targetVideoFiles = currentEpisode ? currentEpisode.videoFiles : content.videoFiles;
-        if (!targetVideoFiles || targetVideoFiles.length === 0) {
-            if (content.type === 'MOVIE') setStreamSrc(null);
+        // Episodes might not have direct videoFiles if a fallback content videoFile exists.
+        // Let the API decide if the video is available.
+        const hasAnyVideo = (currentEpisode && currentEpisode.videoFiles?.length > 0) || (content.videoFiles?.length > 0);
+        if (!hasAnyVideo) {
+            setError('Video no disponible o no procesado.');
             return;
         }
 
@@ -119,8 +122,13 @@ export default function WatchPage() {
                     return;
                 }
 
-                const watchId = currentEpisode ? currentEpisode.id : content.id;
-                const res = await userFetch(`${API_ROUTES.CONTENT.BASE}/${watchId}/watch`, {
+                // Always use the content ID; episodeId is a query param
+                let watchUrl = `${API_ROUTES.CONTENT.BASE}/${content.id}/watch`;
+                if (currentEpisode) {
+                    watchUrl += `?episodeId=${currentEpisode.id}`;
+                }
+
+                const res = await userFetch(watchUrl, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -128,15 +136,19 @@ export default function WatchPage() {
                     }
                 });
 
-                if (!res.ok) throw new Error('No se pudo obtener acceso al video.');
+                if (!res.ok) {
+                    const errJson = await res.json().catch(() => ({}));
+                    throw new Error(errJson.error || 'No se pudo obtener acceso al video.');
+                }
                 const resJson = await res.json();
                 if (!resJson.success) throw new Error(resJson.error || 'Acceso denegado.');
 
-                const { masterPlaylist } = resJson.data;
+                const { masterPlaylist, showAds } = resJson.data;
 
                 if (!masterPlaylist) throw new Error('Video no disponible o no procesado.');
                 
                 setStreamSrc(masterPlaylist);
+                setShowAds(!!showAds);
             } catch (err: any) {
                 setError(err.message);
             }
@@ -144,6 +156,19 @@ export default function WatchPage() {
 
         requestAccess();
     }, [content, currentEpisode]);
+
+    // 3b. Reward tokens for watching (fires once when stream becomes available)
+    useEffect(() => {
+        if (!streamSrc || !content) return;
+        const token = localStorage.getItem('nexo_access_token');
+        if (!token) return;
+
+        // Fire-and-forget — don't block the UI if this fails
+        userFetch(API_ROUTES.TOKENS.REWARD_WATCH, {
+            method: 'POST',
+            body: JSON.stringify({ contentId: content.id }),
+        }).catch(() => {}); // Silently ignore errors
+    }, [streamSrc]);
 
     // 3. Restore watch progress
     useEffect(() => {
@@ -268,8 +293,8 @@ export default function WatchPage() {
             <VideoPlayer
                 src={streamSrc}
                 title={currentEpisode
-                    ? `${content.translations[0]?.title} — T${currentEpisode.seasonNumber}E${currentEpisode.number}: ${currentEpisode.translations?.[0]?.title || ''}`
-                    : content.translations[0]?.title
+                    ? `${content.translations?.[0]?.title || content.title} — T${currentEpisode.seasonNumber}E${currentEpisode.number}: ${currentEpisode.translations?.[0]?.title || currentEpisode.title || ''}`
+                    : (content.translations?.[0]?.title || content.title)
                 }
                 initialTime={initialTime}
                 externalSubtitles={subtitles}
@@ -282,9 +307,10 @@ export default function WatchPage() {
                 episodes={content.seasons || []}
                 currentEpisodeId={currentEpisode?.id}
                 onEpisodeSelect={(episodeId) => {
-                    router.push(`/watch/${id}?episodeId=${episodeId}`);
+                    router.push(`/film/${id}/watch?episodeId=${episodeId}`);
                 }}
                 onBack={() => router.push(`/film/${id}`)}
+                showAds={showAds}
             />
         </div>
     );
