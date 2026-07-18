@@ -7,7 +7,8 @@ import PublicLayout from '@/components/layout/PublicLayout';
 import { useAuth } from '@/context/AuthContext';
 import { userFetch } from '@/lib/api-client';
 import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
-import { ArrowLeft, Check, ChevronDown, DollarSign, Download, Heart, MonitorPlay, Play, Plus, Star } from 'lucide-react';
+import { getContentTypeLabel } from '@/lib/content-types';
+import { ArrowLeft, Check, ChevronDown, Download, MonitorPlay, Play, Plus, Star, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -32,10 +33,9 @@ export default function FilmDetailPage() {
     const [selectedSeason, setSelectedSeason] = useState(0);
     
     const [isFavorited, setIsFavorited] = useState(false);
-    const [isLiked, setIsLiked] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
     
     const favToggledRef = useRef(false);
-    const likeToggledRef = useRef(false);
 
     // Initial Profile Sync
     useEffect(() => {
@@ -61,22 +61,26 @@ export default function FilmDetailPage() {
 
     // Check Favorites & Likes
     useEffect(() => {
-        if (!content?.id || !authUser) return;
+        if (!content?.id) return;
+        
+        // 1. Check local storage first (for guests)
+        try {
+            const localFavs = JSON.parse(localStorage.getItem('local_favorites') || '[]');
+            if (localFavs.includes(content.id)) setIsFavorited(true);
+        } catch (err) {}
+
+        // 2. Check API if logged in
+        if (!authUser) return;
         const token = localStorage.getItem('accessToken');
         const profileId = localStorage.getItem('nexo_active_profile_id');
         if (!token || !profileId) return;
 
         const checkData = async () => {
             try {
-                const [favRes, likeRes] = await Promise.all([
-                    userFetch(`${API_ROUTES.FAVORITES.BASE}/check/${content.id}`),
-                    userFetch(API_ROUTES.LIKES.CHECK(content.id))
-                ]);
+                const favRes = await userFetch(`${API_ROUTES.FAVORITES.BASE}/check/${content.id}`);
                 const favJson = await favRes.json();
-                const likeJson = await likeRes.json();
                 
                 if (favJson.success && !favToggledRef.current) setIsFavorited(favJson.data.isFavorited);
-                if (likeJson.success && !likeToggledRef.current) setIsLiked(likeJson.data.isLiked);
             } catch (err) { console.error(err); }
         };
         checkData();
@@ -122,46 +126,103 @@ export default function FilmDetailPage() {
 
     const handleToggleFavorite = async (e?: any) => {
         e?.preventDefault();
-        const token = localStorage.getItem('accessToken');
-        const profileId = localStorage.getItem('nexo_active_profile_id');
-        if (!token || !profileId) { alert('Debes iniciar sesión y tener un perfil seleccionado.'); return; }
-
+        
         favToggledRef.current = true;
         const prev = isFavorited;
         setIsFavorited(!prev);
 
+        const token = localStorage.getItem('accessToken');
+        const profileId = localStorage.getItem('nexo_active_profile_id');
+        
+        // If guest, save in local storage
+        if (!token || !profileId) {
+            try {
+                let localFavs = JSON.parse(localStorage.getItem('local_favorites') || '[]');
+                if (!prev) {
+                    if (!localFavs.includes(content?.id)) localFavs.push(content?.id);
+                } else {
+                    localFavs = localFavs.filter((id: string) => id !== content?.id);
+                }
+                localStorage.setItem('local_favorites', JSON.stringify(localFavs));
+            } catch (err) {}
+            return;
+        }
+
         try {
-            const res = await userFetch(API_ROUTES.FAVORITES.TOGGLE, {
-                method: 'POST',
+            const method = prev ? 'DELETE' : 'POST';
+            const res = await userFetch(`${API_ROUTES.HISTORY.BASE.replace('/history', '/mylist')}/${content?.id}`, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contentId: content?.id })
             });
             const json = await res.json();
-            if (json.success && !json.data?.error) setIsFavorited(json.data.favorited);
+            if (json.success) setIsFavorited(!prev);
             else setIsFavorited(prev);
         } catch { setIsFavorited(prev); }
     };
 
-    const handleToggleLike = async (e?: any) => {
-        e?.preventDefault();
-        const token = localStorage.getItem('accessToken');
-        const profileId = localStorage.getItem('nexo_active_profile_id');
-        if (!token || !profileId) { alert('Debes iniciar sesión.'); return; }
-
-        likeToggledRef.current = true;
-        const prev = isLiked;
-        setIsLiked(!prev);
-
+    const handleDownload = async () => {
+        if (!content) return;
+        setIsDownloading(true);
         try {
-            const res = await userFetch(API_ROUTES.LIKES.TOGGLE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contentId: content?.id })
+            const token = localStorage.getItem('nexo_access_token');
+            const profileId = localStorage.getItem('nexo_active_profile_id');
+            if (!token) {
+                alert('Debes iniciar sesión para descargar');
+                setIsDownloading(false);
+                return;
+            }
+
+            const res = await userFetch(`${API_ROUTES.CONTENT.BASE}/${content.id}/download`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    ...(profileId ? { 'X-Profile-Id': profileId } : {}),
+                }
             });
+
+            if (!res.ok) {
+                const errJson = await res.json().catch(() => null);
+                throw new Error(errJson?.error || 'No se pudo obtener el enlace de descarga.');
+            }
+            
             const json = await res.json();
-            if (json.success && !json.data?.error) setIsLiked(json.data.liked);
-            else setIsLiked(prev); 
-        } catch { setIsLiked(prev); }
+            if (json.success && json.data?.downloadUrl) {
+                // Trigger download
+                const link = document.createElement('a');
+                link.href = json.data.downloadUrl;
+                link.setAttribute('download', `${content.title}.mp4`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                throw new Error('El enlace no está disponible.');
+            }
+        } catch (err: any) {
+            alert(err.message);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
+    const handleEpisodeDownload = async (ep: any, epTitle: string) => {
+        const token = localStorage.getItem('nexo_access_token');
+        if (!token) { alert('Debes iniciar sesión para descargar'); return; }
+        try {
+            const profileId = localStorage.getItem('nexo_active_profile_id');
+            const res = await userFetch(
+                `${API_ROUTES.CONTENT.BASE}/${content.id}/download?episodeId=${ep.id}`,
+                { headers: { 'Authorization': `Bearer ${token}`, ...(profileId ? { 'X-Profile-Id': profileId } : {}) } }
+            );
+            if (!res.ok) { const e = await res.json().catch(() => null); throw new Error(e?.error || 'Error al descargar'); }
+            const json = await res.json();
+            if (json.success && json.data?.downloadUrl) {
+                const link = document.createElement('a');
+                link.href = json.data.downloadUrl;
+                link.setAttribute('download', `${epTitle}.mp4`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else { throw new Error('Enlace no disponible'); }
+        } catch (err: any) { alert(err.message); }
     };
 
     if (loading) return (
@@ -182,21 +243,22 @@ export default function FilmDetailPage() {
 
     // Data Extraction
     const t = content.translations?.[0] || { title: content.title || content.slug, description: content.description || '' };
-    const poster = content.thumbnails?.find((t: any) => t.type === 'POSTER')?.url;
-    const backdrop = content.thumbnails?.find((t: any) => t.type === 'BACKDROP')?.url || poster;
-    const backdropUrl = resolveImageUrl(backdrop);
+    const posterUrl = resolveImageUrl(content.posterUrl);
+    const backdropUrl = content.backdropUrl ? resolveImageUrl(content.backdropUrl) : posterUrl;
     
     const isSeries = SERIES_TYPES.includes(content.type);
+    const typeLabel = getContentTypeLabel ? getContentTypeLabel(content.type) : content.type;
     const seasons = content.seasons || [];
     const currentSeason = seasons[selectedSeason];
     
-    const genres = (content.genres || []).map((g: any) => ({ id: g.genre?.id, name: g.genre?.name })).filter((g: any) => g.name);
-    const directors = (content.directors || []).map((d: any) => d.name || d.director?.name).filter(Boolean);
-    const cast = (content.actors || []).map((a: any) => a.actor?.name).filter(Boolean).slice(0, 5); // Max 5 actors for hero
+    const genres = (content.genres || []).filter((g: any) => g.name);
+    const tags = (content.tags || []).filter((t: any) => t.name);
+    const directors = (content.directors || []).map((d: any) => d.name).filter(Boolean);
+    const cast = (content.actors || []).map((a: any) => a.name).filter(Boolean).slice(0, 5); // Max 5 actors for hero
     
     const hasEpisodesWithVideo = seasons.some((s: any) => s.episodes?.some((e: any) => e.videoFiles && e.videoFiles.some((v: any) => v.status === 'COMPLETED')));
     const hasDirectVideo = content.videoFiles && content.videoFiles.some((v: any) => v.status === 'COMPLETED');
-    const canPlay = (content.status === 'READY' || content.status === 'ACTIVE') && (hasEpisodesWithVideo || hasDirectVideo);
+    const canPlay = content.status === 'READY' || content.status === 'ACTIVE';
 
     return (
         <PublicLayout hideSidebar={true}>
@@ -206,21 +268,18 @@ export default function FilmDetailPage() {
                 {/* ═══ 1. SUPER HERO (Data-Rich, No Details Cards) ═══ */}
                 <div className="serivia-hero-root relative w-[85%] mx-auto h-auto min-h-[75vh] md:min-h-[85vh] rounded-[32px] overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.8)] border border-[var(--border-subtle)] flex items-center -mt-6 md:-mt-18">
                     
-                    {/* Back Button (Inside Hero) */}
-                    <button onClick={() => router.back()} className="absolute top-6 left-6 md:top-10 md:left-10 z-50 inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white hover:bg-white hover:text-black transition-all shadow-lg">
-                        <ArrowLeft size={24} />
-                    </button>
+                    {/* Back button moved to end of hero */}
 
                     {/* Background */}
                     {backdropUrl && (
                         <img 
                             src={backdropUrl} 
                             alt={t.title}
-                            className="absolute inset-0 w-full h-full object-cover"
+                            className="absolute inset-0 w-full h-full object-cover object-top pointer-events-none"
                         />
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent"></div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#111218]/90 via-transparent to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent pointer-events-none"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#111218]/90 via-transparent to-transparent pointer-events-none"></div>
 
                     {/* Content inside Hero */}
                     <div className="relative z-10 p-6 md:px-12 lg:px-16 flex flex-col justify-center w-full max-w-4xl h-full pt-16 pb-8">
@@ -259,27 +318,27 @@ export default function FilmDetailPage() {
                                 </button>
                             )}
                             
-                            {isReseller && content.downloadAllowed && (
-                                <button className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
-                                    <Download size={18} /> Descargar 4K
+                            {isReseller && !isSeries && content.downloadAllowed && (
+                                <button onClick={handleDownload} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
+                                    <Download size={18} /> {isDownloading ? 'Iniciando...' : 'Descargar MP4'}
                                 </button>
                             )}
 
-                            {!isReseller && content.downloadAllowed && (
-                                <button className="px-6 py-3 rounded-full border border-amber-500/50 bg-amber-500/20 text-amber-400 font-bold hover:bg-amber-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
-                                    <DollarSign size={18} /> Tokens
+                            {!isReseller && !isSeries && (
+                                <button onClick={handleDownload} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
+                                    <Download size={18} /> {isDownloading ? 'Iniciando...' : 'Descargar Offline'}
                                 </button>
                             )}
                             
                             <button onClick={handleToggleFavorite} className="w-12 h-12 rounded-full border border-[var(--border-strong)] bg-[var(--bg-panel)] flex items-center justify-center text-[var(--text-main)] hover:bg-[var(--bg-hover-strong)] transition ml-auto md:ml-3">
                                 {isFavorited ? <Check size={20} className="text-[var(--color-primary)]" /> : <Plus size={20} />}
                             </button>
-
-                            <button onClick={handleToggleLike} className="w-12 h-12 rounded-full border border-[var(--border-strong)] bg-[var(--bg-panel)] flex items-center justify-center text-[var(--text-main)] hover:bg-[var(--bg-hover-strong)] transition">
-                                <Heart size={20} className={isLiked ? "text-[var(--color-primary)] fill-current" : ""} />
-                            </button>
                         </div>
                     </div>
+                    {/* Back Button (Inside Hero) - Rendered last for highest interaction priority */}
+                    <button onClick={() => router.back()} className="absolute top-8 left-6 md:top-14 md:left-10 z-[100] inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/40 border border-white/20 text-white hover:bg-white hover:text-black transition-all shadow-2xl cursor-pointer">
+                        <ArrowLeft size={24} />
+                    </button>
                 </div>
                 
                 {/* ═══ EMERGING DATA BAR ═══ */}
@@ -288,13 +347,16 @@ export default function FilmDetailPage() {
                         
                         {/* Primary Tags */}
                         <div className="flex flex-wrap items-center gap-3">
+                            <span className="bg-white/10 text-white text-sm px-4 py-1.5 rounded-full font-bold border border-white/20 uppercase tracking-wider">
+                                {typeLabel}
+                            </span>
                             <span className="bg-[var(--color-primary)] text-black text-sm px-4 py-1.5 rounded-full font-bold flex items-center gap-1">
                                 <Star size={16} className="fill-black" /> {content.rating ? content.rating.toFixed(1) : '8.5'}
                             </span>
                             {content.featured && <span className="bg-red-600 text-white font-black uppercase tracking-wider text-xs px-3 py-1.5 rounded-full">Destacado</span>}
                             {content.releaseYear && <span className="bg-[var(--bg-main)] text-[var(--text-main)] text-sm px-4 py-1.5 rounded-full font-semibold border border-[var(--border-subtle)]">{content.releaseYear}</span>}
-                            {content.ageRating?.code && <span className="bg-[var(--bg-main)] text-[var(--text-main)] text-sm px-4 py-1.5 rounded-full font-semibold border border-[var(--border-subtle)]">{content.ageRating.code}</span>}
-                            {content.duration && !isSeries && <span className="bg-[var(--bg-main)] text-[var(--text-main)] text-sm px-4 py-1.5 rounded-full font-semibold border border-[var(--border-subtle)]">{Math.floor(content.duration/60)}h {content.duration%60}m</span>}
+                            {content.ageRating && <span className="bg-[var(--bg-main)] text-[var(--text-main)] text-sm px-4 py-1.5 rounded-full font-semibold border border-[var(--border-subtle)]">{content.ageRating.code || content.ageRating}</span>}
+                            {typeof content.duration === 'number' && content.duration > 0 && !isSeries && <span className="bg-[var(--bg-main)] text-[var(--text-main)] text-sm px-4 py-1.5 rounded-full font-semibold border border-[var(--border-subtle)]">{Math.floor(content.duration/60)}h {content.duration%60}m</span>}
                             {isSeries && <span className="bg-[var(--bg-main)] text-[var(--text-main)] text-sm px-4 py-1.5 rounded-full font-semibold border border-[var(--border-subtle)]">{seasons.length} Temp.</span>}
                         </div>
 
@@ -303,11 +365,15 @@ export default function FilmDetailPage() {
                             {genres.length > 0 && (
                                 <div className="flex flex-wrap items-center gap-2">
                                     <span className="text-[var(--color-primary)] font-bold text-sm uppercase tracking-wider">Géneros:</span>
-                                    {genres.map((g: any, i: number) => (
-                                        <Link key={i} href={`/explorar?genreId=${g.id}`} className="text-[var(--text-main)] hover:text-[var(--color-primary)] text-sm font-medium hover:underline transition-colors">
-                                            {g.name}{i < genres.length - 1 ? ',' : ''}
-                                        </Link>
-                                    ))}
+                                    {genres.map((g: any, i: number) => {
+                                        const genreName = g.name || g.genre?.name;
+                                        if (!genreName) return null;
+                                        return (
+                                            <Link key={i} href={`/explorar?genreId=${g.id || g.genre?.id}`} className="text-[var(--text-main)] hover:text-[var(--color-primary)] text-sm font-medium hover:underline transition-colors">
+                                                {genreName}{i < genres.length - 1 ? ',' : ''}
+                                            </Link>
+                                        );
+                                    })}
                                 </div>
                             )}
                             
@@ -322,6 +388,16 @@ export default function FilmDetailPage() {
                                 <div className="text-sm text-[var(--text-muted)]">
                                     <span className="font-bold text-[var(--text-main)] mr-2 uppercase tracking-wider text-xs">Reparto:</span>
                                     {cast.join(', ')}{content.actors?.length > 5 ? ' y más.' : ''}
+                                </div>
+                            )}
+                            
+                            {tags.length > 0 && (
+                                <div className="flex flex-wrap items-center gap-2 mt-1">
+                                    {tags.map((tag: any, i: number) => (
+                                        <span key={i} className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-white/70 px-2 py-0.5 rounded-md">
+                                            <Tag size={10} /> {tag.name}
+                                        </span>
+                                    ))}
                                 </div>
                             )}
                         </div>
@@ -343,11 +419,15 @@ export default function FilmDetailPage() {
                                         className="w-full appearance-none bg-[var(--bg-panel)] border border-[var(--border-subtle)] text-[var(--text-main)] px-6 py-3 pr-12 rounded-xl font-bold cursor-pointer hover:bg-[var(--bg-hover)] outline-none backdrop-blur-md"
                                     >
                                         <option value="" disabled className="bg-white dark:bg-[#111218] text-black dark:text-white">Selecciona una temporada</option>
-                                        {seasons.map((s: any, i: number) => (
-                                            <option key={s.id} value={i} className="bg-white dark:bg-[#111218] text-black dark:text-white">
-                                                Temporada {s.number} {s.translations?.[0]?.title ? `— ${s.translations[0].title}` : ''}
-                                            </option>
-                                        ))}
+                                        {seasons.map((s: any, i: number) => {
+                                            const sTitle = s.title || s.translations?.[0]?.title;
+                                            const isDefaultSeason = sTitle?.toLowerCase() === `temporada ${s.number}`;
+                                            return (
+                                                <option key={s.id} value={i} className="bg-white dark:bg-[#111218] text-black dark:text-white">
+                                                    Temporada {s.number} {sTitle && !isDefaultSeason ? `— ${sTitle}` : ''}
+                                                </option>
+                                            );
+                                        })}
                                     </select>
                                     <ChevronDown size={20} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--text-muted)]" />
                                 </div>
@@ -356,9 +436,9 @@ export default function FilmDetailPage() {
 
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                             {(currentSeason?.episodes || []).map((ep: any) => {
-                                const epTitle = ep.translations?.[0]?.title || `Episodio ${ep.number}`;
-                                const epThumb = ep.thumbnails?.[0]?.url;
-                                const epReady = ep.videoFiles?.some((v: any) => v.status === 'COMPLETED');
+                                const epTitle = ep.title || ep.translations?.[0]?.title || `Episodio ${ep.number}`;
+                                const epThumb = ep.thumbnailUrl || ep.thumbnails?.[0]?.url;
+                                const epReady = ep.hasVideo || ep.videoFiles?.some((v: any) => v.status === 'COMPLETED');
                                 
                                 return (
                                     <Link
@@ -388,20 +468,43 @@ export default function FilmDetailPage() {
                                             )}
                                         </div>
 
-                                        <div className="flex flex-col w-full pt-1 px-1">
-                                            <div className="flex items-center justify-between mb-1">
-                                                <div className="text-[var(--color-primary)] font-black text-xs">
-                                                    Episodio {ep.number}
-                                                </div>
-                                                {ep.duration && (
-                                                    <div className="text-[10px] text-[var(--text-muted)] font-medium bg-[var(--bg-sidebar)] px-1.5 py-0.5 rounded">
-                                                        {Math.floor(ep.duration/60)}m {ep.duration%60}s
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <h3 className="font-bold text-sm text-[var(--text-main)] group-hover:text-[var(--color-primary)] transition-colors line-clamp-2">
+                                        <div className="flex flex-col w-full pt-2 px-1">
+                                            <h3 className="font-bold text-sm text-[var(--text-main)] group-hover:text-[var(--color-primary)] transition-colors line-clamp-2 mb-1">
                                                 {epTitle}
                                             </h3>
+                                            
+                                            {ep.description ? (
+                                                <p className="text-xs text-[var(--text-muted)] line-clamp-2 mb-3">
+                                                    {ep.description}
+                                                </p>
+                                            ) : (
+                                                <p className="text-xs text-[var(--text-muted)] line-clamp-2 mb-3 italic">
+                                                    (Descripción no disponible)
+                                                </p>
+                                            )}
+                                            
+                                            <div className="flex items-center justify-between mt-auto pt-2 border-t border-[var(--border-subtle)]">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-3 py-1.5 rounded-full hover:bg-[var(--color-primary)]/20 transition-colors">
+                                                        <Play size={14} fill="currentColor" /> Reproducir
+                                                    </div>
+                                                    {ep.duration && (
+                                                        <span className="text-[10px] text-[var(--text-muted)] font-medium">
+                                                            {Math.floor(ep.duration/60)}m
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                
+                                                {epReady && (
+                                                    <button
+                                                        onClick={e => { e.preventDefault(); e.stopPropagation(); handleEpisodeDownload(ep, epTitle); }}
+                                                        title={`Descargar ${epTitle}`}
+                                                        className="flex items-center justify-center p-2 rounded-full bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 transition-all border border-emerald-500/20"
+                                                    >
+                                                        <Download size={16} strokeWidth={2.5} />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     </Link>
                                 );
