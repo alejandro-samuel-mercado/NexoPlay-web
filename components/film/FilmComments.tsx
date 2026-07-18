@@ -25,6 +25,10 @@ export default function FilmComments({ contentId }: { contentId: string }) {
     const fetchReviews = useCallback(async () => {
         try {
             const res = await fetch(API_ROUTES.REVIEWS.BY_CONTENT(contentId));
+            if (!res.ok) {
+                setReviews([]);
+                return;
+            }
             const json = await res.json();
             if (json.success) setReviews(json.data || []);
         } catch (err) {

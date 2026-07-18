@@ -2,31 +2,87 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Users, Download, Film, Key, TrendingUp, Crown, Settings, Code2, Activity } from 'lucide-react';
+import {
+  Users, Download, Film, Key, TrendingUp, Crown, Settings,
+  Code2, Activity, Coins, Building2, Bell, BarChart3, Store, ArrowUpRight
+} from 'lucide-react';
 import { API, apiFetch } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import SyncButton from '@/components/admin/SyncButton';
 
-function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string | number; color: string }) {
+function StatCard({
+  icon, label, value, color, trend
+}: {
+  icon: React.ReactNode; label: string; value: string | number; color: string; trend?: string;
+}) {
   return (
-    <div className="clay-card-dark p-6 rounded-[20px] border-[2px] hover:scale-[1.02] transition-transform"
-      style={{ borderColor: color, boxShadow: `4px 4px 0px ${color}` }}>
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-[12px] flex items-center justify-center border-[2px] border-[#2C2C2C]"
-          style={{ background: color, color: '#2C2C2C', boxShadow: '3px 3px 0px #2C2C2C' }}>
+    <div
+      className="p-5 rounded-[20px] border border-white/5 hover:bg-white/[0.02] transition-all duration-300 cursor-default relative overflow-hidden"
+      style={{ background: 'var(--bg-panel)' }}
+    >
+      {/* Glow effect */}
+      <div
+        className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-20 pointer-events-none"
+        style={{ background: `radial-gradient(circle, ${color} 0%, transparent 70%)`, filter: 'blur(20px)', transform: 'translate(40%, -40%)' }}
+      />
+      <div className="flex items-start justify-between relative z-10">
+        <div
+          className="w-11 h-11 rounded-[12px] flex items-center justify-center mb-3 shadow-lg"
+          style={{ background: `linear-gradient(135deg, ${color}20, ${color}10)`, color, border: `1px solid ${color}30` }}
+        >
           {icon}
         </div>
-        <div>
-          <p className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">{label}</p>
-          <p className="text-3xl font-black text-white">{value?.toLocaleString()}</p>
-        </div>
+        {trend && (
+          <span className="text-[10px] font-bold px-2 py-1 rounded-lg" style={{ background: `${color}20`, color }}>
+            {trend}
+          </span>
+        )}
       </div>
+      <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#6B7280' }}>{label}</p>
+      <p className="text-3xl font-black text-white">{typeof value === 'number' ? value.toLocaleString() : value}</p>
     </div>
   );
 }
 
+function QuickLink({ href, icon, label, color, desc }: {
+  href: string; icon: React.ReactNode; label: string; color: string; desc: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group p-5 rounded-[16px] border border-white/5 hover:border-white/10 hover:bg-white/[0.02] transition-all duration-300 flex flex-col items-start gap-4 relative overflow-hidden"
+      style={{ background: 'var(--bg-panel)' }}
+    >
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+        style={{ background: `radial-gradient(circle at top right, ${color}10, transparent 70%)` }}
+      />
+      <div className="flex items-center justify-between w-full relative z-10">
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 duration-300 shadow-sm"
+          style={{ backgroundColor: `${color}15`, color, border: `1px solid ${color}20` }}
+        >
+          {icon}
+        </div>
+        <ArrowUpRight
+          size={16}
+          className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{ color }}
+        />
+      </div>
+      <div>
+        <h3 className="text-sm font-black text-white mb-0.5 group-hover:text-opacity-90 transition-colors">
+          {label}
+        </h3>
+        <p className="text-xs" style={{ color: '#6B7280' }}>{desc}</p>
+      </div>
+    </Link>
+  );
+}
+
 export default function AdminDashboard() {
-  const { isAdmin, isFranchisee, isLoading } = useAuth();
+  const { isAdmin, isFranchisee, isLoading, user } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -45,87 +101,127 @@ export default function AdminDashboard() {
 
   if (isLoading || loading) return (
     <div className="p-8">
+      <div className="mb-2 h-8 w-48 rounded-xl animate-pulse" style={{ background: '#1E1E3A' }} />
+      <div className="mb-8 h-4 w-32 rounded-lg animate-pulse" style={{ background: '#1A1A2E' }} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {Array.from({ length: 4 }).map((_, i) => <div key={i} className="clay-skeleton h-28 rounded-[20px]" />)}
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-32 rounded-[20px] animate-pulse" style={{ background: '#1E1E3A' }} />
+        ))}
       </div>
     </div>
   );
 
+  // Franchisee-only view
+  if (isFranchisee && !isAdmin) {
+    return (
+      <div className="p-6 sm:p-8">
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-black text-white">Mi Franquicia</h1>
+            <p className="text-sm mt-1" style={{ color: '#6B7280' }}>
+              Bienvenido, {user?.name}. Aquí gestionás tu tienda.
+            </p>
+          </div>
+          <SyncButton />
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <StatCard icon={<Users size={20} />} label="Usuarios" value={stats?.stats?.totalUsers || 0} color="#60A5FA" />
+          <StatCard icon={<Crown size={20} />} label="Suscripciones" value={stats?.stats?.activeSubscriptions || 0} color="#A78BFA" />
+          <StatCard icon={<Film size={20} />} label="Contenido" value={stats?.stats?.totalContent || 0} color="#34D399" />
+          <StatCard icon={<Download size={20} />} label="Descargas" value={stats?.stats?.totalDownloads || 0} color="#FBBF24" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <QuickLink href="/admin/tenant" icon={<Store size={18} />} label="Mi Tienda" color="#60A5FA" desc="Personalizar logo, nombre y colores" />
+          <QuickLink href="/admin/tenant/dashboard" icon={<BarChart3 size={18} />} label="Estadísticas" color="#34D399" desc="Ingresos y usuarios de tu franquicia" />
+        </div>
+      </div>
+    );
+  }
+
+  // Full admin view
   return (
     <div className="p-6 sm:p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-white">Dashboard</h1>
-        <p className="text-sm text-[#6B7280] mt-1">Resumen de NexoPlay</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-3xl font-black text-white">Dashboard</h1>
+            <span
+              className="text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider"
+              style={{ background: 'rgba(220,38,38,0.15)', color: '#FF5C5C' }}
+            >
+              Admin Global
+            </span>
+          </div>
+          <p className="text-sm" style={{ color: '#6B7280' }}>
+            Resumen completo de NexoPlay
+          </p>
+        </div>
+        <SyncButton />
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard icon={<Users size={22} />} label="Usuarios" value={stats?.stats?.totalUsers || 0} color="var(--clay-teal)" />
-        <StatCard icon={<Crown size={22} />} label="Suscripciones" value={stats?.stats?.activeSubscriptions || 0} color="var(--clay-yellow)" />
-        <StatCard icon={<Film size={22} />} label="Contenido" value={stats?.stats?.totalContent || 0} color="var(--clay-orange)" />
-        <StatCard icon={<Download size={22} />} label="Descargas" value={stats?.stats?.totalDownloads || 0} color="var(--clay-mint)" />
+        <StatCard icon={<Users size={20} />} label="Usuarios Totales" value={stats?.stats?.totalUsers || 0} color="#00D2B4" trend="+12%" />
+        <StatCard icon={<Crown size={20} />} label="Suscripciones Activas" value={stats?.stats?.activeSubscriptions || 0} color="#FFD23F" trend="+5%" />
+        <StatCard icon={<Film size={20} />} label="Contenido" value={stats?.stats?.totalContent || 0} color="#FF8C32" />
+        <StatCard icon={<Download size={20} />} label="Descargas Totales" value={stats?.stats?.totalDownloads || 0} color="#A855F7" />
       </div>
 
-      {/* Quick Nav */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {isAdmin && [
-          { href: '/admin/usuarios', icon: <Users size={20} />, label: 'Usuarios', color: 'var(--clay-primary)', desc: 'Gestionar clientes' },
-          { href: '/admin/contenido', icon: <Film size={20} />, label: 'Contenido', color: 'var(--clay-yellow)', desc: 'Películas y Series' },
-          { href: '/admin/planes', icon: <Crown size={20} />, label: 'Planes de Suscripción', color: 'var(--clay-purple)', desc: 'Crear y editar planes' },
-          { href: '/admin/ads', icon: <TrendingUp size={20} />, label: 'Publicidad', color: 'var(--clay-teal)', desc: 'Gestión de anuncios' },
-          { href: '/admin/api-keys', icon: <Code2 size={20} />, label: 'API Pública', color: 'var(--clay-orange)', desc: 'Tokens para desarrolladores' },
-          { href: '/admin/tenant', icon: <Settings size={20} />, label: 'Marca Blanca', color: 'var(--clay-primary)', desc: 'Personalizar plataforma' },
-          { href: '/admin/configuracion', icon: <Settings size={20} />, label: 'Configuración', color: 'var(--clay-mint)', desc: 'Ajustes del sistema' },
-        ].map((item) => (
-          <Link key={item.href} href={item.href}
-            className="clay-card-dark p-6 rounded-2xl border border-[var(--border-subtle)] hover:border-[var(--clay-teal)] transition-colors group flex flex-col items-start gap-4">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110" style={{ backgroundColor: `${item.color}20`, color: item.color }}>
-              {item.icon}
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-white mb-1 group-hover:text-[var(--clay-teal)] transition-colors">{item.label}</h3>
-              <p className="text-sm text-[var(--text-muted)]">{item.desc}</p>
-            </div>
-          </Link>
-        ))}
-
-        {isFranchisee && !isAdmin && [
-          { href: '/admin/tenant/dashboard', icon: <Activity size={20} />, label: 'Mi Dashboard', color: 'var(--clay-mint)', desc: 'Estadísticas de mi tienda' },
-          { href: '/admin/tenant', icon: <Settings size={20} />, label: 'Configuración', color: 'var(--clay-primary)', desc: 'Personalizar Marca Blanca' },
-        ].map((item) => (
-          <Link key={item.href} href={item.href}
-            className="clay-card-dark p-6 rounded-2xl border border-[var(--border-subtle)] hover:border-[var(--clay-teal)] transition-colors group flex flex-col items-start gap-4">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110" style={{ backgroundColor: `${item.color}20`, color: item.color }}>
-              {item.icon}
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-white mb-1 group-hover:text-[var(--clay-teal)] transition-colors">{item.label}</h3>
-              <p className="text-sm text-[var(--text-muted)]">{item.desc}</p>
-            </div>
-          </Link>
-        ))}
+      {/* Quick Nav Grid */}
+      <div className="mb-6">
+        <h2 className="text-sm font-black uppercase tracking-wider mb-4" style={{ color: '#6B7280' }}>
+          Módulos del Sistema
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <QuickLink href="/admin/usuarios" icon={<Users size={18} />} label="Usuarios" color="#00D2B4" desc="Gestionar cuentas y roles" />
+          <QuickLink href="/admin/contenido" icon={<Film size={18} />} label="Contenido" color="#FFD23F" desc="Películas, series y anime" />
+          <QuickLink href="/admin/planes" icon={<Crown size={18} />} label="Planes" color="#A855F7" desc="Crear y editar suscripciones" />
+          <QuickLink href="/admin/tokens" icon={<Coins size={18} />} label="Tokens" color="#FBBF24" desc="Moneda interna y paquetes" />
+          <QuickLink href="/admin/codigos" icon={<Key size={18} />} label="Códigos" color="#F97316" desc="Códigos de acceso y regalo" />
+          <QuickLink href="/admin/ads" icon={<TrendingUp size={18} />} label="Publicidad" color="#34D399" desc="Campañas para usuarios gratis" />
+          <QuickLink href="/admin/tenant" icon={<Building2 size={18} />} label="Franquicias" color="#60A5FA" desc="Gestionar tiendas y marcas blancas" />
+          <QuickLink href="/admin/api-keys" icon={<Code2 size={18} />} label="API Pública" color="#EC4899" desc="Keys para desarrolladores" />
+          <QuickLink href="/admin/notificaciones" icon={<Bell size={18} />} label="Notificaciones" color="#F59E0B" desc="Avisos push masivos" />
+          <QuickLink href="/admin/configuracion" icon={<Settings size={18} />} label="Configuración" color="#8B8FA8" desc="Ajustes del sistema" />
+        </div>
       </div>
 
       {/* Recent Codes */}
       {stats?.recentCodes?.length > 0 && (
-        <div className="clay-card-dark p-6 rounded-[20px] border-[2px] border-[#3A3A5C]">
+        <div
+          className="p-6 rounded-[20px] border border-white/5 shadow-xl"
+          style={{ background: 'var(--bg-panel)' }}
+        >
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-black text-white flex items-center gap-2">
-              <Key size={18} style={{ color: 'var(--clay-yellow)' }} /> Códigos Recientes
+              <Key size={18} style={{ color: '#FFD23F' }} /> Códigos Recientes
             </h2>
-            <Link href="/admin/codigos" className="btn-clay btn-clay-dark btn-clay-sm text-xs">Ver todos</Link>
+            <Link
+              href="/admin/codigos"
+              className="text-xs font-bold px-3 py-1.5 rounded-lg border transition-all hover:opacity-80 flex items-center gap-1"
+              style={{ borderColor: '#2E2E4A', color: '#8B8FA8' }}
+            >
+              Ver todos <ArrowUpRight size={12} />
+            </Link>
           </div>
           <div className="space-y-2">
             {stats.recentCodes.map((c: any) => (
-              <div key={c.id} className="flex items-center justify-between p-3 rounded-[10px] bg-white/5">
+              <div key={c.id} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: 'rgba(255,255,255,0.03)' }}>
                 <div className="flex items-center gap-3">
-                  <span className="font-black text-sm tracking-wider" style={{ fontFamily: 'monospace', color: 'var(--clay-yellow)' }}>
+                  <span className="font-black text-sm tracking-wider" style={{ fontFamily: 'monospace', color: '#FFD23F' }}>
                     {c.code}
                   </span>
-                  <span className="text-xs text-[#A8B3C8] truncate max-w-32">{c.contentTitle}</span>
+                  <span className="text-xs truncate max-w-32" style={{ color: '#8B8FA8' }}>{c.contentTitle}</span>
                 </div>
-                <span className={`clay-badge text-[10px] ${c.isUsed ? 'text-[#6B7280] border-[#3A3A5C]' : 'border-[var(--clay-mint)]'}`}
-                  style={{ color: c.isUsed ? undefined : 'var(--clay-mint)' }}>
+                <span
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-md"
+                  style={{
+                    background: c.isUsed ? 'rgba(107,114,128,0.15)' : 'rgba(52,211,153,0.15)',
+                    color: c.isUsed ? '#6B7280' : '#34D399',
+                  }}
+                >
                   {c.isUsed ? 'Usado' : 'Disponible'}
                 </span>
               </div>

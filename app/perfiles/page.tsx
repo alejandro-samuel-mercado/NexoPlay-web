@@ -64,7 +64,7 @@ export default function ProfileSelectionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A10] flex flex-col items-center justify-center p-4">
+    <div className="w-full flex-1 min-h-[calc(100vh-3vh)] bg-[#0A0A10] flex flex-col items-center justify-center p-4 relative rounded-3xl" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
       {/* Branding top */}
       <div className="absolute top-8 left-8 flex items-center gap-2">
         <div className="w-9 h-9 rounded-[10px] border-[3px] border-[#2C2C2C] flex items-center justify-center text-sm font-black text-white"

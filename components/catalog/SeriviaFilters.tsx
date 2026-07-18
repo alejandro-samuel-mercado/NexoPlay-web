@@ -24,7 +24,7 @@ export default function SeriviaFilters({ genres, activeGenreId, onSelectGenre }:
         }
     };
 
-    if (!genres || genres.length === 0) return null;
+    if (!genres) genres = [];
 
     return (
         <div className="flex items-center justify-between mb-8">

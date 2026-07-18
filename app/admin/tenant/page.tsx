@@ -52,55 +52,55 @@ export default function TenantSettingsPage() {
     }
   };
 
-  if (authLoading || loading) return <div className="p-8"><div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin border-[var(--clay-teal)]" /></div>;
+  if (authLoading || loading) return <div className="p-8 flex justify-center"><div className="w-12 h-12 rounded-full border-4 border-t-transparent animate-spin border-[var(--color-primary)]" style={{ borderTopColor: 'transparent' }} /></div>;
 
   return (
     <div className="p-6 sm:p-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-black text-white flex items-center gap-3">
-            <Settings className="text-[var(--clay-teal)]" size={32} />
+            <Settings className="text-[var(--color-secondary)]" size={32} />
             Configuración de Marca Blanca
           </h1>
-          <p className="text-sm text-[#6B7280] mt-1">Personaliza el nombre, logo y colores de tu tienda (Franquicia)</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Personaliza el nombre, logo y colores de tu tienda (Franquicia)</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="clay-card-dark p-6 rounded-[20px] border border-gray-700">
+        <div className="bg-[var(--bg-panel)] backdrop-blur-md border border-[var(--border-subtle)] p-8 rounded-2xl shadow-xl">
           <form onSubmit={handleSave} className="space-y-5">
             <div>
-              <label className="block text-xs font-bold text-gray-400 mb-1 flex items-center gap-2">
+              <label className="text-xs font-bold text-white/60 mb-2 flex items-center gap-2 uppercase tracking-wider">
                 <Settings size={14} /> Nombre de la App
               </label>
-              <input type="text" required value={formData.appName} onChange={e => setFormData({ ...formData, appName: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-3 text-white focus:border-[var(--clay-teal)] outline-none transition-colors" placeholder="Ej: MiCine Play" />
+              <input type="text" required value={formData.appName} onChange={e => setFormData({ ...formData, appName: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors placeholder-[var(--text-muted)]" placeholder="Ej: MiCine Play" />
             </div>
             
             <div>
-              <label className="block text-xs font-bold text-gray-400 mb-1 flex items-center gap-2">
+              <label className="text-xs font-bold text-white/60 mb-2 flex items-center gap-2 uppercase tracking-wider">
                 <Link2 size={14} /> Logo URL (Se recomienda imagen transparente .PNG)
               </label>
-              <input type="url" value={formData.logoUrl} onChange={e => setFormData({ ...formData, logoUrl: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-3 text-white focus:border-[var(--clay-teal)] outline-none transition-colors" placeholder="https://mi-servidor.com/logo.png" />
+              <input type="url" value={formData.logoUrl} onChange={e => setFormData({ ...formData, logoUrl: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors placeholder-[var(--text-muted)]" placeholder="https://mi-servidor.com/logo.png" />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-400 mb-1 flex items-center gap-2">
+              <label className="text-xs font-bold text-white/60 mb-2 flex items-center gap-2 uppercase tracking-wider">
                 <Palette size={14} /> Color Primario (HEX)
               </label>
               <div className="flex items-center gap-3">
-                <input type="color" value={formData.primaryColor} onChange={e => setFormData({ ...formData, primaryColor: e.target.value })} className="w-12 h-12 bg-transparent border-0 rounded cursor-pointer" />
-                <input type="text" required value={formData.primaryColor} onChange={e => setFormData({ ...formData, primaryColor: e.target.value })} className="flex-1 bg-gray-900 border border-gray-700 rounded p-3 text-white font-mono focus:border-[var(--clay-teal)] outline-none transition-colors" />
+                <input type="color" value={formData.primaryColor} onChange={e => setFormData({ ...formData, primaryColor: e.target.value })} className="w-12 h-12 bg-transparent border-0 rounded-lg cursor-pointer" />
+                <input type="text" required value={formData.primaryColor} onChange={e => setFormData({ ...formData, primaryColor: e.target.value })} className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-[var(--color-primary)] transition-colors placeholder-[var(--text-muted)]" />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-400 mb-1 flex items-center gap-2">
+              <label className="text-xs font-bold text-white/60 mb-2 flex items-center gap-2 uppercase tracking-wider">
                 <Link2 size={14} /> Subdominio personalizado (Opcional)
               </label>
-              <input type="text" value={formData.subdomain} onChange={e => setFormData({ ...formData, subdomain: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-3 text-white focus:border-[var(--clay-teal)] outline-none transition-colors" placeholder="ej: mivideo (para mivideo.nexoplay.com)" />
+              <input type="text" value={formData.subdomain} onChange={e => setFormData({ ...formData, subdomain: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors placeholder-[var(--text-muted)]" placeholder="ej: mivideo (para mivideo.nexoplay.com)" />
             </div>
 
-            <button type="submit" disabled={saving} className="w-full btn-clay flex items-center justify-center gap-2 mt-4 opacity-100 hover:brightness-110">
+            <button type="submit" disabled={saving} className="w-full px-6 py-3.5 rounded-xl font-bold text-sm bg-[var(--color-primary)] text-black hover:scale-105 transition-transform flex items-center justify-center gap-2 mt-6 disabled:opacity-50 disabled:hover:scale-100">
               {saving ? <div className="w-5 h-5 rounded-full border-2 border-t-transparent animate-spin border-black" /> : <Save size={18} />} 
               {saving ? 'Guardando...' : 'Guardar Cambios'}
             </button>
@@ -110,8 +110,8 @@ export default function TenantSettingsPage() {
         {/* Vista Previa */}
         <div className="flex flex-col gap-4">
           <h2 className="text-xl font-bold text-white mb-2">Vista Previa</h2>
-          <div className="clay-card-dark p-8 rounded-[20px] border-2 flex flex-col items-center justify-center text-center relative overflow-hidden" style={{ borderColor: formData.primaryColor }}>
-            <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" style={{ background: `radial-gradient(circle at center, ${formData.primaryColor} 0%, transparent 70%)` }} />
+          <div className="bg-[var(--bg-panel)] backdrop-blur-md border border-[var(--border-subtle)] p-8 rounded-2xl flex flex-col items-center justify-center text-center relative overflow-hidden shadow-2xl transition-all" style={{ borderTopColor: formData.primaryColor, borderTopWidth: '4px' }}>
+            <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none" style={{ background: `radial-gradient(circle at top, ${formData.primaryColor} 0%, transparent 60%)` }} />
             
             {formData.logoUrl ? (
               <img src={formData.logoUrl} alt="Logo preview" className="max-h-24 object-contain mb-6 relative z-10" />

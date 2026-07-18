@@ -2,10 +2,10 @@
 
 import SeriviaGrid from '@/components/catalog/SeriviaGrid';
 import PublicLayout from '@/components/layout/PublicLayout';
-import { API_ROUTES } from '@/lib/api-routes';
-import { CONTENT_TYPES_LIST, getContentTypeLabel, getContentTypeIcon } from '@/lib/content-types';
 import CustomSelect from '@/components/ui/CustomSelect';
-import { Clapperboard, Globe, Loader2, Tv, ChevronDown, Sparkles, Flame, Calendar as CalendarIcon } from 'lucide-react';
+import { API_ROUTES } from '@/lib/api-routes';
+import { CONTENT_TYPES_LIST, getContentTypeIcon, getContentTypeLabel } from '@/lib/content-types';
+import { Globe, Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 
@@ -26,7 +26,7 @@ function ExploreContent() {
     const search = searchParams.get('search') || '';
     const type = searchParams.get('type') || null;
     const genreId = searchParams.get('genreId') || null;
-    const platformId = searchParams.get('platformId') || null;
+    const sortParam = searchParams.get('sort') || null;
     const quick = searchParams.get('quick') || null;
 
     const observerTarget = useRef<HTMLDivElement>(null);
@@ -49,14 +49,11 @@ function ExploreContent() {
     useEffect(() => {
         const fetchMetadata = async () => {
             try {
-                const [gRes, pRes] = await Promise.all([
-                    fetch(API_ROUTES.CATEGORIES.GENRES),
-                    fetch(API_ROUTES.PLATFORMS.LIST)
+                const [gRes] = await Promise.all([
+                    fetch(API_ROUTES.CATEGORIES.GENRES)
                 ]);
                 const gJson = await gRes.json();
-                const pJson = await pRes.json();
                 if (gJson.success) setGenres(gJson.data);
-                if (pJson.success) setPlatforms(pJson.data);
             } catch (err) {
                 console.error('Error fetching metadata:', err);
             }
@@ -76,13 +73,15 @@ function ExploreContent() {
                 ...(search && { search }),
                 ...(type && { type }),
                 ...(genreId && { genreId }),
-                ...(platformId && { platformId }),
                 ...(quick === 'recommended' && { featured: 'true' }),
                 ...(quick === 'premieres' && { minYear: new Date().getFullYear().toString() }),
-                ...(quick === 'trending' && { sort: 'trending' }),
             });
 
-            if (!quick || quick === 'latest') {
+            if (sortParam) {
+                queryParams.set('sort', sortParam);
+            } else if (quick === 'trending') {
+                queryParams.set('sort', 'popular');
+            } else if (!quick || quick === 'latest') {
                 queryParams.set('sort', 'recent');
             }
 
@@ -111,13 +110,13 @@ function ExploreContent() {
             setLoading(false);
             setLoadingMore(false);
         }
-    }, [search, type, genreId, platformId, quick, content.length]);
+    }, [search, type, genreId, sortParam, quick, content.length]);
 
     // Initial load and filter change trigger
     useEffect(() => {
         fetchContent(1, true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [search, type, genreId, platformId, quick]);
+    }, [search, type, genreId, sortParam, quick]);
 
     // Infinite scroll observer
     useEffect(() => {
@@ -170,17 +169,26 @@ function ExploreContent() {
                                 </div>
                             </div>
 
-                            {/* Platforms Row */}
-                            <div className="flex flex-wrap items-center gap-3 pt-1 pb-1">
-                                <span className="text-[var(--text-muted)] text-xs font-black uppercase tracking-widest hidden md:block mr-2">Streaming:</span>
-                                <button onClick={() => updateFilters('platformId', null)} className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 border transition-all ${!platformId ? 'bg-[var(--color-primary)] border-transparent text-black shadow-lg shadow-[var(--color-primary)]/30' : 'bg-[var(--bg-panel)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--text-main)]'}`}>
-                                    <Globe size={18} />
-                                </button>
-                                {platforms.map(p => (
-                                    <button key={p.id} onClick={() => updateFilters('platformId', p.id)} title={p.name} className={`w-10 h-10 rounded-full shrink-0 border transition-all overflow-hidden ${platformId === p.id ? 'border-[var(--color-primary)] scale-110 shadow-lg shadow-[var(--color-primary)]/40' : 'border-[var(--border-subtle)] opacity-60 hover:opacity-100 hover:border-[var(--text-main)]'}`}>
-                                        {p.logoUrl ? <img src={p.logoUrl} alt={p.name} className="w-full h-full object-cover bg-white" /> : <div className="w-full h-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-white">{p.name.slice(0,2)}</div>}
-                                    </button>
-                                ))}
+                            {/* Sort Select */}
+                            <div className="flex items-center gap-3 pt-1 pb-1">
+                                <span className="text-[var(--text-muted)] text-xs font-black uppercase tracking-widest hidden md:block mr-2">Ordenar:</span>
+                                <div className="w-48 lg:w-56">
+                                    <CustomSelect 
+                                        options={[
+                                            { id: 'recent', name: 'Últimos agregados' },
+                                            { id: 'popular', name: 'Populares' },
+                                            { id: 'rating', name: 'Mejor Valorados' },
+                                            { id: 'az', name: 'Alfabético (A-Z)' },
+                                            { id: 'za', name: 'Alfabético (Z-A)' },
+                                            { id: 'releaseYear', name: 'Año Lanzamiento' },
+                                        ]}
+                                        value={sortParam || (quick === 'trending' ? 'popular' : 'recent')}
+                                        onChange={(val) => updateFilters('sort', val)}
+                                        showClearOption={false}
+                                        placeholder="Ordenar por..."
+                                        buttonClassName={`border bg-[var(--bg-panel)] text-[var(--text-main)] border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]`}
+                                    />
+                                </div>
                             </div>
                         </div>
 

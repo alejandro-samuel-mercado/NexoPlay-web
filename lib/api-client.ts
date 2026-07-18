@@ -13,7 +13,7 @@ async function refreshUserToken(): Promise<string | null> {
 
   _userRefreshPromise = (async () => {
     try {
-      const refreshToken = localStorage.getItem('refreshToken');
+      const refreshToken = localStorage.getItem('nexo_refresh_token');
       if (!refreshToken) return null;
 
       const res = await fetch(API_ROUTES.AUTH.REFRESH, {
@@ -27,13 +27,13 @@ async function refreshUserToken(): Promise<string | null> {
       const data = await res.json();
       if (data.success && data.data?.accessToken) {
         const newAccess: string = data.data.accessToken;
-        localStorage.setItem('accessToken', newAccess);
+        localStorage.setItem('nexo_access_token', newAccess);
         if (data.data.refreshToken) {
-          localStorage.setItem('refreshToken', data.data.refreshToken);
+          localStorage.setItem('nexo_refresh_token', data.data.refreshToken);
         }
         // Keep the cookie in sync — 180 days matches the refresh token TTL
         const COOKIE_MAX_AGE = 180 * 24 * 60 * 60;
-        document.cookie = `accessToken=${newAccess}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+        document.cookie = `nexo_access_token=${newAccess}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
         return newAccess;
       }
       return null;
@@ -58,7 +58,7 @@ export async function userFetch(url: string, options: RequestInit = {}): Promise
   const isServer = typeof window === 'undefined';
   const finalUrl = isServer && url.startsWith('/') ? `${API_ORIGIN}${url}` : url;
 
-  let token = isServer ? null : localStorage.getItem('accessToken');
+  let token = isServer ? null : localStorage.getItem('nexo_access_token');
   const profileId = isServer ? null : localStorage.getItem('nexo_active_profile_id');
 
   const buildHeaders = (t: string | null): Record<string, string> => {
@@ -80,10 +80,10 @@ export async function userFetch(url: string, options: RequestInit = {}): Promise
       res = await fetch(finalUrl, { ...options, headers: buildHeaders(newToken) });
     } else {
       // Refresh failed — clear tokens and let the caller handle the 401
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('nexo_access_token');
+      localStorage.removeItem('nexo_refresh_token');
       localStorage.removeItem('nexo_active_profile_id');
-      document.cookie = 'accessToken=; path=/; max-age=0;';
+      document.cookie = 'nexo_access_token=; path=/; max-age=0;';
     }
   }
 

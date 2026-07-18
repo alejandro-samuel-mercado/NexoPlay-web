@@ -17,14 +17,17 @@ export default function PublicLayout({
   hideSidebar?: boolean;
   hideTopBar?: boolean;
 }) {
-  const { isLoggedIn, isLoading, activeProfile, profiles } = useAuth();
+  const { isLoggedIn, isLoading, activeProfile, isAdmin, isReseller, isFranchisee } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [checkingProfile, setCheckingProfile] = useState(true);
 
   useEffect(() => {
     if (!isLoading) {
-      if (isLoggedIn && !activeProfile) {
+      // Solo forzamos a elegir perfil a los SUSCRIPTORES e INVITADOS
+      const needsProfile = isLoggedIn && !activeProfile && !isAdmin && !isReseller && !isFranchisee;
+      
+      if (needsProfile) {
         // Ignorar redirección si ya estamos en páginas donde no se necesita o ya estamos en perfiles
         const ignoredPaths = ['/perfiles', '/auth/login', '/auth/registro'];
         if (!ignoredPaths.includes(pathname)) {
@@ -34,7 +37,7 @@ export default function PublicLayout({
       }
       setCheckingProfile(false);
     }
-  }, [isLoggedIn, isLoading, activeProfile, pathname, router]);
+  }, [isLoggedIn, isLoading, activeProfile, isAdmin, isReseller, isFranchisee, pathname, router]);
 
   if (isLoading || checkingProfile) {
     return (

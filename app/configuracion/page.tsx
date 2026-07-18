@@ -1,11 +1,11 @@
 'use client';
 
-import { useAuth } from '@/context/AuthContext';
 import PublicLayout from '@/components/layout/PublicLayout';
-import { useState } from 'react';
-import { Bell, Lock, Moon, Settings, Sun, User, Video, Shield, ChevronRight } from 'lucide-react';
-import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 import { API_ROUTES } from '@/lib/api-routes';
+import { Bell, ChevronRight, Lock, Settings, Shield, Star, User, Video } from 'lucide-react';
+import Link from 'next/link';
+import { useState } from 'react';
 
 export default function ConfiguracionPage() {
     const { user, isAdmin, isReseller } = useAuth();
@@ -55,6 +55,40 @@ export default function ConfiguracionPage() {
                 <p className="text-[var(--text-muted)] mb-8 text-sm">Gestiona tu cuenta y preferencias.</p>
 
                 <div className="flex flex-col gap-6">
+
+                    {/* ─── MI SUSCRIPCIÓN ─── */}
+                    <section className="rounded-2xl border border-[var(--border-subtle)] overflow-hidden"
+                        style={{ background: 'var(--bg-panel)', backdropFilter: 'blur(20px)' }}>
+                        <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center gap-3">
+                            <Star size={18} className="text-[var(--color-primary)]" />
+                            <h2 className="font-bold text-[var(--text-main)]">Mi Suscripción</h2>
+                        </div>
+                        <div className="px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            {user.subscription ? (
+                                <div>
+                                    <h3 className="text-xl font-black text-[var(--color-primary)] mb-1 uppercase tracking-wide">
+                                        Plan {user.subscription.plan?.name || 'Básico'}
+                                    </h3>
+                                    <p className="text-sm text-[var(--text-muted)]">
+                                        Estado: <span className={`font-bold ${user.subscription.status === 'ACTIVE' ? 'text-green-400' : 'text-red-400'}`}>
+                                            {user.subscription.status === 'ACTIVE' ? 'Activo' : 'Vencido/Inactivo'}
+                                        </span>
+                                    </p>
+                                    <p className="text-sm text-[var(--text-muted)]">
+                                        Próximo pago / Vencimiento: <span className="font-bold text-[var(--text-main)]">
+                                            {new Date(user.subscription.expiresAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
+                                        </span>
+                                    </p>
+                                </div>
+                            ) : (
+                                <div>
+                                    <h3 className="text-lg font-bold text-[var(--text-main)] mb-1">Sin suscripción activa</h3>
+                                    <p className="text-sm text-[var(--text-muted)]">Actualmente no cuentas con un plan de pago.</p>
+                                </div>
+                            )}
+                       
+                        </div>
+                    </section>
 
                     {/* ─── PERFIL ─── */}
                     <section className="rounded-2xl border border-[var(--border-subtle)] overflow-hidden"
@@ -174,7 +208,7 @@ export default function ConfiguracionPage() {
                             <h2 className="font-bold text-[var(--text-main)]">Gestión de Perfiles</h2>
                         </div>
                         <div className="px-6 pb-5">
-                            <p className="text-sm text-[var(--text-muted)] mb-3">Administra tus perfiles y configuración de control parental.</p>
+                            <p className="text-sm text-[var(--text-muted)] mb-3">Administra tus perfiles </p>
                             <Link href="/perfiles" className="flex items-center gap-2 text-[var(--color-primary)] text-sm font-bold hover:underline">
                                 Gestionar perfiles <ChevronRight size={14} />
                             </Link>

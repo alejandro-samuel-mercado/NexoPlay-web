@@ -48,7 +48,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isReseller: boolean;
   isFranchisee: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (identifier: string, password: string) => Promise<void>;
   register: (data: { email: string; password: string; name?: string }) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -102,13 +102,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setActiveProfileState(null);
         }
       }
-    } catch {
-      localStorage.removeItem('nexo_access_token');
-      localStorage.removeItem('nexo_refresh_token');
-      localStorage.removeItem('nexo_active_profile_id');
-      setUser(null);
-      setProfiles([]);
-      setActiveProfileState(null);
+    } catch (error: any) {
+      if (error?.status === 401) {
+        localStorage.removeItem('nexo_access_token');
+        localStorage.removeItem('nexo_refresh_token');
+        localStorage.removeItem('nexo_active_profile_id');
+        setUser(null);
+        setProfiles([]);
+        setActiveProfileState(null);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -138,10 +140,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (identifier: string, password: string) => {
     const res = await apiFetch(API.AUTH.LOGIN, {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ identifier, password }),
     });
     localStorage.setItem('nexo_access_token', res.data.accessToken);
     localStorage.setItem('nexo_refresh_token', res.data.refreshToken);

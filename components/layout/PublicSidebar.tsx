@@ -2,14 +2,17 @@
 
 import { useAuth } from '@/context/AuthContext';
 import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
-import { Clapperboard, Clock, Flame, Heart, Home, Play, Settings, Sparkles, TrendingUp, Video } from 'lucide-react';
+import {
+  Clapperboard, Clock, Flame, Heart, Home, LogIn, LogOut,
+  Play, Settings, Sparkles, Store, TrendingUp, Video, ShieldCheck, Star, Wallet
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function PublicSidebar() {
   const pathname = usePathname();
-  const { user, isAdmin, isReseller } = useAuth();
+  const { user, isAdmin, isReseller, isFranchisee, logout } = useAuth();
   const [continueWatching, setContinueWatching] = useState<any[]>([]);
 
   useEffect(() => {
@@ -18,7 +21,7 @@ export default function PublicSidebar() {
       return;
     }
     const fetchHistory = async () => {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('nexo_access_token');
       const profileId = localStorage.getItem('nexo_active_profile_id');
       if (!token || !profileId) return;
       try {
@@ -36,19 +39,51 @@ export default function PublicSidebar() {
 
   const mainNavItems = [
     { name: 'Inicio', icon: Home, path: '/' },
-    { name: 'Favoritos', icon: Heart, path: '/favoritos' },
+    { name: 'Películas', icon: Clapperboard, path: '/explorar?type=MOVIE' },
+    { name: 'Series', icon: Play, path: '/explorar?type=SERIES' },
+    { name: 'Animes', icon: Flame, path: '/explorar?type=ANIME' },
     { name: 'Estrenos', icon: Sparkles, path: '/explorar?quick=premieres' },
-    { name: 'Tendencias', icon: TrendingUp, path: '/explorar?quick=trending' },
     { name: 'Recién Agregados', icon: Clock, path: '/explorar?quick=latest' },
+    { name: 'Favoritos', icon: Heart, path: '/favoritos' },
   ];
 
-  // Extra section based on role
-  const getRoleSection = () => {
-    if (isAdmin) return { name: 'Panel Admin', icon: Settings, path: '/admin' };
-    if (isReseller) return { name: 'Panel Revendedor', icon: Video, path: '/reseller/dashboard' };
+  // Role-specific panel item with distinct styling
+  const getRoleItem = () => {
+    if (isAdmin) return {
+      name: 'Panel Admin',
+      icon: ShieldCheck,
+      path: '/admin',
+      color: '#FF5C5C',
+      bg: 'rgba(255,92,92,0.12)',
+      badge: 'ADMIN',
+    };
+    if (isFranchisee) return {
+      name: 'Mi Franquicia',
+      icon: Store,
+      path: '/admin/tenant',
+      color: '#60A5FA',
+      bg: 'rgba(96,165,250,0.12)',
+      badge: 'FRANQUICIADO',
+    };
+    if (isReseller) return {
+      name: 'Panel Revendedor',
+      icon: Video,
+      path: '/reseller/dashboard',
+      color: '#34D399',
+      bg: 'rgba(52,211,153,0.12)',
+      badge: 'REVENDEDOR',
+    };
+    if (user) return {
+      name: 'Panel de Cuenta',
+      icon: Wallet,
+      path: '/panel',
+      color: '#4ECDC4',
+      bg: 'rgba(78,205,196,0.12)',
+      badge: 'SUSCRIPTOR',
+    };
     return null;
   };
-  const roleItem = getRoleSection();
+  const roleItem = getRoleItem();
 
   const isActiveLink = (path: string) => {
     const base = path.split('?')[0];
@@ -140,36 +175,38 @@ export default function PublicSidebar() {
       )}
 
       {/* Sección Sistema */}
-      <nav className="px-4 space-y-1 mt-auto">
-        {/* Historial — solo si logueado */}
-        {user && (
-          <Link
-            href="/historial"
-            className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-300 font-bold text-sm tracking-wide ${
-              pathname === '/historial'
-                ? 'bg-white/10 text-[var(--text-main)]'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white/5'
-            }`}
-            style={{ textDecoration: 'none' }}
-          >
-            <Clock size={20} className={pathname === '/historial' ? 'text-[var(--color-primary)]' : ''} />
-            Historial
-          </Link>
-        )}
+      <nav className="px-4 space-y-1">
 
-        {/* Rol-specific link */}
+
+        {/* Panel según rol — destacado visualmente */}
         {user && roleItem && (
           <Link
             href={roleItem.path}
-            className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-300 font-bold text-sm tracking-wide ${
-              pathname.startsWith(roleItem.path)
-                ? 'bg-[var(--color-primary)]/15 text-[var(--color-primary)]'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white/5'
-            }`}
-            style={{ textDecoration: 'none' }}
+            className="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 font-bold text-sm mt-1 group"
+            style={{
+              background: pathname.startsWith(roleItem.path.split('?')[0]) ? roleItem.bg : 'transparent',
+              color: pathname.startsWith(roleItem.path.split('?')[0]) ? roleItem.color : 'var(--text-muted)',
+              textDecoration: 'none',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.background = roleItem.bg;
+              (e.currentTarget as HTMLElement).style.color = roleItem.color;
+            }}
+            onMouseLeave={e => {
+              if (!pathname.startsWith(roleItem.path.split('?')[0])) {
+                (e.currentTarget as HTMLElement).style.background = 'transparent';
+                (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)';
+              }
+            }}
           >
             <roleItem.icon size={20} />
-            {roleItem.name}
+            <span className="flex-1">{roleItem.name}</span>
+            <span
+              className="text-[9px] font-black px-1.5 py-0.5 rounded-md"
+              style={{ background: roleItem.color, color: '#0a0a0f' }}
+            >
+              {roleItem.badge}
+            </span>
           </Link>
         )}
 
@@ -187,6 +224,8 @@ export default function PublicSidebar() {
           Configuración
         </Link>
       </nav>
+
+      {/* Remove User info / Login CTA */}
     </aside>
   );
 }

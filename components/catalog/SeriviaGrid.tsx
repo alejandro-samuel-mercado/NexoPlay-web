@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Star } from 'lucide-react';
+import { resolveImageUrl } from '@/lib/api-routes';
 
 interface SeriviaGridProps {
     items: any[];
@@ -19,13 +20,13 @@ export default function SeriviaGrid({ items }: SeriviaGridProps) {
     return (
         <div className="serivia-grid">
             {items.map(item => {
-                const title = item.translations?.[0]?.title || item.slug || 'Sin título';
-                const posterUrl = item.thumbnails?.find((t: any) => t.type === 'POSTER')?.url || 
+                const title = item.title || item.translations?.[0]?.title || item.slug || 'Sin título';
+                const posterUrl = item.posterUrl || item.thumbnails?.find((t: any) => t.type === 'POSTER')?.url || 
                                   item.thumbnails?.find((t: any) => t.type === 'BACKDROP')?.url;
                 
                 // Fallback image if real one is missing
                 const resolvedImage = posterUrl 
-                    ? (posterUrl.startsWith('http') ? posterUrl : `https://api-streamflex.unixxtech.online/api/${posterUrl.replace(/^\//, '')}`)
+                    ? resolveImageUrl(posterUrl)
                     : 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=600';
 
                 return (

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { API } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { Code2, Plus, Trash2, Copy } from 'lucide-react';
+import { Code2, Plus, Trash2, Copy, Key } from 'lucide-react';
 
 export default function AdminApiKeysPage() {
   const { isAdmin, isLoading: authLoading } = useAuth();
@@ -56,90 +56,97 @@ export default function AdminApiKeysPage() {
     alert('API Key copiada al portapapeles');
   };
 
-  if (authLoading || loading) return <div className="p-8"><div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin border-[var(--clay-orange)]" /></div>;
+  if (authLoading || loading) return <div className="p-8 flex justify-center"><div className="w-12 h-12 rounded-full border-4 border-t-transparent animate-spin border-[var(--color-primary)]" style={{ borderTopColor: 'transparent' }} /></div>;
 
   return (
     <div className="p-6 sm:p-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-black text-white flex items-center gap-3">
-            <Code2 className="text-[var(--clay-orange)]" size={32} />
+            <Code2 className="text-[var(--color-secondary)]" size={32} />
             API Pública (Terceros)
           </h1>
-          <p className="text-sm text-[#6B7280] mt-1">Genera tokens de acceso para clientes externos o integraciones</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Genera tokens de acceso para clientes externos o integraciones</p>
         </div>
-        <button onClick={() => setIsCreating(true)} className="btn-clay flex items-center gap-2">
+        <button onClick={() => setIsCreating(true)} className="px-6 py-2.5 rounded-xl font-bold text-sm transition-transform hover:scale-105 active:scale-95 bg-[var(--color-primary)] text-black flex items-center gap-2">
           <Plus size={18} /> Nueva API Key
         </button>
       </div>
 
       {isCreating && (
-        <div className="clay-card-dark p-6 rounded-[20px] mb-8 border border-gray-700 max-w-lg">
+        <div className="bg-[var(--bg-panel)] backdrop-blur-md border border-[var(--border-subtle)] p-6 rounded-2xl mb-8 shadow-xl max-w-lg">
           <h2 className="text-xl font-bold text-white mb-4">Generar API Key</h2>
           <form onSubmit={handleCreate} className="space-y-4">
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Nombre (Identificador del cliente)</label>
-              <input type="text" required value={newKeyName} onChange={e => setNewKeyName(e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" placeholder="Ej: App de CinePlus" />
+              <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Nombre (Identificador del cliente)</label>
+              <input type="text" required value={newKeyName} onChange={e => setNewKeyName(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors" placeholder="Ej: App de CinePlus" />
             </div>
-            <div className="flex gap-4 pt-2">
-              <button type="submit" className="bg-[var(--clay-orange)] text-black px-6 py-2 rounded font-bold hover:brightness-110">Generar</button>
-              <button type="button" onClick={() => setIsCreating(false)} className="border border-gray-600 text-gray-300 px-6 py-2 rounded font-bold hover:text-white">Cancelar</button>
+            <div className="flex gap-4 pt-4">
+              <button type="submit" className="px-6 py-3 rounded-xl font-bold text-sm bg-[var(--color-primary)] text-black hover:scale-105 transition-transform">Generar</button>
+              <button type="button" onClick={() => setIsCreating(false)} className="px-6 py-3 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors">Cancelar</button>
             </div>
           </form>
         </div>
       )}
 
-      <div className="bg-[#12121A] rounded-[20px] border border-[#2A2A35] overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-[#1A1A24] text-[#A8B3C8] text-xs uppercase">
-            <tr>
-              <th className="p-4 font-bold">Nombre / Proyecto</th>
-              <th className="p-4 font-bold">API Key (Token)</th>
-              <th className="p-4 font-bold">Estado</th>
-              <th className="p-4 font-bold">Creación</th>
-              <th className="p-4 font-bold">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="text-sm text-gray-300">
-            {keys.map((k) => (
-              <tr key={k.id} className="border-t border-[#2A2A35] hover:bg-white/5 transition-colors">
-                <td className="p-4 font-medium text-white">{k.name}</td>
-                <td className="p-4">
-                  <div className="flex items-center gap-2">
-                    <code className="bg-black/50 px-2 py-1 rounded text-[var(--clay-orange)] tracking-wider">
-                      {k.isActive ? `${k.key.substring(0, 10)}...${k.key.substring(k.key.length - 6)}` : 'REVOCADA'}
-                    </code>
-                    {k.isActive && (
-                      <button onClick={() => copyToClipboard(k.key)} className="p-1 hover:bg-white/10 rounded" title="Copiar">
-                        <Copy size={16} />
-                      </button>
-                    )}
-                  </div>
-                </td>
-                <td className="p-4">
-                  <span className={`px-2 py-1 rounded text-xs font-bold ${k.isActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                    {k.isActive ? 'Activa' : 'Revocada'}
-                  </span>
-                </td>
-                <td className="p-4">{new Date(k.createdAt).toLocaleDateString()}</td>
-                <td className="p-4">
-                  {k.isActive && (
-                    <button onClick={() => handleRevoke(k.id)} className="text-red-400 hover:text-red-300" title="Revocar acceso">
-                      <Trash2 size={18} />
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-            {keys.length === 0 && (
+      <div className="rounded-2xl overflow-hidden border border-[var(--border-subtle)] shadow-2xl backdrop-blur-xl bg-[var(--bg-panel)] scale-[0.92] origin-top">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-[13px]">
+            <thead className="border-b border-[var(--border-subtle)] bg-black/20 text-white/80 tracking-wider uppercase text-[13px]">
               <tr>
-                <td colSpan={5} className="p-8 text-center text-gray-500">
-                  No has generado ninguna API Key todavía.
-                </td>
+                <th className="px-4 py-3 font-bold">Nombre / Proyecto</th>
+                <th className="px-4 py-3 font-bold">API Key (Token)</th>
+                <th className="px-4 py-3 font-bold">Estado</th>
+                <th className="px-4 py-3 font-bold">Creación</th>
+                <th className="px-4 py-3 font-bold text-right">Acciones</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="text-[13px] text-white/80">
+              {keys.map((k) => (
+                <tr key={k.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
+                  <td className="px-4 py-3 font-bold text-white text-[13px]">{k.name}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <code className="bg-black/50 px-2 py-1 rounded-md border border-white/5 text-[var(--color-primary)] font-mono text-xs tracking-widest shadow-inner">
+                        {k.isActive ? `${k.key.substring(0, 10)}...${k.key.substring(k.key.length - 6)}` : 'REVOCADA'}
+                      </code>
+                      {k.isActive && (
+                        <button onClick={() => { navigator.clipboard.writeText(k.key); alert('API Key copiada'); }}
+                          className="text-[var(--text-muted)] hover:text-white transition-colors" title="Copiar Token">
+                          <Key size={14} />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-colors ${k.isActive ? 'text-green-400 border-green-500/50 bg-green-500/10' : 'text-red-400 border-red-500/50 bg-red-500/10'}`}>
+                      {k.isActive ? 'Activa' : 'Revocada'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-[var(--text-muted)] text-[12px]">{new Date(k.createdAt).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {k.isActive && (
+                        <button onClick={() => handleRevoke(k.id)}
+                          className="px-3 py-1.5 rounded-xl font-bold text-[12px] bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20 transition-colors">
+                          Revocar
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {keys.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-16 text-center">
+                    <Code2 size={48} className="mx-auto mb-4 text-[var(--text-muted)] opacity-50" />
+                    <p className="text-[var(--text-muted)]">No has generado ninguna API Key todavía.</p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

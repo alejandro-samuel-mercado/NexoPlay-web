@@ -156,7 +156,7 @@ export default function SeriviaHero({ content, contentList }: { content?: any, c
                         onClick={() => diff !== 0 && setActiveIndex(idx)}
                     >
                         <img 
-                            src={getPoster(item) || 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=2070'} 
+                            src={item.backdropUrl || item.posterUrl || resolveImageUrl(item.thumbnails?.find((t: any) => t.type === 'BACKDROP' || t.type === 'POSTER')?.url) || 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=2070'} 
                             alt={item.title || item.slug}
                             className="w-full h-full object-cover"
                         />
@@ -171,25 +171,15 @@ export default function SeriviaHero({ content, contentList }: { content?: any, c
                             <div className="absolute inset-0 p-8 md:p-14 flex flex-col justify-end w-full md:max-w-[70%]">
                                 <div className="flex flex-wrap items-center gap-2 mb-4">
                                     {item.duration && <span className="serivia-badge">{Math.floor(item.duration/60)}h {item.duration%60}min</span>}
-                                    {item.genres?.[0] && <span className="serivia-badge bg-white/20 text-white">{item.genres[0].genre?.name}</span>}
+                                    {item.genres?.[0] && <span className="serivia-badge bg-white/20 text-white">{item.genres[0].name || item.genres[0].genre?.name}</span>}
                                     {item.type && <span className="serivia-badge">{item.type === 'MOVIE' ? 'Película' : 'Serie'}</span>}
                                     {item.releaseYear && <span className="serivia-badge">{item.releaseYear}</span>}
                                     {item.ageRating?.code && <span className="serivia-badge">{item.ageRating.code}</span>}
                                 </div>
 
-                                <h1 className="serivia-hero-title">
+                                <h1 className="text-3xl md:text-5xl font-black text-white mb-8 drop-shadow-xl tracking-tight max-w-2xl leading-[1.1]">
                                     {item.translations?.[0]?.title || item.title || item.slug || 'Título Desconocido'}
                                 </h1>
-                                {item.translations?.[0]?.description || item.description ? (
-                                     <p className="text-gray-400 font-normal mb-8 text-sm md:text-base leading-relaxed max-w-xl" style={{
-                                         display: '-webkit-box',
-                                         WebkitLineClamp: 3,
-                                         WebkitBoxOrient: 'vertical',
-                                         overflow: 'hidden'
-                                     }}>
-                                         {item.translations?.[0]?.description || item.description}
-                                     </p>
-                                 ) : null}
 
                                 <div className="flex items-center gap-4">
                                     <Link href={`/film/${item.slug}`} className="serivia-btn-play bg-white text-black hover:bg-gray-200" onClick={(e) => diff !== 0 && e.preventDefault()}>

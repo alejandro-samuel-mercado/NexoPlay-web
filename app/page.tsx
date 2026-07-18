@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import PublicLayout from '@/components/layout/PublicLayout';
 import SeriviaHero from '@/components/catalog/SeriviaHero';
 import SeriviaFilters from '@/components/catalog/SeriviaFilters';
-import { API_ROUTES } from '@/lib/api-routes';
+import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
 import { useAuth } from '@/context/AuthContext';
 import { MOCK_FILMS, MOCK_GENRES } from '@/lib/mockData';
 
@@ -24,7 +24,9 @@ export default function HomePage() {
                     const gRes = await fetch(API_ROUTES.CATEGORIES.GENRES);
                     const gJson = await gRes.json();
                     if (gJson.success && gJson.data?.length > 0) {
-                        setGenres(gJson.data);
+                        // Deduplicate genres by name just in case API returns duplicates
+                        const uniqueGenres = gJson.data.filter((v: any, i: number, a: any[]) => a.findIndex(t => (t.name === v.name)) === i);
+                        setGenres(uniqueGenres.length > 0 ? uniqueGenres : MOCK_GENRES);
                     } else {
                         setGenres(MOCK_GENRES);
                     }
@@ -49,11 +51,10 @@ export default function HomePage() {
             }
         };
         fetchAll();
-    }, [user]);
+    }, [user?.id]);
 
-    // Handle filtering
     const [filteredContent, setFilteredContent] = useState<any[]>([]);
-    const [sections, setSections] = useState<{title: string, items: any[]}[]>([]);
+    const [isFiltering, setIsFiltering] = useState(false);
     
     useEffect(() => {
             if (!data) return;
@@ -68,14 +69,37 @@ export default function HomePage() {
 
             const pool = allItems.length > 0 ? allItems : MOCK_FILMS;
 
-            if (activeGenreId) {
-                const filtered = pool.filter((item: any) => 
-                    item.genres?.some((g: any) => g.genreId === activeGenreId || g.genre?.id === activeGenreId)
-                );
-                setFilteredContent(filtered.length > 0 ? filtered : MOCK_FILMS);
-            } else {
+            if (!activeGenreId) {
                 setFilteredContent(pool);
+                return;
             }
+
+            const fetchGenreData = async () => {
+                setIsFiltering(true);
+                try {
+                    const res = await fetch(`${API_ROUTES.CONTENT.LIST}?genreId=${activeGenreId}&limit=15`);
+                    const json = await res.json();
+                    if (json.success && json.data?.length > 0) {
+                        setFilteredContent(json.data);
+                    } else {
+                        // Fallback to local pool if API returns empty (mock data support)
+                        const localFiltered = pool.filter((item: any) => 
+                            item.genres?.some((g: any) => g.genreId === activeGenreId || g.genre?.id === activeGenreId)
+                        );
+                        setFilteredContent(localFiltered); 
+                    }
+                } catch (error) {
+                    console.error("Error fetching genre data:", error);
+                    const localFiltered = pool.filter((item: any) => 
+                        item.genres?.some((g: any) => g.genreId === activeGenreId || g.genre?.id === activeGenreId)
+                    );
+                    setFilteredContent(localFiltered);
+                } finally {
+                    setIsFiltering(false);
+                }
+            };
+            
+            fetchGenreData();
     }, [data, activeGenreId]);
 
     if (loading) {
@@ -106,13 +130,22 @@ export default function HomePage() {
 
                 {/* 3. Main Content Row (Single Row as in design) */}
                 <div className="serivia-row-container -mt-4">
-                    <div className="serivia-row-track pb-12 overflow-x-auto hide-scrollbar flex gap-4 pr-8">
-                        {filteredContent.map((item, idx) => {
-                            const title = item.translations?.[0]?.title || item.title || item.slug;
-                            const posterUrl = item.thumbnails?.find((t: any) => t.type === 'POSTER')?.url;
+                    {isFiltering ? (
+                        <div className="flex justify-center items-center py-20 w-full">
+                            <div className="w-8 h-8 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin"></div>
+                        </div>
+                    ) : filteredContent.length === 0 ? (
+                        <div className="flex justify-center items-center py-20 w-full text-[var(--text-muted)] text-sm">
+                            No hay contenido disponible para este género.
+                        </div>
+                    ) : (
+                        <div className="serivia-row-track pb-12 overflow-x-auto hide-scrollbar flex gap-4 pr-8">
+                            {filteredContent.map((item, idx) => {
+                            const title = item.title || item.translations?.[0]?.title || item.slug;
+                            const posterUrl = item.posterUrl || item.thumbnails?.find((t: any) => t.type === 'POSTER')?.url;
                             const resolvedImage = posterUrl 
-                                ? (posterUrl.startsWith('http') ? posterUrl : `https://api-streamflex.unixxtech.online/api/${posterUrl.replace(/^\//, '')}`)
-                                : 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=600';
+                            ? resolveImageUrl(posterUrl)
+                            : 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=600';
 
                             return (
                                 <a href={`/film/${item.slug}`} key={item.id || idx} className="block group flex-shrink-0 w-[160px]" style={{ textDecoration: 'none' }}>
@@ -128,6 +161,7 @@ export default function HomePage() {
                                         <div className="flex items-center text-[0.8rem] text-gray-400 gap-2">
                                             <span>{item.releaseYear || '2024'}</span>
                                             <span>•</span>
+                                            <span className="truncate">{item.genres?.[0]?.name || item.genres?.[0]?.genre?.name || 'Película'}</span>
                                             <span className="flex items-center text-[#FFD700] font-bold">
                                                 ★ {item.rating ? item.rating.toFixed(1) : '8.5'}
                                             </span>
@@ -137,6 +171,7 @@ export default function HomePage() {
                             );
                         })}
                     </div>
+                    )}
                 </div>
             </div>
         </PublicLayout>

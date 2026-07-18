@@ -3,25 +3,42 @@
 import CustomSelect from '@/components/ui/CustomSelect';
 import { useAuth } from '@/context/AuthContext';
 import { CONTENT_TYPES_LIST, getContentTypeIcon, getContentTypeLabel } from '@/lib/content-types';
-import { ChevronDown, Moon, Search, Sun } from 'lucide-react';
+import { ChevronDown, LogOut, Moon, Search, Sun, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 export default function PublicTopBar() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  
   const currentSearch = searchParams.get('search') || '';
   const [inputValue, setInputValue] = useState('');
   const [theme, setTheme] = useState('dark');
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const lastUpdatedUrlSearch = useRef(currentSearch);
-
   const inputRef = useRef<HTMLInputElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close user menu on click outside or scroll
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+        if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+            setIsUserMenuOpen(false);
+        }
+    };
+    const handleScroll = () => setIsUserMenuOpen(false);
+
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScroll, { capture: true, passive: true });
+    return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        window.removeEventListener('scroll', handleScroll, { capture: true } as any);
+    };
+  }, []);
 
   // Scroll detection for dynamic background
   useEffect(() => {
@@ -132,7 +149,7 @@ export default function PublicTopBar() {
 
   return (
     <header 
-      className="topbar-wrapper transition-all duration-300"
+      className="topbar-wrapper transition-all duration-300 relative z-[100]"
       style={{
         background: isScrolled ? 'rgba(11, 15, 25, 0.6)' : 'transparent',
         backdropFilter: isScrolled ? 'blur(20px)' : 'none',
@@ -204,17 +221,47 @@ export default function PublicTopBar() {
         </button>
 
         {user ? (
-          <div className="flex items-center gap-3 cursor-pointer group bg-[var(--bg-panel)] pl-2 pr-4 py-1.5 rounded-full border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-all shadow-inner">
-            <img 
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Yuki" 
-                alt="Profile" 
-                className="w-9 h-9 rounded-full border border-[var(--border-strong)]"
-            />
-            <div className="hidden sm:flex flex-col justify-center">
-              <span className="text-sm font-bold text-[var(--text-main)] group-hover:text-[var(--color-primary)] transition-colors leading-tight">{user.name || 'Usuario'}</span>
-              <span className="text-[10px] text-[var(--color-primary)] font-black uppercase tracking-wider leading-tight mt-0.5">Premium</span>
+          <div className="relative" ref={userMenuRef}>
+            <div 
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              className="flex items-center gap-3 cursor-pointer group bg-[var(--bg-panel)] pl-2 pr-4 py-1.5 rounded-full border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-all shadow-inner"
+            >
+              <img 
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.email || 'Yuki')}`} 
+                  alt="Profile" 
+                  className="w-9 h-9 rounded-full border border-[var(--border-strong)] object-cover"
+              />
+              <div className="hidden sm:flex flex-col justify-center">
+                <span className="text-sm font-bold text-[var(--text-main)] group-hover:text-[var(--color-primary)] transition-colors leading-tight">{user.name || user.email}</span>
+                <span className="text-[10px] text-[var(--color-primary)] font-black uppercase tracking-wider leading-tight mt-0.5">{user.role}</span>
+              </div>
+              <ChevronDown size={16} className={`text-[var(--text-muted)] hidden sm:block ml-1 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
             </div>
-            <ChevronDown size={16} className="text-[var(--text-muted)] hidden sm:block ml-1" />
+
+            {/* Dropdown Menu */}
+            {isUserMenuOpen && (
+              <div className="absolute right-0 mt-3 w-48 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl shadow-xl overflow-hidden py-2 z-50!">
+                <Link 
+                  href="/perfiles"
+                  onClick={() => setIsUserMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white/5 transition-all"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <User size={16} />
+                  Mi Perfil
+                </Link>
+                <button
+                  onClick={() => {
+                    setIsUserMenuOpen(false);
+                    logout();
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-[var(--text-muted)] hover:text-red-400 hover:bg-red-400/10 transition-all text-left"
+                >
+                  <LogOut size={16} />
+                  Cerrar Sesión
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <Link href="/auth/login" className="bg-[var(--color-primary)] text-black px-5 py-2 rounded-full font-bold text-sm hover:brightness-110 transition">

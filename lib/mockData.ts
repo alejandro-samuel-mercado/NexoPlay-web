@@ -1,12 +1,18 @@
 export const MOCK_GENRES = [
-    { id: 'trending', name: 'Tendencias' },
     { id: 'adventure', name: 'Aventura' },
     { id: 'action', name: 'Acción' },
     { id: 'comedy', name: 'Comedia' },
     { id: 'crime', name: 'Crimen' },
     { id: 'drama', name: 'Drama' },
     { id: 'fantasy', name: 'Fantasía' },
-    { id: 'horror', name: 'Terror' }
+    { id: 'horror', name: 'Terror' },
+    { id: 'scifi', name: 'Ciencia Ficción' },
+    { id: 'animation', name: 'Animación' },
+    { id: 'documentary', name: 'Documental' },
+    { id: 'family', name: 'Familia' },
+    { id: 'mystery', name: 'Misterio' },
+    { id: 'romance', name: 'Romance' },
+    { id: 'thriller', name: 'Suspenso' }
 ];
 
 export const MOCK_FILMS = [

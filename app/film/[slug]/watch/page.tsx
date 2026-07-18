@@ -111,7 +111,7 @@ export default function WatchPage() {
 
         const requestAccess = async () => {
             try {
-                const token = localStorage.getItem('accessToken');
+                const token = localStorage.getItem('nexo_access_token');
                 const profileId = localStorage.getItem('nexo_active_profile_id');
 
                 if (!token) {
@@ -119,32 +119,24 @@ export default function WatchPage() {
                     return;
                 }
 
-                const res = await userFetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
-                    method: 'POST',
+                const watchId = currentEpisode ? currentEpisode.id : content.id;
+                const res = await userFetch(`${API_ROUTES.CONTENT.BASE}/${watchId}/watch`, {
+                    method: 'GET',
                     headers: {
-                        'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`,
                         ...(profileId ? { 'X-Profile-Id': profileId } : {}),
-                    },
-                    body: JSON.stringify({
-                        contentId: content.id,
-                        episodeId: currentEpisode?.id
-                    }),
+                    }
                 });
 
                 if (!res.ok) throw new Error('No se pudo obtener acceso al video.');
                 const resJson = await res.json();
                 if (!resJson.success) throw new Error(resJson.error || 'Acceso denegado.');
 
-                const { token: signedToken, videoFileId, streamBaseUrl, masterPlaylist } = resJson.data;
+                const { masterPlaylist } = resJson.data;
+
+                if (!masterPlaylist) throw new Error('Video no disponible o no procesado.');
                 
-                // Use masterPlaylist from the POST request (which is fresh) instead of content (which might be cached)
-                const filename = masterPlaylist?.split('/').pop() || 'master.m3u8';
-                
-                // Use the storage node URL if provided, otherwise fall back to the main API
-                const streamHost = streamBaseUrl || backendUrl;
-                const hlsUrl = `${streamHost}/api/stream/hls/${videoFileId}/${filename}?token=${signedToken}&_t=${Date.now()}`;
-                setStreamSrc(hlsUrl);
+                setStreamSrc(masterPlaylist);
             } catch (err: any) {
                 setError(err.message);
             }
@@ -163,7 +155,7 @@ export default function WatchPage() {
                 const localProgress = localStorage.getItem(`watch_progress_${watchId}`);
                 if (localProgress) setInitialTime(parseInt(localProgress));
 
-                const token = localStorage.getItem('accessToken');
+                const token = localStorage.getItem('nexo_access_token');
                 const profileId = localStorage.getItem('nexo_active_profile_id');
                 if (!token || !profileId) return;
 
@@ -198,7 +190,7 @@ export default function WatchPage() {
         localStorage.setItem(`watch_progress_${watchId}`, Math.floor(currentTime).toString());
 
         try {
-            const token = localStorage.getItem('accessToken');
+            const token = localStorage.getItem('nexo_access_token');
             const profileId = localStorage.getItem('nexo_active_profile_id');
             if (!token || !profileId) return;
 

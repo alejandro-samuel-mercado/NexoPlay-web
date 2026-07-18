@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Users, Search, ChevronDown, Crown, Shield, User } from 'lucide-react';
+import { Users, Search, ChevronDown, Crown, Shield, User, CheckCircle2, XCircle, Copy, Eye, EyeOff } from 'lucide-react';
 import { API, apiFetch } from '@/lib/api';
 
 export default function UsuariosAdminPage() {
@@ -14,10 +14,16 @@ export default function UsuariosAdminPage() {
   const [page, setPage] = useState(1);
   const [assignModal, setAssignModal] = useState<{ userId: string; email: string } | null>(null);
   const [selectedPlan, setSelectedPlan] = useState('');
+  const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
 
-  const fetchUsers = async () => {
+  const togglePassword = (id: string) => {
+    setVisiblePasswords(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const fetchUsers = async (forceSearch?: string) => {
     setLoading(true);
-    const params = new URLSearchParams({ page: String(page), limit: '20', ...(search ? { search } : {}), ...(role ? { role } : {}) });
+    const currentSearch = forceSearch !== undefined ? forceSearch : search;
+    const params = new URLSearchParams({ limit: '30', ...(currentSearch ? { search: currentSearch } : {}), ...(role ? { role } : {}) });
     const res = await apiFetch(`${API.ADMIN.USERS}?${params}`);
     if (res.success) { setUsers(res.data || []); setTotal(res.meta?.total || 0); }
     setLoading(false);
@@ -47,107 +53,130 @@ export default function UsuariosAdminPage() {
     fetchUsers();
   };
 
-  const ROLE_BADGE: Record<string, { label: string; color: string }> = {
-    ADMIN: { label: 'Admin', color: 'var(--clay-red)' },
-    SUBSCRIBER: { label: 'Suscripto', color: 'var(--clay-teal)' },
-    GUEST: { label: 'Invitado', color: '#6B7280' },
+  const ROLE_BADGE: Record<string, { label: string; text: string; bg: string; border: string }> = {
+    ADMIN: { label: 'Admin', text: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
+    SUBSCRIBER: { label: 'Suscripto', text: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+    GUEST: { label: 'Invitado', text: 'text-gray-400', bg: 'bg-gray-500/10', border: 'border-gray-500/20' },
   };
 
   return (
     <div className="p-6 sm:p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-black text-white flex items-center gap-2">
-            <Users size={24} style={{ color: 'var(--clay-teal)' }} /> Usuarios
+          <h1 className="text-3xl font-black text-white flex items-center gap-3">
+            <Users size={28} style={{ color: 'var(--color-secondary)' }} /> Usuarios
           </h1>
-          <p className="text-sm text-[#6B7280]">{total} usuarios registrados</p>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{total} usuarios registrados</p>
         </div>
       </div>
 
       {/* Filters */}
-      <form onSubmit={handleSearch} className="flex flex-wrap gap-3 mb-6">
-        <div className="relative flex-1 min-w-48">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6B7280]" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por email o nombre..." className="clay-input pl-9 text-sm" />
+      <form onSubmit={handleSearch} className="flex flex-col lg:flex-row gap-4 mb-8">
+        <div className="relative flex-1 lg:w-72">
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+          <input value={search} onChange={(e) => {
+            setSearch(e.target.value);
+            if (e.target.value === '') {
+              fetchUsers('');
+            }
+          }}
+            placeholder="Buscar por email o nombre..." 
+            className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-2 text-sm text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors backdrop-blur-md" 
+          />
         </div>
-        <select value={role} onChange={(e) => setRole(e.target.value)} className="clay-input text-sm w-auto">
-          <option value="">Todos los roles</option>
-          <option value="GUEST">Invitados</option>
-          <option value="SUBSCRIBER">Suscriptos</option>
-          <option value="ADMIN">Admins</option>
+        <select value={role} onChange={(e) => setRole(e.target.value)} 
+          className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors backdrop-blur-md">
+          <option value="" className="bg-black">Todos los roles</option>
+          <option value="GUEST" className="bg-black">Invitados</option>
+          <option value="SUBSCRIBER" className="bg-black">Suscriptos</option>
+          <option value="ADMIN" className="bg-black">Admins</option>
         </select>
-        <button type="submit" className="btn-clay btn-clay-teal btn-clay-sm">Buscar</button>
+        <button type="submit" className="px-6 py-2.5 rounded-xl font-bold text-sm transition-transform hover:scale-105 active:scale-95 bg-[var(--color-primary)] text-black">
+          Buscar
+        </button>
       </form>
 
       {/* Table */}
-      <div className="clay-card-dark rounded-[16px] overflow-hidden border-[2px] border-[#3A3A5C]">
+      <div className="rounded-2xl overflow-hidden border border-[var(--border-subtle)] shadow-2xl backdrop-blur-xl bg-[var(--bg-panel)]">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-[13px]">
             <thead>
-              <tr className="border-b border-[#3A3A5C]" style={{ background: '#1A1A2E' }}>
-                <th className="text-left px-4 py-3 text-xs font-bold text-[#6B7280] uppercase">Usuario</th>
-                <th className="text-left px-4 py-3 text-xs font-bold text-[#6B7280] uppercase">Rol</th>
-                <th className="text-left px-4 py-3 text-xs font-bold text-[#6B7280] uppercase">Suscripción</th>
-                <th className="text-left px-4 py-3 text-xs font-bold text-[#6B7280] uppercase">Estado</th>
-                <th className="text-left px-4 py-3 text-xs font-bold text-[#6B7280] uppercase">Registro</th>
+              <tr className="border-b border-[var(--border-subtle)] bg-black/20">
+                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Usuario</th>
+                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Rol</th>
+                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Suscripción</th>
+                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Estado</th>
+                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Registro</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 Array.from({ length: 8 }).map((_, i) => (
-                  <tr key={i}><td colSpan={6} className="px-4 py-3"><div className="clay-skeleton h-6 rounded" /></td></tr>
+                  <tr key={i} className="border-b border-white/5"><td colSpan={6} className="px-5 py-4"><div className="h-10 bg-white/5 rounded-lg animate-pulse w-full" /></td></tr>
                 ))
               ) : users.map((u) => {
                 const rb = ROLE_BADGE[u.role] || ROLE_BADGE.GUEST;
+                const isSubActive = u.subscription?.status === 'ACTIVE';
                 return (
-                  <tr key={u.id} className="border-b border-[#3A3A5C] hover:bg-white/5 transition-all">
+                  <tr key={u.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black"
-                          style={{ background: 'var(--clay-teal)', color: 'var(--clay-ink)' }}>
-                          {u.name?.[0]?.toUpperCase() || u.email?.[0]?.toUpperCase()}
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm bg-black/20 ${rb.text}`}>
+                          {u.email.substring(0, 1).toUpperCase()}
                         </div>
                         <div>
-                          <p className="font-semibold text-white text-xs">{u.name || '—'}</p>
-                          <p className="text-[#6B7280] text-[11px]">{u.email}</p>
+                          <p className="font-bold text-white text-[13px] flex items-center gap-2">
+                            {u.username || u.email}
+                            <button onClick={() => navigator.clipboard.writeText(u.username || u.email)} className="text-[var(--text-muted)] hover:text-white transition-colors" title="Copiar usuario">
+                              <Copy size={12} />
+                            </button>
+                          </p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[11px] font-mono text-[var(--color-primary)]">
+                              Contraseña: {u.plainPassword ? (visiblePasswords[u.id] ? u.plainPassword : '••••••••') : '••••••••'}
+                            </span>
+                            {u.plainPassword && (
+                              <>
+                                <button onClick={() => togglePassword(u.id)} className="text-[var(--text-muted)] hover:text-white transition-colors" title={visiblePasswords[u.id] ? 'Ocultar' : 'Mostrar'}>
+                                  {visiblePasswords[u.id] ? <EyeOff size={12} /> : <Eye size={12} />}
+                                </button>
+                                <button onClick={() => navigator.clipboard.writeText(u.plainPassword)} className="text-[var(--text-muted)] hover:text-white transition-colors" title="Copiar contraseña">
+                                  <Copy size={12} />
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="clay-badge text-[10px]" style={{ color: rb.color, borderColor: rb.color }}>
-                        {rb.label}
+                      <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider border transition-colors ${rb.bg} ${rb.text} ${rb.border}`}>
+                        {u.role}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-xs">
-                      {u.subscription ? (
-                        <div>
-                          <p className="font-bold text-white">{u.subscription.planName}</p>
-                          <p className="text-[#6B7280]">
-                            {u.subscription.status === 'ACTIVE'
-                              ? `Vence: ${new Date(u.subscription.expiresAt).toLocaleDateString('es-AR')}`
-                              : u.subscription.status}
-                          </p>
+                    <td className="px-4 py-3">
+                      {isSubActive ? (
+                        <div className="flex items-center gap-2">
+                          <Crown size={14} className="text-[var(--color-primary)]" />
+                          <span className="text-white font-bold text-[13px]">{u.subscription?.plan?.name || 'Pro'}</span>
                         </div>
                       ) : (
-                        <span className="text-[#3A3A5C]">Sin suscripción</span>
+                        <span className="text-[var(--text-muted)] text-[12px]">Sin suscripción</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <button onClick={() => handleToggleActive(u.id, u.isActive)}
-                        className="clay-badge text-[10px] cursor-pointer"
-                        style={{ color: u.isActive ? 'var(--clay-mint)' : 'var(--clay-red)', borderColor: u.isActive ? 'var(--clay-mint)' : 'var(--clay-red)' }}>
-                        {u.isActive ? '● Activo' : '✕ Inactivo'}
-                      </button>
+                      {u.isActive ? (
+                        <span className="text-green-400 font-bold flex items-center gap-1.5 text-[12px]"><CheckCircle2 size={14}/> Activo</span>
+                      ) : (
+                        <span className="text-red-400 font-bold flex items-center gap-1.5 text-[12px]"><XCircle size={14}/> Baneado</span>
+                      )}
                     </td>
-                    <td className="px-4 py-3 text-xs text-[#6B7280]">
-                      {new Date(u.createdAt).toLocaleDateString('es-AR')}
-                    </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 text-[var(--text-muted)] text-[12px]">{new Date(u.createdAt).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 text-right">
                       <button onClick={() => { setAssignModal({ userId: u.id, email: u.email }); setSelectedPlan(u.subscription?.planId || ''); }}
-                        className="btn-clay btn-clay-yellow btn-clay-sm text-[11px]">
-                        <Crown size={11} /> Plan
+                        className="px-4 py-2 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 transition-colors inline-flex items-center justify-center gap-2">
+                        <Crown size={14} /> Plan
                       </button>
                     </td>
                   </tr>
@@ -157,27 +186,28 @@ export default function UsuariosAdminPage() {
           </table>
         </div>
         {users.length === 0 && !loading && (
-          <div className="text-center py-12"><Users size={32} className="mx-auto mb-3 text-[#3A3A5C]" /><p className="text-[#6B7280]">Sin usuarios</p></div>
+          <div className="text-center py-16"><Users size={48} className="mx-auto mb-4 text-[var(--text-muted)] opacity-50" /><p className="text-[var(--text-muted)]">Sin usuarios</p></div>
         )}
       </div>
 
-      {/* Assign Plan Modal */}
+      {/* Modal Asignar Plan */}
       {assignModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(15,15,26,0.9)', backdropFilter: 'blur(8px)' }}>
-          <div className="clay-card-dark p-8 rounded-[24px] w-full max-w-sm border-[3px]"
-            style={{ borderColor: 'var(--clay-teal)', boxShadow: '6px 6px 0px var(--clay-teal)' }}>
-            <h2 className="text-lg font-black text-white mb-1">Asignar Plan</h2>
-            <p className="text-sm text-[#6B7280] mb-6 truncate">{assignModal.email}</p>
-            <select value={selectedPlan} onChange={(e) => setSelectedPlan(e.target.value)} className="clay-input text-sm mb-4">
-              <option value="">Sin suscripción</option>
-              {plans.map((p: any) => (
-                <option key={p.id} value={p.id}>{p.name} — {p.durationDays} días</option>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[var(--bg-panel)] p-8 rounded-[24px] w-full max-w-sm border border-[var(--border-subtle)] backdrop-blur-xl shadow-2xl">
+            <h3 className="text-xl font-black text-white mb-2">Asignar Plan</h3>
+            <p className="text-sm text-white/60 mb-6">Usuario: {assignModal.email}</p>
+            
+            <select value={selectedPlan} onChange={(e) => setSelectedPlan(e.target.value)} 
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors mb-6">
+              <option value="" className="bg-black">Ninguno (Remover)</option>
+              {plans.map(p => (
+                <option key={p.id} value={p.id} className="bg-black">{p.name}</option>
               ))}
             </select>
-            <div className="flex gap-3">
-              <button onClick={() => setAssignModal(null)} className="btn-clay btn-clay-dark flex-1 btn-clay-sm">Cancelar</button>
-              <button onClick={handleAssignPlan} className="btn-clay btn-clay-teal flex-1 btn-clay-sm">Asignar</button>
+
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => setAssignModal(null)} className="px-4 py-3 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors flex-1">Cancelar</button>
+              <button onClick={handleAssignPlan} className="px-4 py-3 rounded-xl font-bold text-sm bg-[var(--color-primary)] text-black hover:scale-105 transition-transform flex-1">Asignar</button>
             </div>
           </div>
         </div>

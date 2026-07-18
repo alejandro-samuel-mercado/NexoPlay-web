@@ -1,11 +1,14 @@
 const getApiBaseUrl = () => {
-    if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+    let url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
     if (typeof window !== 'undefined') {
         if (window.location.hostname.includes('unixxtech.online')) {
-            return 'https://api-streamflex.unixxtech.online/api';
+            url = 'https://api-streamflex.unixxtech.online';
         }
     }
-    return 'http://localhost:4000/api';
+    if (!url.endsWith('/api')) {
+        url += '/api';
+    }
+    return url;
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -46,7 +49,7 @@ export const API_ROUTES = {
         DETAIL: (id: string) => `${API_BASE_URL}/actors/${id}`,
     },
     CATEGORIES: {
-        GENRES: `${API_BASE_URL}/categories/genres`,
+        GENRES: `${API_BASE_URL}/content/genres`,
         UPDATE_GENRE: (id: string) => `${API_BASE_URL}/categories/genres/${id}`,
         DELETE_GENRE: (id: string) => `${API_BASE_URL}/categories/genres/${id}`,
         AGE_RATINGS: `${API_BASE_URL}/categories/age-ratings`,
@@ -93,7 +96,7 @@ export const API_ROUTES = {
         LIST: `${API_BASE_URL}/plans`,
     },
     HOMEPAGE: {
-        DATA: `${API_BASE_URL}/homepage`,
+        DATA: `${API_BASE_URL}/content/homepage`,
     },
     ADMIN: {
         BASE: `${API_BASE_URL}/admin`,
@@ -167,6 +170,15 @@ export const API_ROUTES = {
         DELETE: (filename: string) => `${API_BASE_URL}/admin/backup/${filename}`,
         SETTINGS: `${API_BASE_URL}/admin/backup/settings`,
     },
+    TOKENS: {
+        BASE: `${API_BASE_URL}/tokens`,
+        WALLET: `${API_BASE_URL}/tokens/wallet`,
+    },
+    DOWNLOADS: {
+        BASE: `${API_BASE_URL}/downloads`,
+        HISTORY: `${API_BASE_URL}/downloads/history`,
+        LIBRARY: `${API_BASE_URL}/downloads/library`,
+    }
 } as const;
 
 // Robust helper to resolve media URLs (thumbnails, etc.)
@@ -176,7 +188,7 @@ export const resolveImageUrl = (url: string | null | undefined) => {
 
     // Normalize the URL to start with a slash
     const normalizedUrl = url.startsWith('/') ? url : `/${url}`;
-    return `${API_ORIGIN}${normalizedUrl}`;
+    return `https://api-streamflex.unixxtech.online${normalizedUrl}`;
 };
 
 

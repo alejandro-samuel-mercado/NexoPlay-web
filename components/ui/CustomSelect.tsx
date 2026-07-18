@@ -40,8 +40,14 @@ export default function CustomSelect({
                 setIsOpen(false);
             }
         };
+        const handleScroll = () => setIsOpen(false);
+
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        window.addEventListener('scroll', handleScroll, { capture: true, passive: true });
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            window.removeEventListener('scroll', handleScroll, { capture: true } as any);
+        };
     }, []);
 
     return (

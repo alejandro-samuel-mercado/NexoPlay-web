@@ -55,54 +55,54 @@ export const API = {
   },
 
   PROFILES: {
-    list: async () => apiFetch('/api/profiles'),
+    list: async () => apiFetch(`${API_BASE}/api/profiles`),
     create: async (data: { name: string; avatarUrl?: string; pinCode?: string }) =>
-      apiFetch('/api/profiles', {
+      apiFetch(`${API_BASE}/api/profiles`, {
         method: 'POST',
         body: JSON.stringify(data),
       }),
     update: async (id: string, data: Partial<{ name: string; avatarUrl: string; pinCode: string }>) =>
-      apiFetch(`/api/profiles/${id}`, {
+      apiFetch(`${API_BASE}/api/profiles/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
     delete: async (id: string) =>
-      apiFetch(`/api/profiles/${id}`, { method: 'DELETE' }),
+      apiFetch(`${API_BASE}/api/profiles/${id}`, { method: 'DELETE' }),
     switch: async (id: string) => 
-      apiFetch(`/api/profiles/${id}/switch`, { method: 'POST' }),
+      apiFetch(`${API_BASE}/api/profiles/${id}/switch`, { method: 'POST' }),
   },
 
   ADS: {
     active: async (countryCode?: string) => 
-      apiFetch(`/api/ads/active${countryCode ? `?country=${countryCode}` : ''}`),
+      apiFetch(`${API_BASE}/api/ads/active${countryCode ? `?country=${countryCode}` : ''}`),
     impression: async (data: { campaignId: string; userId?: string; deviceType?: string }) =>
-      apiFetch('/api/ads/impression', { method: 'POST', body: JSON.stringify(data) }),
+      apiFetch(`${API_BASE}/api/ads/impression`, { method: 'POST', body: JSON.stringify(data) }),
     click: async (data: { campaignId: string; userId?: string }) =>
-      apiFetch('/api/ads/click', { method: 'POST', body: JSON.stringify(data) }),
+      apiFetch(`${API_BASE}/api/ads/click`, { method: 'POST', body: JSON.stringify(data) }),
     reward: async (data: { campaignId: string }) =>
-      apiFetch('/api/ads/reward', { method: 'POST', body: JSON.stringify(data) }),
+      apiFetch(`${API_BASE}/api/ads/reward`, { method: 'POST', body: JSON.stringify(data) }),
     admin: {
-      stats: async () => apiFetch('/api/ads/admin/stats'),
-      create: async (data: any) => apiFetch('/api/ads/admin/campaigns', { method: 'POST', body: JSON.stringify(data) }),
+      stats: async () => apiFetch(`${API_BASE}/api/ads/admin/stats`),
+      create: async (data: any) => apiFetch(`${API_BASE}/api/ads/admin/campaigns`, { method: 'POST', body: JSON.stringify(data) }),
     },
   },
 
   PUBLIC_API: {
-    listKeys: async () => apiFetch('/api/public/keys'),
-    createKey: async (name: string) => apiFetch('/api/public/keys', { method: 'POST', body: JSON.stringify({ name }) }),
-    revokeKey: async (id: string) => apiFetch(`/api/public/keys/${id}`, { method: 'DELETE' }),
+    listKeys: async () => apiFetch(`${API_BASE}/api/public/keys`),
+    createKey: async (name: string) => apiFetch(`${API_BASE}/api/public/keys`, { method: 'POST', body: JSON.stringify({ name }) }),
+    revokeKey: async (id: string) => apiFetch(`${API_BASE}/api/public/keys/${id}`, { method: 'DELETE' }),
   },
 
   TENANT: {
-    getSettings: async () => apiFetch('/api/tenant/settings'),
+    getSettings: async () => apiFetch(`${API_BASE}/api/tenant/settings`),
     updateSettings: async (data: Partial<{ appName: string; primaryColor: string; logoUrl: string; subdomain: string }>) => 
-      apiFetch('/api/tenant/settings', { method: 'PUT', body: JSON.stringify(data) }),
-    getDashboard: async () => apiFetch('/api/tenant/dashboard'),
+      apiFetch(`${API_BASE}/api/tenant/settings`, { method: 'PUT', body: JSON.stringify(data) }),
+    getDashboard: async () => apiFetch(`${API_BASE}/api/tenant/dashboard`),
   },
 
   RESELLER: {
-    getWeeklyPack: async () => apiFetch('/api/reseller/pack/weekly', { method: 'POST' }),
-    buyLimits: async (amount: number) => apiFetch('/api/reseller/buy-limits', { method: 'POST', body: JSON.stringify({ amount }) }),
+    getWeeklyPack: async () => apiFetch(`${API_BASE}/api/reseller/pack/weekly`, { method: 'POST' }),
+    buyLimits: async (amount: number) => apiFetch(`${API_BASE}/api/reseller/buy-limits`, { method: 'POST', body: JSON.stringify({ amount }) }),
   }
 };
 
@@ -120,7 +120,9 @@ export async function apiFetch(url: string, options: RequestInit = {}) {
   const res = await fetch(url, { ...options, headers });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error || 'Error en la solicitud');
+    const error = new Error(err.error || 'Error en la solicitud') as any;
+    error.status = res.status;
+    throw error;
   }
   return res.json();
 }

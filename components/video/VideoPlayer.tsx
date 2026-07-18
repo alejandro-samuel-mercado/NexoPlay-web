@@ -392,7 +392,7 @@ export default function VideoPlayer({
                         <ArrowLeft size={24} />
                     </button>
                     <div>
-                        <span className="text-[10px] font-black uppercase tracking-[4px] text-purple-400 mb-1 block">Reproduciendo</span>
+                        <span className="text-[10px] font-black uppercase tracking-[4px] text-[var(--color-primary)] mb-1 block">Reproduciendo</span>
                         <h1 className="text-xl font-black text-white uppercase italic tracking-tight">{title || 'Cargando...'}</h1>
                     </div>
                 </div>
@@ -439,15 +439,15 @@ export default function VideoPlayer({
                     </div>
                     <div className="!py-2 max-h-64 overflow-y-auto">
                         <button onClick={() => { if (hlsRef.current) hlsRef.current.currentLevel = -1; setCurrentLevel(-1); setIsQualityMenuOpen(false); }}
-                            className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentLevel === -1 ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+                            className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentLevel === -1 ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
                             <span className="font-semibold">Auto</span>
-                            {currentLevel === -1 && <div className="w-2 h-2 rounded-full bg-purple-400" />}
+                            {currentLevel === -1 && <div className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />}
                         </button>
                         {levels.map((level, i) => (
                             <button key={i} onClick={() => { if (hlsRef.current) hlsRef.current.currentLevel = i; setCurrentLevel(i); setIsQualityMenuOpen(false); }}
-                                className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentLevel === i ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+                                className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentLevel === i ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
                                 <span className="font-semibold">{level.height}p</span>
-                                {currentLevel === i && <div className="w-2 h-2 rounded-full bg-purple-400" />}
+                                {currentLevel === i && <div className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />}
                             </button>
                         ))}
                     </div>
@@ -464,16 +464,16 @@ export default function VideoPlayer({
                     <div className="!py-2 max-h-64 overflow-y-auto">
                         {audioTracks.length === 0 ? (
                             <button onClick={() => setIsAudioMenuOpen(false)}
-                                className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors bg-purple-500/20 text-purple-300`}>
+                                className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors bg-[var(--color-primary)]/20 text-[var(--color-primary)]`}>
                                 <span className="font-semibold">Audio Predeterminado</span>
-                                <div className="w-2 h-2 rounded-full bg-purple-400" />
+                                <div className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />
                             </button>
                         ) : (
                             audioTracks.map((track, i) => (
                                 <button key={i} onClick={() => { if (hlsRef.current) hlsRef.current.audioTrack = i; setCurrentAudio(i); setIsAudioMenuOpen(false); }}
-                                    className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentAudio === i ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+                                    className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentAudio === i ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
                                     <span className="font-semibold">{track.name || track.lang || `Pista ${i + 1}`}</span>
-                                    {currentAudio === i && <div className="w-2 h-2 rounded-full bg-purple-400" />}
+                                    {currentAudio === i && <div className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />}
                                 </button>
                             ))
                         )}
@@ -499,9 +499,9 @@ export default function VideoPlayer({
                                 }
                                 setIsSubtitleMenuOpen(false); 
                             }}
-                            className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentSubtitle === -1 ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+                            className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentSubtitle === -1 ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
                             <span className="font-semibold">Desactivados</span>
-                            {currentSubtitle === -1 && <div className="w-2 h-2 rounded-full bg-purple-400" />}
+                            {currentSubtitle === -1 && <div className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />}
                         </button>
                         {subtitleTracks.map((track, i) => (
                             <button key={i} onClick={() => {
@@ -514,9 +514,9 @@ export default function VideoPlayer({
                                 }
                                 setIsSubtitleMenuOpen(false);
                             }}
-                                className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentSubtitle === i ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+                                className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentSubtitle === i ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
                                 <span className="font-semibold">{track.name || track.lang || `Subtítulo ${i + 1}`}</span>
-                                {currentSubtitle === i && <div className="w-2 h-2 rounded-full bg-purple-400" />}
+                                {currentSubtitle === i && <div className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />}
                             </button>
                         ))}
                     </div>
@@ -535,7 +535,7 @@ export default function VideoPlayer({
                             {formatTime(duration)}
                         </span>
                         <div className="relative flex-1 h-1.5 bg-white/10 rounded-full cursor-pointer group/progress">
-                            <div className="absolute top-0 left-0 h-full bg-purple-500 shadow-[0_0_14px_rgba(168,85,247,0.7)] rounded-full pointer-events-none" style={{ width: `${progress}%` }} />
+                            <div className="absolute top-0 left-0 h-full bg-[var(--color-primary)] shadow-[0_0_14px_rgba(168,85,247,0.7)] rounded-full pointer-events-none" style={{ width: `${progress}%` }} />
                             <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white shadow-lg opacity-0 group-hover/progress:opacity-100 transition-opacity pointer-events-none" style={{ left: `calc(${progress}% - 8px)` }} />
                             <input type="range" min="0" max="100" value={progress} onChange={handleSeek} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                         </div>
@@ -577,7 +577,7 @@ export default function VideoPlayer({
                                     <input
                                         type="range" min="0" max="1" step="0.05" value={isMuted ? 0 : volume}
                                         onChange={(e) => { setVolume(parseFloat(e.target.value)); if (isMuted) setIsMuted(false); }}
-                                        className="w-full accent-purple-500 !h-1.5 bg-white/10 rounded-full cursor-pointer"
+                                        className="w-full accent-cyan-500 !h-1.5 bg-white/10 rounded-full cursor-pointer"
                                     />
                                 </div>
                             </div>
@@ -587,21 +587,21 @@ export default function VideoPlayer({
                         <div className="flex items-center !gap-4 md:!gap-8">
                             <button
                                 onClick={(e) => { e.stopPropagation(); setIsSubtitleMenuOpen(false); setIsAudioMenuOpen(!isAudioMenuOpen); setIsQualityMenuOpen(false); }}
-                                className={`flex flex-col items-center !gap-1 transition-colors ${isAudioMenuOpen ? 'text-purple-400' : 'text-white/60 hover:text-white'}`}
+                                className={`flex flex-col items-center !gap-1 transition-colors ${isAudioMenuOpen ? 'text-[var(--color-primary)]' : 'text-white/60 hover:text-white'}`}
                             >
                                 <Headphones className="w-5 h-5 md:w-7 md:h-7" />
                                 <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest hidden sm:block">Audio</span>
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); setIsAudioMenuOpen(false); setIsSubtitleMenuOpen(!isSubtitleMenuOpen); setIsQualityMenuOpen(false); }}
-                                className={`flex flex-col items-center !gap-1 transition-colors ${isSubtitleMenuOpen ? 'text-purple-400' : 'text-white/60 hover:text-white'}`}
+                                className={`flex flex-col items-center !gap-1 transition-colors ${isSubtitleMenuOpen ? 'text-[var(--color-primary)]' : 'text-white/60 hover:text-white'}`}
                             >
                                 <MessageSquare className="w-5 h-5 md:w-7 md:h-7" />
                                 <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest hidden sm:block">Subs</span>
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); setIsAudioMenuOpen(false); setIsSubtitleMenuOpen(false); setIsQualityMenuOpen(!isQualityMenuOpen); }}
-                                className={`flex flex-col items-center !gap-1 transition-colors ${isQualityMenuOpen ? 'text-purple-400' : 'text-white/60 hover:text-white'}`}
+                                className={`flex flex-col items-center !gap-1 transition-colors ${isQualityMenuOpen ? 'text-[var(--color-primary)]' : 'text-white/60 hover:text-white'}`}
                             >
                                 <Settings className="w-5 h-5 md:w-7 md:h-7" />
                                 <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest hidden sm:block">Calidad</span>
@@ -626,7 +626,7 @@ export default function VideoPlayer({
                     <div className="flex flex-col !gap-6">
                         {episodes.map((s: any) => (
                             <div key={s.id}>
-                                <h3 className="text-[10px] font-black text-purple-400 uppercase tracking-[4px] !mb-3 opacity-60 border-b border-purple-500/20 !pb-2">Temporada {s.number}</h3>
+                                <h3 className="text-[10px] font-black text-[var(--color-primary)] uppercase tracking-[4px] !mb-3 opacity-60 border-b border-cyan-500/20 !pb-2">Temporada {s.number}</h3>
                                 <div className="flex flex-col !gap-2">
                                     {s.episodes?.map((e: any) => (
                                         <button

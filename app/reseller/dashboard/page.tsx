@@ -5,6 +5,7 @@ import { Download, Coins, Package, Search, Filter, Clock, ChevronDown, Star, Zap
 import { API, apiFetch } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
+import SyncButton from '@/components/admin/SyncButton';
 
 interface ContentItem {
   id: string;
@@ -109,7 +110,7 @@ export default function ResellerDashboard() {
     <div className="min-h-screen" style={{ background: 'var(--bg-main)' }}>
       {/* Header */}
       <div className="border-b" style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'var(--bg-panel)' }}>
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4 flex-wrap">
+        <div className="w-full px-4 py-4 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black"
               style={{ background: 'var(--clay-teal)', color: 'var(--clay-ink)', boxShadow: '2px 2px 0 var(--clay-ink)', border: '2px solid var(--clay-ink)' }}>
@@ -127,6 +128,7 @@ export default function ResellerDashboard() {
               <span className="font-black text-white text-sm">{wallet?.balance ?? '—'}</span>
               <span className="text-xs" style={{ color: 'var(--text-muted)' }}>tokens</span>
             </div>
+            <SyncButton />
             <Link href="/" className="text-xs font-bold px-3 py-2 rounded-xl border-2 transition-colors"
               style={{ borderColor: 'rgba(255,255,255,0.12)', color: 'var(--text-muted)' }}>
               ← Catálogo
@@ -135,13 +137,17 @@ export default function ResellerDashboard() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+      <div className="w-full px-4 py-6 space-y-6">
 
         {/* Stats row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {/* Daily counter */}
-          <div className="col-span-2 rounded-2xl p-5 border-2" style={{ borderColor: 'var(--clay-teal)', background: 'rgba(0,210,180,0.06)', boxShadow: '3px 3px 0 var(--clay-teal)' }}>
-            <div className="flex items-center justify-between mb-3">
+          <div className="col-span-2 rounded-2xl p-5 border border-white/5 shadow-xl relative overflow-hidden" style={{ background: 'var(--bg-panel)' }}>
+            <div
+              className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10 pointer-events-none"
+              style={{ background: 'radial-gradient(circle, var(--clay-teal) 0%, transparent 70%)', filter: 'blur(20px)', transform: 'translate(30%, -30%)' }}
+            />
+            <div className="flex items-center justify-between mb-3 relative z-10">
               <div className="flex items-center gap-2">
                 <Download size={18} style={{ color: 'var(--clay-teal)' }} />
                 <span className="font-black text-white text-sm">Descargas Hoy</span>
@@ -169,8 +175,12 @@ export default function ResellerDashboard() {
           </div>
 
           {/* Token balance card */}
-          <div className="rounded-2xl p-5 border-2" style={{ borderColor: 'var(--clay-yellow)', background: 'rgba(255,210,63,0.06)', boxShadow: '3px 3px 0 var(--clay-yellow)' }}>
-            <div className="flex items-center gap-2 mb-2">
+          <div className="rounded-2xl p-5 border border-white/5 shadow-xl relative overflow-hidden" style={{ background: 'var(--bg-panel)' }}>
+            <div
+              className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10 pointer-events-none"
+              style={{ background: 'radial-gradient(circle, var(--clay-yellow) 0%, transparent 70%)', filter: 'blur(20px)', transform: 'translate(30%, -30%)' }}
+            />
+            <div className="flex items-center gap-2 mb-2 relative z-10">
               <Coins size={18} style={{ color: 'var(--clay-yellow)' }} />
               <span className="font-black text-white text-sm">Tokens</span>
             </div>
@@ -179,8 +189,12 @@ export default function ResellerDashboard() {
           </div>
 
           {/* Content available */}
-          <div className="rounded-2xl p-5 border-2" style={{ borderColor: 'var(--clay-purple)', background: 'rgba(128,80,255,0.06)', boxShadow: '3px 3px 0 var(--clay-purple)' }}>
-            <div className="flex items-center gap-2 mb-2">
+          <div className="rounded-2xl p-5 border border-white/5 shadow-xl relative overflow-hidden" style={{ background: 'var(--bg-panel)' }}>
+            <div
+              className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10 pointer-events-none"
+              style={{ background: 'radial-gradient(circle, var(--clay-purple) 0%, transparent 70%)', filter: 'blur(20px)', transform: 'translate(30%, -30%)' }}
+            />
+            <div className="flex items-center gap-2 mb-2 relative z-10">
               <Package size={18} style={{ color: 'var(--clay-purple)' }} />
               <span className="font-black text-white text-sm">Catálogo</span>
             </div>
@@ -191,8 +205,12 @@ export default function ResellerDashboard() {
 
         {/* Weekly Pack */}
         {weeklyPack && weeklyPack.contents?.length > 0 && (
-          <div className="rounded-2xl p-5 border-2" style={{ borderColor: 'var(--clay-orange)', background: 'rgba(255,140,50,0.06)', boxShadow: '3px 3px 0 var(--clay-orange)' }}>
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <div className="rounded-2xl p-5 border border-white/5 shadow-xl relative overflow-hidden" style={{ background: 'var(--bg-panel)' }}>
+            <div
+              className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-[0.05] pointer-events-none"
+              style={{ background: 'radial-gradient(circle, var(--clay-orange) 0%, transparent 70%)', filter: 'blur(30px)', transform: 'translate(30%, -30%)' }}
+            />
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2 relative z-10">
               <div className="flex items-center gap-2">
                 <Star size={18} style={{ color: 'var(--clay-orange)' }} />
                 <h2 className="font-black text-white">Pack de la Semana</h2>
