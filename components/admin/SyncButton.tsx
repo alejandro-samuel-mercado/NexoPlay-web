@@ -8,16 +8,16 @@ export default function SyncButton() {
   const [syncing, setSyncing] = useState(false);
 
   const handleSync = async () => {
-    if (!confirm('Esto copiará el catálogo de películas/series desde Flex-Streaming a la base de datos de NexoPlay. ¿Continuar?')) return;
+    if (!confirm('Esto copiará el catálogo de películas/series desde Nuba a la base de datos de NexoPlay. ¿Continuar?')) return;
     setSyncing(true);
     try {
       // Usamos el endpoint de admin por defecto
       const res = await apiFetch(`${API_BASE}/api/admin/content/sync`, { method: 'POST' });
       if (res.success) {
-        alert(`Sincronización completada. ${res.data?.processed || 0} elementos procesados.`);
-        window.location.reload();
+        alert(res.message || 'Sincronización masiva iniciada en segundo plano. Esto puede tardar varios minutos.');
+        // No reload immediately since it's background
       } else {
-        alert('Ocurrió un problema en la sincronización.');
+        alert(res.message || 'Ocurrió un problema en la sincronización.');
       }
     } catch (e: any) {
       alert(e.message || 'Error al sincronizar el catálogo. (Requiere permisos de administrador)');
@@ -34,7 +34,7 @@ export default function SyncButton() {
       style={{ background: 'var(--color-primary)', color: '#000' }}
     >
       <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} />
-      {syncing ? 'Sincronizando...' : 'Sincronizar con Flex-Streaming'}
+      {syncing ? 'Sincronizando...' : 'Sincronizar con NUBA'}
     </button>
   );
 }

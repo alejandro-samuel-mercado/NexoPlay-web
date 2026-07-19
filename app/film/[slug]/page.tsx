@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { userFetch } from '@/lib/api-client';
 import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
 import { getContentTypeLabel } from '@/lib/content-types';
-import { ArrowLeft, Check, ChevronDown, Download, MonitorPlay, Play, Plus, Star, Tag, Heart } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Download, Heart, MonitorPlay, Play, Star, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -190,6 +190,7 @@ export default function FilmDetailPage() {
                 const link = document.createElement('a');
                 link.href = json.data.downloadUrl;
                 link.setAttribute('download', `${content.title}.mp4`);
+                link.setAttribute('target', '_blank'); // Prevent cross-origin navigation
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -218,6 +219,7 @@ export default function FilmDetailPage() {
                 const link = document.createElement('a');
                 link.href = json.data.downloadUrl;
                 link.setAttribute('download', `${epTitle}.mp4`);
+                link.setAttribute('target', '_blank'); // Prevent cross-origin navigation
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -262,11 +264,11 @@ export default function FilmDetailPage() {
 
     return (
         <PublicLayout hideSidebar={true}>
-            <div className="page-container flex flex-col gap-12 pb-24 text-[var(--text-main)]">
+            <div className="page-container flex flex-col gap-12 pb-18 text-[var(--text-main)] ">
                 <TrailerModal url={content.trailerUrl || ''} isOpen={isTrailerOpen} onClose={() => setIsTrailerOpen(false)} />
 
                 {/* ═══ 1. SUPER HERO (Data-Rich, No Details Cards) ═══ */}
-                <div className="serivia-hero-root relative w-[85%] mx-auto h-auto min-h-[75vh] md:min-h-[85vh] rounded-[32px] overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.8)] border border-[var(--border-subtle)] flex items-center -mt-6 md:-mt-18">
+                <div className="serivia-hero-root relative w-[85%] mx-auto h-auto min-h-[75vh] md:min-h-[85vh] rounded-[32px] overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.8)] border border-[var(--border-subtle)] flex items-center -mt-6 md:-mt-18 pt-10">
                     
                     {/* Back button moved to end of hero */}
 
@@ -350,8 +352,8 @@ export default function FilmDetailPage() {
                 </div>
                 
                 {/* ═══ EMERGING DATA BAR ═══ */}
-                <div className="relative z-20 w-full max-w-5xl mx-auto -mt-20 md:-mt-26 px-4">
-                    <div className="bg-[var(--bg-panel)] backdrop-blur-xl border border-[var(--border-subtle)] rounded-[24px] p-6 shadow-2xl flex flex-col md:flex-row gap-6 md:gap-8 items-start md:items-center justify-between">
+                <div className="relative z-20 w-full max-w-4xl mx-auto -translate-y-30 md:-translate-y-30 px-4" style={{ zoom: 0.95 }}>
+                    <div className="bg-[var(--bg-solid)] backdrop-blur-xl border border-[var(--border-subtle)] rounded-[24px] p-5 shadow-2xl flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-center justify-between">
                         
                         {/* Primary Tags */}
                         <div className="flex flex-wrap items-center gap-3">
@@ -445,6 +447,8 @@ export default function FilmDetailPage() {
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                             {(currentSeason?.episodes || []).map((ep: any) => {
                                 const epTitle = ep.title || ep.translations?.[0]?.title || `Episodio ${ep.number}`;
+                                const epDesc = ep.description || ep.translations?.[0]?.description;
+                                const isValidDesc = epDesc && epDesc.toLowerCase() !== 'descripción no disponible' && epDesc.toLowerCase() !== 'description not available';
                                 const epThumb = ep.thumbnailUrl || ep.thumbnails?.[0]?.url;
                                 const epReady = ep.hasVideo || ep.videoFiles?.some((v: any) => v.status === 'COMPLETED');
                                 
@@ -481,13 +485,9 @@ export default function FilmDetailPage() {
                                                 {epTitle}
                                             </h3>
                                             
-                                            {ep.description ? (
+                                            {isValidDesc && (
                                                 <p className="text-xs text-[var(--text-muted)] line-clamp-2 mb-3">
-                                                    {ep.description}
-                                                </p>
-                                            ) : (
-                                                <p className="text-xs text-[var(--text-muted)] line-clamp-2 mb-3 italic">
-                                                    (Descripción no disponible)
+                                                    {epDesc}
                                                 </p>
                                             )}
                                             

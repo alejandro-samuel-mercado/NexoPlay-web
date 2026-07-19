@@ -1,14 +1,15 @@
 'use client';
 import { userFetch } from '@/lib/api-client';
 
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState, useMemo } from 'react';
-import { Loader2, AlertCircle, ChevronRight, Play, X } from 'lucide-react';
 import VideoPlayer from '@/components/video/VideoPlayer';
-import { API_ROUTES, API_ORIGIN, resolveImageUrl } from '@/lib/api-routes';
+import { API_ORIGIN, API_ROUTES } from '@/lib/api-routes';
+import { AlertCircle, Loader2 } from 'lucide-react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 
 interface ContentData {
     id: string;
+    title?: string;
     type: string;
     status?: string;
     translations: { title: string; description: string }[];
@@ -106,12 +107,6 @@ export default function WatchPage() {
 
         // Episodes might not have direct videoFiles if a fallback content videoFile exists.
         // Let the API decide if the video is available.
-        const hasAnyVideo = (currentEpisode && currentEpisode.videoFiles?.length > 0) || (content.videoFiles?.length > 0);
-        if (!hasAnyVideo) {
-            setError('Video no disponible o no procesado.');
-            return;
-        }
-
         const requestAccess = async () => {
             try {
                 const token = localStorage.getItem('nexo_access_token');
@@ -193,9 +188,9 @@ export default function WatchPage() {
 
                 if (res.ok) {
                     const resJson = await res.json();
-                    if (resJson.success && resJson.data?.progress) {
-                        if (!localProgress || resJson.data.progress > parseInt(localProgress) + 5) {
-                            setInitialTime(resJson.data.progress);
+                    if (resJson.success && resJson.data?.progressSeconds) {
+                        if (!localProgress || resJson.data.progressSeconds > parseInt(localProgress) + 5) {
+                            setInitialTime(resJson.data.progressSeconds);
                         }
                     }
                 }
@@ -229,8 +224,8 @@ export default function WatchPage() {
                 body: JSON.stringify({
                     contentId: content.id,
                     episodeId: currentEpisode?.id,
-                    progress: Math.floor(currentTime),
-                    duration: Math.floor(duration),
+                    progressSeconds: Math.floor(currentTime),
+                    durationSeconds: Math.floor(duration),
                 }),
             });
         } catch (e) {
@@ -289,7 +284,7 @@ export default function WatchPage() {
     })) || [];
 
     return (
-        <div className="h-screen w-full bg-black relative overflow-hidden group">
+        <div className="fixed inset-0 z-[9999] bg-black overflow-hidden group">
             <VideoPlayer
                 src={streamSrc}
                 title={currentEpisode

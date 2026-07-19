@@ -34,7 +34,7 @@ export default function B2CPanelPage() {
             }
 
             const profileId = localStorage.getItem('nexo_active_profile_id');
-            const accessToken = localStorage.getItem('accessToken');
+            const accessToken = localStorage.getItem('nexo_access_token');
             
             if (profileId && accessToken) {
                 // Fetch History

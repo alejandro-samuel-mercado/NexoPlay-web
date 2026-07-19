@@ -11,6 +11,7 @@
     /* Base */
     --bg-main: rgba(15, 17, 21, 0.45); /* Lower opacity to let glassmorphism shine */
     --bg-panel: rgba(34, 36, 42, 0.4);
+    --bg-solid: rgba(22, 24, 28, 0.459);
     --bg-hover: rgba(255, 255, 255, 0.08);
     --bg-hover-strong: rgba(255, 255, 255, 0.15);
     
@@ -56,6 +57,7 @@
     /* Base */
     --bg-main: rgba(241, 245, 249, 0.45); /* Lower opacity for glassmorphism */
     --bg-panel: rgba(255, 255, 255, 0.55);
+    --bg-solid: rgba(255, 255, 255, 0.575);
     --bg-hover: rgba(0, 0, 0, 0.04);
     --bg-hover-strong: rgba(0, 0, 0, 0.08);
     

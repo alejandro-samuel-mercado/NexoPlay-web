@@ -19,8 +19,11 @@ export default function FilmComments({ contentId }: { contentId: string }) {
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
     const [replyBody, setReplyBody] = useState('');
     const [submittingReply, setSubmittingReply] = useState(false);
+    const [profileId, setProfileId] = useState<string | null>(null);
 
-    const profileId = typeof window !== 'undefined' ? localStorage.getItem('profileId') : null;
+    useEffect(() => {
+        setProfileId(localStorage.getItem('nexo_active_profile_id'));
+    }, []);
 
     const fetchReviews = useCallback(async () => {
         try {
@@ -51,7 +54,7 @@ export default function FilmComments({ contentId }: { contentId: string }) {
 
         setSubmitting(true);
         try {
-            const profileId = localStorage.getItem('profileId');
+            const profileId = localStorage.getItem('nexo_active_profile_id');
             if (!profileId) return;
 
             const res = await userFetch(API_ROUTES.REVIEWS.CREATE, {
@@ -84,7 +87,7 @@ export default function FilmComments({ contentId }: { contentId: string }) {
 
         setSubmittingReply(true);
         try {
-            const profileId = localStorage.getItem('profileId');
+            const profileId = localStorage.getItem('nexo_active_profile_id');
             if (!profileId) return;
 
             const res = await userFetch(API_ROUTES.REVIEWS.CREATE, {
@@ -177,8 +180,8 @@ export default function FilmComments({ contentId }: { contentId: string }) {
                         <div key={review.id} className="bg-white/5 rounded-xl !p-5 border border-white/5">
                             <div className="flex gap-4">
                                 <div className="w-10 h-10 rounded-full bg-[#00E5FF]/20 flex items-center justify-center text-[#00E5FF] font-bold overflow-hidden shrink-0">
-                                    {review.profile?.avatar ? (
-                                        <img src={review.profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                                    {review.profile?.avatarUrl ? (
+                                        <img src={review.profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                                     ) : (
                                         review.profile?.name?.substring(0, 2).toUpperCase() || <User size={20} />
                                     )}
@@ -232,8 +235,8 @@ export default function FilmComments({ contentId }: { contentId: string }) {
                                             {review.replies.map((reply: any) => (
                                                 <div key={reply.id} className="flex gap-3">
                                                     <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold overflow-hidden shrink-0">
-                                                        {reply.profile?.avatar ? (
-                                                            <img src={reply.profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                                                        {reply.profile?.avatarUrl ? (
+                                                            <img src={reply.profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                                                         ) : (
                                                             reply.profile?.name?.substring(0, 2).toUpperCase() || <User size={16} />
                                                         )}
