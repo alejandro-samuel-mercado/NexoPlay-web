@@ -85,8 +85,8 @@ export const API_ROUTES = {
     HISTORY: {
         BASE: `${API_BASE_URL}/history`,
         LIST: `${API_BASE_URL}/history`,
-        CONTINUE: `${API_BASE_URL}/history/continue`,
-        PROGRESS: `${API_BASE_URL}/history/progress`,
+        CONTINUE: `${API_BASE_URL}/history/continue-watching`,
+        PROGRESS: `${API_BASE_URL}/history`,
     },
     REVIEWS: {
         BY_CONTENT: (contentId: string) => `${API_BASE_URL}/reviews/content/${contentId}`,
