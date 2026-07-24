@@ -28,7 +28,7 @@ export default function HistorialPage() {
             });
             const resJson = await res.json();
             if (resJson.success && resJson.data) {
-                setHistory(resJson.data.data);
+                setHistory(resJson.data.data || resJson.data);
             }
         } catch (e) {
             console.error(e);

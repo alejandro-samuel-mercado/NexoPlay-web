@@ -8,7 +8,8 @@ import { useAuth } from '@/context/AuthContext';
 import { userFetch } from '@/lib/api-client';
 import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
 import { getContentTypeLabel } from '@/lib/content-types';
-import { ArrowLeft, ChevronDown, Download, Heart, MonitorPlay, Play, Star, Tag } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Download, Heart, MonitorPlay, Play, Star, Tag, Key } from 'lucide-react';
+import UnlockCodeModal from '@/components/content/UnlockCodeModal';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -34,6 +35,7 @@ export default function FilmDetailPage() {
     
     const [isFavorited, setIsFavorited] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
     
     const favToggledRef = useRef(false);
 
@@ -90,7 +92,11 @@ export default function FilmDetailPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await fetch(`${API_ROUTES.CONTENT.BASE}/${id}`, { cache: 'no-store' });
+                // Determine if we have a token to fetch personalized data (like hasUnlocked)
+                const token = localStorage.getItem('nexo_access_token');
+                const fetchFn = token ? userFetch : fetch;
+                
+                const res = await fetchFn(`${API_ROUTES.CONTENT.BASE}/${id}`, { cache: 'no-store' });
                 const resJson = await res.json();
                 if (resJson.success && resJson.data) setContent(resJson.data);
 
@@ -261,14 +267,26 @@ export default function FilmDetailPage() {
     const hasEpisodesWithVideo = seasons.some((s: any) => s.episodes?.some((e: any) => e.videoFiles && e.videoFiles.some((v: any) => v.status === 'COMPLETED')));
     const hasDirectVideo = content.videoFiles && content.videoFiles.some((v: any) => v.status === 'COMPLETED');
     const canPlay = content.status === 'READY' || content.status === 'ACTIVE';
+    
+    // Check if user has access to watch
+    const hasAdminOrResellerRole = authUser && ['ADMIN', 'RESELLER', 'FRANCHISEE'].includes(authUser.role);
+    const hasActiveSubscription = authUser?.subscription?.status === 'ACTIVE';
+    const userHasAccess = hasAdminOrResellerRole || hasActiveSubscription || content.hasUnlocked;
 
     return (
         <PublicLayout hideSidebar={true}>
             <div className="page-container flex flex-col gap-12 pb-18 text-[var(--text-main)] ">
                 <TrailerModal url={content.trailerUrl || ''} isOpen={isTrailerOpen} onClose={() => setIsTrailerOpen(false)} />
+                {isUnlockModalOpen && (
+                    <UnlockCodeModal 
+                                  contentId={content.id}
+                                  contentTitle={content.title || content.slug}
+                                  onClose={() => setIsUnlockModalOpen(false)}
+                                  onUnlocked={() => router.push(`/film/${content.id}/watch`)} isOpen={false}                    />
+                )}
 
                 {/* ═══ 1. SUPER HERO (Data-Rich, No Details Cards) ═══ */}
-                <div className="serivia-hero-root relative w-[85%] mx-auto h-auto min-h-[75vh] md:min-h-[85vh] rounded-[32px] overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.8)] border border-[var(--border-subtle)] flex items-center -mt-6 md:-mt-18 pt-10">
+                <div className="serivia-hero-root relative w-[85%] mx-auto h-auto min-h-[75vh] md:min-h-[85vh] rounded-[32px] overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.8)] border border-[var(--border-subtle)] flex items-center -mt-6 md:-mt-18 pt-10 pb-14">
                     
                     {/* Back button moved to end of hero */}
 
@@ -303,36 +321,75 @@ export default function FilmDetailPage() {
                         <div className="flex flex-wrap items-center gap-3 mt-2">
                             {authUser ? (
                                 <>
-                                    {canPlay ? (
-                                        <Link href={`/film/${id}/watch`} className="serivia-btn-play bg-white text-black hover:bg-gray-200 shadow-xl px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-transform hover:scale-105 text-sm md:text-base">
-                                            <div className="w-6 h-6 rounded-full bg-black flex items-center justify-center">
-                                                <Play size={14} className="text-white fill-white ml-0.5" />
-                                            </div>
-                                            <span className="tracking-wide">REPRODUCIR</span>
-                                        </Link>
+                                    {userHasAccess ? (
+                                        canPlay ? (
+                                            <Link href={`/film/${id}/watch`} className="serivia-btn-play bg-white text-black hover:bg-gray-200 shadow-xl px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-transform hover:scale-105 text-sm md:text-base">
+                                                <div className="w-6 h-6 rounded-full bg-black flex items-center justify-center">
+                                                    <Play size={14} className="text-white fill-white ml-0.5" />
+                                                </div>
+                                                <span className="tracking-wide">REPRODUCIR</span>
+                                            </Link>
+                                        ) : (
+                                            <button disabled className="serivia-btn-play bg-white/10 text-white/50 border border-white/20 shadow-xl px-6 py-3 rounded-full font-bold cursor-not-allowed tracking-wide text-sm md:text-base">
+                                                PRÓXIMAMENTE
+                                            </button>
+                                        )
                                     ) : (
-                                        <button disabled className="serivia-btn-play bg-white/10 text-white/50 border border-white/20 shadow-xl px-6 py-3 rounded-full font-bold cursor-not-allowed tracking-wide text-sm md:text-base">
-                                            PRÓXIMAMENTE
-                                        </button>
+                                        <>
+                                            <div className="group relative inline-block">
+                                                <button onClick={() => setIsUnlockModalOpen(true)} className="serivia-btn-play bg-white/10 text-white hover:bg-white/20 border border-white/20 shadow-xl px-6 py-3 rounded-full font-bold flex items-center gap-2 text-sm md:text-base">
+                                                    <Key size={18} />
+                                                    <span className="tracking-wide">CANJEAR CÓDIGO</span>
+                                                </button>
+                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-64 px-4 py-3 bg-[#111218] border border-[var(--border-subtle)] text-white text-xs md:text-sm font-semibold rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none text-center shadow-2xl z-50">
+                                                    Canjea un código de acceso para desbloquear este título de forma permanente.
+                                                </div>
+                                            </div>
+                                            <div className="group relative inline-block">
+                                                <Link href="/tienda" className="serivia-btn-play bg-[var(--color-primary)] text-black hover:bg-[var(--color-primary)]/80 shadow-xl px-6 py-3 rounded-full font-bold flex items-center gap-2 text-sm md:text-base">
+                                                    <Star size={18} className="fill-black" />
+                                                    <span className="tracking-wide">SUSCRIBIRSE</span>
+                                                </Link>
+                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-64 px-4 py-3 bg-[#111218] border border-[var(--color-primary)]/30 text-white text-xs md:text-sm font-semibold rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none text-center shadow-[0_10px_40px_rgba(var(--color-primary-rgb),0.3)] z-50">
+                                                    Desbloquea todo el catálogo sin límites, descarga episodios y mira sin publicidad.
+                                                </div>
+                                            </div>
+                                        </>
                                     )}
 
-                                    {isReseller && !isSeries && content.downloadAllowed && (
+                                    {userHasAccess && isReseller && !isSeries && content.downloadAllowed && (
                                         <button onClick={handleDownload} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
                                             <Download size={18} /> {isDownloading ? 'Iniciando...' : 'Descargar MP4'}
                                         </button>
                                     )}
 
-                                    {!isReseller && !isSeries && (
+                                    {userHasAccess && !isReseller && !isSeries && (
                                         <button onClick={handleDownload} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
                                             <Download size={18} /> {isDownloading ? 'Iniciando...' : 'Descargar Offline'}
                                         </button>
                                     )}
                                 </>
                             ) : (
-                                <Link href="/login" className="serivia-btn-play bg-[var(--color-primary)] text-black hover:bg-[var(--color-primary)]/80 shadow-xl px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-transform hover:scale-105 text-sm md:text-base">
-                                    <Star size={18} className="fill-black" />
-                                    <span className="tracking-wide">SUSCRIBIRSE</span>
-                                </Link>
+                                <>
+                                    <div className="group relative inline-block">
+                                        <button onClick={() => setIsUnlockModalOpen(true)} className="serivia-btn-play bg-white/10 text-white hover:bg-white/20 border border-white/20 shadow-xl px-6 py-3 rounded-full font-bold flex items-center gap-2 text-sm md:text-base">
+                                            <Key size={18} />
+                                            <span className="tracking-wide">CANJEAR CÓDIGO</span>
+                                        </button>
+                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-64 px-4 py-3 bg-[#111218] border border-[var(--border-subtle)] text-white text-xs md:text-sm font-semibold rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none text-center shadow-2xl z-50">
+                                            Canjea un código de acceso para desbloquear este título de forma permanente.
+                                        </div>
+                                    </div>
+                                    <div className="group relative inline-block">
+                                        <Link href="/auth/login?redirect=/tienda" className="serivia-btn-play bg-[var(--color-primary)] text-black hover:bg-[var(--color-primary)]/80 shadow-xl px-6 py-3 rounded-full font-bold flex items-center gap-2 text-sm md:text-base">
+                                            <Star size={18} className="fill-black" />
+                                            <span className="tracking-wide">SUSCRIBIRSE</span>
+                                        </Link>
+                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-64 px-4 py-3 bg-[#111218] border border-[var(--color-primary)]/30 text-white text-xs md:text-sm font-semibold rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none text-center shadow-[0_10px_40px_rgba(var(--color-primary-rgb),0.3)] z-50">
+                                            Desbloquea todo el catálogo sin límites, descarga episodios y mira sin publicidad.
+                                        </div>
+                                    </div>
+                                </>
                             )}
                             {content.trailerUrl && (
                                 <button onClick={() => setIsTrailerOpen(true)} className="px-6 py-3 rounded-full border border-white/20 bg-white/10 text-white font-bold hover:bg-white/20 flex items-center gap-2 transition-all text-sm md:text-base">
@@ -492,7 +549,7 @@ export default function FilmDetailPage() {
                                             )}
                                             
                                             <div className="flex items-center justify-between mt-auto pt-2 border-t border-[var(--border-subtle)]">
-                                                {authUser ? (
+                                                {userHasAccess ? (
                                                     <>
                                                         <div className="flex items-center gap-2">
                                                             <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-3 py-1.5 rounded-full hover:bg-[var(--color-primary)]/20 transition-colors">

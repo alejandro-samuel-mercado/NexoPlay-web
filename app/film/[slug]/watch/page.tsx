@@ -5,7 +5,7 @@ import VideoPlayer from '@/components/video/VideoPlayer';
 import { API_ORIGIN, API_ROUTES } from '@/lib/api-routes';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface ContentData {
     id: string;
@@ -39,6 +39,9 @@ export default function WatchPage() {
     const [streamSrc, setStreamSrc] = useState<string | null>(null);
     const [showAds, setShowAds] = useState<boolean>(false);
     const [showEpisodes, setShowEpisodes] = useState(false);
+    // Tracks last currentTime when we sent a reward update, to compute delta seconds
+    const lastRewardedTimeRef = useRef<number>(0);
+    const lastRewardedContentRef = useRef<string>('');
 
     // Flat list of all episodes across all seasons for prev/next navigation
     const allEpisodes = useMemo(() => {
@@ -152,18 +155,11 @@ export default function WatchPage() {
         requestAccess();
     }, [content, currentEpisode]);
 
-    // 3b. Reward tokens for watching (fires once when stream becomes available)
+    // 3b. Reward tokens for watching by minutes — reset delta counter when content changes
     useEffect(() => {
-        if (!streamSrc || !content) return;
-        const token = localStorage.getItem('nexo_access_token');
-        if (!token) return;
-
-        // Fire-and-forget — don't block the UI if this fails
-        userFetch(API_ROUTES.TOKENS.REWARD_WATCH, {
-            method: 'POST',
-            body: JSON.stringify({ contentId: content.id }),
-        }).catch(() => {}); // Silently ignore errors
-    }, [streamSrc]);
+        lastRewardedTimeRef.current = 0;
+        lastRewardedContentRef.current = '';
+    }, [content?.id, currentEpisode?.id]);
 
     // 3. Restore watch progress
     useEffect(() => {
@@ -179,7 +175,11 @@ export default function WatchPage() {
                 const profileId = localStorage.getItem('nexo_active_profile_id');
                 if (!token || !profileId) return;
 
-                const res = await userFetch(`${API_ROUTES.HISTORY.BASE}/${watchId}`, {
+                const url = currentEpisode 
+                    ? `${API_ROUTES.HISTORY.BASE}/${content.id}?episodeId=${currentEpisode.id}` 
+                    : `${API_ROUTES.HISTORY.BASE}/${content.id}`;
+
+                const res = await userFetch(url, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'X-Profile-Id': profileId,
@@ -202,10 +202,11 @@ export default function WatchPage() {
         fetchHistory();
     }, [content?.id, currentEpisode?.id]);
 
-    // 4. Progress saving
+    // 4. Progress saving + token reward by minutes
     const handleProgressUpdate = async (currentTime: number, duration: number) => {
-        if (!content || duration === 0) return;
+        if (!content || !duration || isNaN(duration)) return;
         const watchId = currentEpisode ? currentEpisode.id : content.id;
+        const rewardContentId = currentEpisode ? currentEpisode.id : content.id;
 
         localStorage.setItem(`watch_progress_${watchId}`, Math.floor(currentTime).toString());
 
@@ -214,6 +215,7 @@ export default function WatchPage() {
             const profileId = localStorage.getItem('nexo_active_profile_id');
             if (!token || !profileId) return;
 
+            // Save watch history (position)
             await userFetch(API_ROUTES.HISTORY.PROGRESS, {
                 method: 'POST',
                 headers: {
@@ -228,6 +230,25 @@ export default function WatchPage() {
                     durationSeconds: Math.floor(duration),
                 }),
             });
+
+            // Reward tokens by minutes watched (1 token per 10 min)
+            // Only count forward-progress (ignore seeks backward)
+            const lastTime = lastRewardedContentRef.current === rewardContentId
+                ? lastRewardedTimeRef.current
+                : 0;
+            const delta = Math.floor(currentTime) - lastTime;
+            if (delta > 0 && delta < 300) { // max 5 min delta to avoid counting seeks
+                lastRewardedTimeRef.current = Math.floor(currentTime);
+                lastRewardedContentRef.current = rewardContentId;
+                userFetch(API_ROUTES.TOKENS.REWARD_WATCH, {
+                    method: 'POST',
+                    body: JSON.stringify({ contentId: rewardContentId, secondsWatched: delta }),
+                }).catch(() => {}); // fire-and-forget
+            } else if (delta <= 0) {
+                // User seeked back — update ref without sending reward
+                lastRewardedTimeRef.current = Math.floor(currentTime);
+                lastRewardedContentRef.current = rewardContentId;
+            }
         } catch (e) {
             console.error('Error saving progress:', e);
         }

@@ -42,10 +42,10 @@ export default function PerfilPage() {
           <div className="md:col-span-1">
             <div className="bg-[var(--bg-panel)] p-8 rounded-3xl border border-[var(--border-subtle)] text-center shadow-xl">
               <div className="w-24 h-24 mx-auto rounded-full mb-4 flex items-center justify-center text-4xl font-bold border-4 border-[var(--bg-hover)] bg-[var(--bg-main)] text-[var(--text-main)]">
-                {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
+                {user.username?.[0]?.toUpperCase() || user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
               </div>
               <h2 className="text-xl font-bold text-[var(--text-main)] mb-1 truncate">{user.name || 'Usuario Nexo'}</h2>
-              <p className="text-sm text-[var(--text-muted)] mb-6 truncate">{user.email}</p>
+              <p className="text-sm text-[var(--text-muted)] mb-6 truncate">{user.username || (user.email?.endsWith('@nexoplay.com') ? user.email.split('@')[0] : user.email)}</p>
               <div className="mb-8">{getRoleLabel()}</div>
               
               <button onClick={() => logout()} className="w-full bg-[var(--bg-hover)] hover:bg-[var(--bg-hover-strong)] transition-colors text-[var(--text-main)] font-semibold rounded-full py-3 flex items-center justify-center gap-2">

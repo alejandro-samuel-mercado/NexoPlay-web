@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Plus, Edit2, Loader2, ArrowRight } from 'lucide-react';
 import { API, apiFetch } from '@/lib/api';
@@ -9,6 +9,8 @@ import { API, apiFetch } from '@/lib/api';
 export default function ProfileSelectionPage() {
   const { user, profiles, activeProfile, setActiveProfile, isLoggedIn, isLoading, refreshUser } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectPath = searchParams?.get('redirect') || '/';
   
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -38,7 +40,7 @@ export default function ProfileSelectionPage() {
       // Logic for edit mode if we want to expand it
     } else {
       setActiveProfile(id);
-      router.push('/');
+      router.push(redirectPath);
     }
   };
 

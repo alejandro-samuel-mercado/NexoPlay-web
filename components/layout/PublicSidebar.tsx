@@ -25,7 +25,7 @@ export default function PublicSidebar() {
       const profileId = localStorage.getItem('nexo_active_profile_id');
       if (!token || !profileId) return;
       try {
-        const r = await fetch(`${API_ROUTES.HISTORY.BASE}/continue`, {
+        const r = await fetch(API_ROUTES.HISTORY.CONTINUE, {
           headers: { 'Authorization': `Bearer ${token}`, 'X-Profile-Id': profileId }
         });
         const res = await r.json();
@@ -74,12 +74,12 @@ export default function PublicSidebar() {
       badge: 'REVENDEDOR',
     };
     if (user) return {
-      name: 'Panel de Cuenta',
+      name: user.role === 'GUEST' ? 'Panel Invitado' : 'Panel de Cuenta',
       icon: Wallet,
       path: '/panel',
       color: '#4ECDC4',
       bg: 'rgba(78,205,196,0.12)',
-      badge: 'SUSCRIPTOR',
+      badge: user.role === 'GUEST' ? 'INVITADO' : 'SUSCRIPTOR',
     };
     return null;
   };
@@ -145,9 +145,9 @@ export default function PublicSidebar() {
             const c = history.content;
             if (!c) return null;
             const title = c.translations?.[0]?.title || c.slug;
-            const img = resolveImageUrl(c.thumbnails?.find((t: any) => t.type === 'BACKDROP')?.url);
-            const percentage = history.duration ? Math.min(100, Math.round((history.progress / history.duration) * 100)) : 0;
-            const remainingMins = history.duration ? Math.round((history.duration - history.progress) / 60) : 0;
+            const img = resolveImageUrl(c.thumbnails?.find((t: any) => t.type === 'POSTER' || t.type === 'BACKDROP')?.url);
+            const percentage = history.durationSeconds ? Math.min(100, Math.round((history.progressSeconds / history.durationSeconds) * 100)) : 0;
+            const remainingMins = history.durationSeconds ? Math.round((history.durationSeconds - history.progressSeconds) / 60) : 0;
 
             return (
               <Link href={`/film/${c.slug}`} key={history.id} className="continue-card">
@@ -162,7 +162,7 @@ export default function PublicSidebar() {
                       </div>
                       <span className="text-[10px] text-white/80 font-semibold">{remainingMins}m restantes</span>
                     </div>
-                    <span className="text-[10px] text-white font-bold">{percentage}%</span>
+                
                   </div>
                   <div className="continue-progress-bar absolute bottom-0 left-0">
                     <div className="continue-progress-fill" style={{ width: `${percentage}%` }} />
@@ -210,19 +210,7 @@ export default function PublicSidebar() {
           </Link>
         )}
 
-        {/* Configuración */}
-        <Link
-          href="/configuracion"
-          className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-300 font-bold text-sm tracking-wide ${
-            pathname === '/configuracion'
-              ? 'bg-white/10 text-[var(--text-main)]'
-              : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white/5'
-          }`}
-          style={{ textDecoration: 'none' }}
-        >
-          <Settings size={20} className={pathname === '/configuracion' ? 'text-[var(--color-primary)]' : ''} />
-          Configuración
-        </Link>
+       
       </nav>
 
       {/* Remove User info / Login CTA */}

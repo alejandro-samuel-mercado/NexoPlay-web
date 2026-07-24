@@ -121,12 +121,22 @@ export default function PreviewPlayerPage() {
                       <MessageCircle size={18} fill="currentColor" /> Comprar Código por ${content.price}
                     </button>
                   ) : null}
-                  <Link href={`/film/${slug}?action=code`} className="btn-clay btn-clay-yellow w-full flex items-center justify-center gap-2">
-                    <Key size={18} /> Tengo un código
-                  </Link>
-                  <Link href="/auth/login" className="btn-clay btn-clay-teal w-full flex items-center justify-center gap-2">
-                    Iniciar sesión
-                  </Link>
+                  <div className="group relative w-full">
+                    <Link href={`/film/${slug}?action=code`} className="btn-clay btn-clay-yellow w-full flex items-center justify-center gap-2">
+                      <Key size={18} /> Canjear código
+                    </Link>
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-64 px-4 py-3 bg-[#111218] border border-[var(--border-subtle)] text-white text-xs md:text-sm font-semibold rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none text-center shadow-2xl z-50">
+                        Canjea un código de acceso para desbloquear este título de forma permanente.
+                    </div>
+                  </div>
+                  <div className="group relative w-full">
+                    <Link href="/auth/login?redirect=/tienda" className="btn-clay btn-clay-teal w-full flex items-center justify-center gap-2">
+                      Iniciar sesión
+                    </Link>
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-64 px-4 py-3 bg-[#111218] border border-teal-500/30 text-white text-xs md:text-sm font-semibold rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none text-center shadow-[0_10px_40px_rgba(20,184,166,0.3)] z-50">
+                        Desbloquea todo el catálogo sin límites, descarga episodios y mira sin publicidad.
+                    </div>
+                  </div>
                   <Link href={`/film/${slug}`} className="btn-clay btn-clay-dark w-full">
                     Volver al detalle
                   </Link>

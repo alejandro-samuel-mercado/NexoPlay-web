@@ -104,6 +104,7 @@ export default function UsuariosAdminPage() {
               <tr className="border-b border-[var(--border-subtle)] bg-black/20">
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Usuario</th>
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Rol</th>
+                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Tokens</th>
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Suscripción</th>
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Estado</th>
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Registro</th>
@@ -113,7 +114,7 @@ export default function UsuariosAdminPage() {
             <tbody>
               {loading ? (
                 Array.from({ length: 8 }).map((_, i) => (
-                  <tr key={i} className="border-b border-white/5"><td colSpan={6} className="px-5 py-4"><div className="h-10 bg-white/5 rounded-lg animate-pulse w-full" /></td></tr>
+                  <tr key={i} className="border-b border-white/5"><td colSpan={7} className="px-5 py-4"><div className="h-10 bg-white/5 rounded-lg animate-pulse w-full" /></td></tr>
                 ))
               ) : users.map((u) => {
                 const rb = ROLE_BADGE[u.role] || ROLE_BADGE.GUEST;
@@ -155,6 +156,9 @@ export default function UsuariosAdminPage() {
                         {u.role}
                       </span>
                     </td>
+                    <td className="px-4 py-3 font-mono font-bold" style={{ color: '#f59e0b' }}>
+                      {u.tokens?.toLocaleString() || 0} <span className="text-[10px]">T</span>
+                    </td>
                     <td className="px-4 py-3">
                       {isSubActive ? (
                         <div className="flex items-center gap-2">
@@ -174,10 +178,23 @@ export default function UsuariosAdminPage() {
                     </td>
                     <td className="px-4 py-3 text-[var(--text-muted)] text-[12px]">{new Date(u.createdAt).toLocaleDateString()}</td>
                     <td className="px-4 py-3 text-right">
-                      <button onClick={() => { setAssignModal({ userId: u.id, email: u.email }); setSelectedPlan(u.subscription?.planId || ''); }}
-                        className="px-4 py-2 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 transition-colors inline-flex items-center justify-center gap-2">
-                        <Crown size={14} /> Plan
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => { setAssignModal({ userId: u.id, email: u.email }); setSelectedPlan(u.subscription?.planId || ''); }}
+                          className="px-3 py-2 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 transition-colors inline-flex items-center justify-center gap-2">
+                          <Crown size={14} /> Plan
+                        </button>
+                        <button onClick={async () => {
+                            if (window.confirm('¿Seguro que deseas eliminar este usuario? Esto es irreversible y bloqueará su acceso.')) {
+                              try {
+                                await apiFetch(API.ADMIN.USER(u.id), { method: 'DELETE' });
+                                fetchUsers();
+                              } catch (e: any) { alert(e.message); }
+                            }
+                          }}
+                          className="px-3 py-2 rounded-xl text-xs font-bold bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors inline-flex items-center justify-center">
+                          <XCircle size={14} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

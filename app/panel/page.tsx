@@ -24,8 +24,9 @@ export default function B2CPanelPage() {
             const jsonWallet = await resWallet.json();
             if (jsonWallet.success) setWallet(jsonWallet.data);
 
-            // Fetch Downloads History
-            const resDownloads = await userFetch(`${API_ROUTES.DOWNLOADS.HISTORY}?limit=10`);
+            // Fetch content based on role
+            const endpoint = user.role === 'GUEST' ? API_ROUTES.DOWNLOADS.LIBRARY : API_ROUTES.DOWNLOADS.HISTORY;
+            const resDownloads = await userFetch(`${endpoint}?limit=20`);
             const jsonDownloads = await resDownloads.json();
             if (jsonDownloads.success) {
                 const rawDownloads = jsonDownloads.data || [];
@@ -132,7 +133,7 @@ export default function B2CPanelPage() {
                                     <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center gap-3">
                                         <Download size={18} className="text-[var(--color-primary)]" />
                                         <h2 className="font-bold text-[var(--text-main)]">
-                                            {isSubscriber ? "Guardado para ver sin conexión" : "Mis Descargas B2B (Historial)"}
+                                            {isSubscriber ? "Guardado para ver sin conexión" : "Mi Contenido Desbloqueado"}
                                         </h2>
                                     </div>
                                     
@@ -155,15 +156,18 @@ export default function B2CPanelPage() {
                                                                 <h4 className="font-bold text-[var(--text-main)] truncate text-sm md:text-base group-hover:text-[var(--color-primary)] transition-colors">{dl.contentTitle}</h4>
                                                             </Link>
                                                             <div className="flex items-center gap-3 mt-1 text-xs text-[var(--text-muted)]">
-                                                                <span className="flex items-center gap-1"><Clock size={12} /> {new Date(dl.downloadedAt).toLocaleDateString()}</span>
-                                                                <span className="uppercase font-bold tracking-wide">{dl.quality || 'Auto'}</span>
+                                                                {dl.downloadedAt ? (
+                                                                    <span className="flex items-center gap-1"><Clock size={12} /> Descargado el {new Date(dl.downloadedAt).toLocaleDateString()}</span>
+                                                                ) : (
+                                                                    <span className="flex items-center gap-1"><Lock size={12} className="text-green-400" /> Desbloqueado el {new Date(dl.usedAt).toLocaleDateString()}</span>
+                                                                )}
+                                                                {dl.quality && <span className="uppercase font-bold tracking-wide">{dl.quality}</span>}
                                                             </div>
                                                         </div>
-                                                        {isSubscriber && (
-                                                            <Link href={`/film/${dl.slug}/watch`} className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-[var(--color-primary)] text-black hover:scale-110 transition-transform">
-                                                                <Play size={18} className="ml-1" />
-                                                            </Link>
-                                                        )}
+                                                        {/* Play button for everyone */}
+                                                        <Link href={`/film/${dl.slug}/watch`} className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-[var(--color-primary)] text-black hover:scale-110 transition-transform">
+                                                            <Play size={18} className="ml-1" />
+                                                        </Link>
                                                     </div>
                                                 ))}
                                             </div>
@@ -172,7 +176,9 @@ export default function B2CPanelPage() {
                                                 <div className="w-16 h-16 rounded-full bg-[var(--bg-main)] flex items-center justify-center border border-[var(--border-strong)] mb-4">
                                                     <Download size={24} className="text-[var(--text-muted)]" />
                                                 </div>
-                                                <h3 className="font-bold text-[var(--text-main)] mb-2">No tienes nada guardado aún</h3>
+                                                <h3 className="font-bold text-[var(--text-main)] mb-2">
+                                                    {isSubscriber ? "No tienes descargas aún" : "No tienes contenido desbloqueado"}
+                                                </h3>
                                             </div>
                                         )}
                                     </div>

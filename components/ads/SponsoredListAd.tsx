@@ -6,11 +6,11 @@ import { ExternalLink } from 'lucide-react';
 import { API, apiFetch } from '@/lib/api';
 
 export default function SponsoredListAd() {
-  const { isSubscriber, isLoading } = useAuth();
+  const { showAds, isLoading } = useAuth();
   const [ad, setAd] = useState<any>(null);
 
   useEffect(() => {
-    if (!isLoading && !isSubscriber) {
+    if (!isLoading && showAds) {
       // Fetch a sponsored list ad (could just reuse the display ad logic or a specific sponsored list)
       // For MVP, we simulate a sponsored list ad block that matches the UI of a content carousel
         const fetchAd = async () => {
@@ -25,9 +25,9 @@ export default function SponsoredListAd() {
       };
       fetchAd();
     }
-  }, [isLoading, isSubscriber]);
+  }, [isLoading, showAds]);
 
-  if (isLoading || isSubscriber || !ad) return null;
+  if (isLoading || !showAds || !ad) return null;
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-8 mb-10">

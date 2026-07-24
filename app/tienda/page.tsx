@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { userFetch } from '@/lib/api-client';
 import { API_ROUTES } from '@/lib/api-routes';
 import Link from 'next/link';
+import PublicLayout from '@/components/layout/PublicLayout';
 
 interface Plan {
   id: string;
@@ -56,8 +57,12 @@ function typeLabel(type: string) {
   return map[type] || type;
 }
 
+import { useRouter } from 'next/navigation';
+
 export default function TiendaPage() {
-  const { user } = useAuth();
+  const { user, isLoggedIn, isLoading } = useAuth();
+  const router = useRouter();
+  
   const [activeTab, setActiveTab] = useState<'planes' | 'tokens' | 'historial'>('planes');
   const [plans, setPlans] = useState<Plan[]>([]);
   const [packages, setPackages] = useState<TokenPackage[]>([]);
@@ -96,6 +101,22 @@ export default function TiendaPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { if (activeTab === 'historial') fetchHistory(); }, [activeTab, fetchHistory]);
+
+  useEffect(() => {
+    if (!isLoading && !isLoggedIn) {
+      router.push('/auth/login');
+    }
+  }, [isLoading, isLoggedIn, router]);
+
+  if (isLoading || !isLoggedIn) {
+    return (
+      <PublicLayout hideSidebar={true}>
+        <div className="min-h-screen flex items-center justify-center bg-[var(--bg-main)]">
+          <div className="w-10 h-10 border-4 border-white/20 border-t-[var(--color-primary)] rounded-full animate-spin" />
+        </div>
+      </PublicLayout>
+    );
+  }
 
   const showMessage = (type: 'success' | 'error', text: string) => {
     setMessage({ type, text });
@@ -157,6 +178,7 @@ export default function TiendaPage() {
   };
 
   return (
+    <PublicLayout>
     <div className="min-h-screen" style={{ background: 'var(--bg-main)' }}>
       {/* Header */}
       <div className="relative pt-24 pb-12 overflow-hidden border-b border-white/10"
@@ -237,7 +259,11 @@ export default function TiendaPage() {
                   <div className="text-center py-16 text-white/30">No hay planes disponibles.</div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                    {plans.map((plan) => {
+                    {plans.filter(p => {
+                      if (!user || user.role === 'SUBSCRIBER' || user.role === 'GUEST') return p.role === 'SUBSCRIBER';
+                      if (user.role === 'RESELLER') return p.role === 'RESELLER';
+                      return true; // ADMIN and FRANCHISEE see all plans
+                    }).map((plan) => {
                       const cost = plan.tokenCost;
                       const canAfford = tokenBalance >= cost;
                       const isCurrentPlan = (user as any)?.subscription?.plan?.id === plan.id;
@@ -335,9 +361,8 @@ export default function TiendaPage() {
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
                   <h3 className="font-black text-white mb-3 flex items-center gap-2"><Zap size={18} style={{ color: 'var(--color-primary)' }} /> ¿Cómo ganar tokens gratis?</h3>
                   <ul className="space-y-2 text-sm text-white/60">
-                    <li>🎬 <strong className="text-white/80">Ver contenido</strong> — Gana 2 tokens por cada película o episodio que veas (máx. 1 vez por contenido por día)</li>
-                    <li>🎁 <strong className="text-white/80">Tu plan incluye tokens</strong> — Al renovar tu suscripción, recibes tokens adicionales automáticamente</li>
-                    <li>👑 <strong className="text-white/80">Promociones</strong> — El administrador puede otorgarte tokens manualmente como recompensa</li>
+                    <li>🎬 <strong className="text-white/80">Ver contenido</strong> — Gana <strong className="text-white">1 token cada 10 minutos</strong> que veas. El contador se acumula por contenido y se reinicia cada 24hs.</li>
+                    <li>📦 <strong className="text-white/80">Comprar paquetes</strong> — Adquirí tokens directamente desde la pestaña de arriba y usalos para activar cualquier suscripción.</li>
                   </ul>
                 </div>
               </div>
@@ -379,5 +404,6 @@ export default function TiendaPage() {
         )}
       </div>
     </div>
+    </PublicLayout>
   );
 }

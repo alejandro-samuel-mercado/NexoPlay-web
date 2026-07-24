@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, LogIn, ChevronDown, Zap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -58,12 +58,15 @@ export default function LoginPage() {
   const { login, isLoggedIn, isLoading } = useAuth();
   const router = useRouter();
 
-  // Redirigir al inicio si ya hay una sesión activa
+  const searchParams = useSearchParams();
+  const redirectPath = searchParams?.get('redirect') || '/';
+
+  // Redirigir al inicio o a la ruta solicitada si ya hay una sesión activa
   useEffect(() => {
     if (!isLoading && isLoggedIn) {
-      router.replace('/');
+      router.replace(redirectPath);
     }
-  }, [isLoggedIn, isLoading, router]);
+  }, [isLoggedIn, isLoading, router, redirectPath]);
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -77,7 +80,7 @@ export default function LoginPage() {
     setLoading(true); setError('');
     try {
       await login(identifier, password);
-      router.push('/');
+      router.push(redirectPath);
     } catch (err: any) {
       setError(err.message || 'Error al iniciar sesión');
     } finally { setLoading(false); }
@@ -89,7 +92,7 @@ export default function LoginPage() {
     setLoading(true); setError('');
     try {
       await login(testIdentifier, testPassword);
-      router.push('/');
+      router.push(redirectPath);
     } catch (err: any) {
       setError(err.message || 'Error al iniciar sesión');
     } finally { setLoading(false); }
@@ -193,8 +196,10 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <div className="mt-8 text-center text-sm text-[var(--text-muted)] relative z-10">
-              ¿No tienes cuenta? <Link href="/auth/registro" className="text-[var(--color-primary)] font-bold hover:underline">Regístrate</Link>
+            <div className="mt-8 text-center text-sm text-[var(--text-muted)] relative z-10 flex flex-col gap-3">
+              <div>
+                ¿No tienes cuenta? <Link href={`/auth/registro${redirectPath !== '/' ? `?redirect=${encodeURIComponent(redirectPath)}` : ''}`} className="text-[var(--color-primary)] font-bold hover:underline">Regístrate gratis</Link>
+              </div>
             </div>
           </div>
         </div>

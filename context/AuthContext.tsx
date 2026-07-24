@@ -48,8 +48,9 @@ interface AuthContextType {
   isAdmin: boolean;
   isReseller: boolean;
   isFranchisee: boolean;
+  showAds: boolean;
   login: (identifier: string, password: string) => Promise<void>;
-  register: (data: { email: string; password: string; name?: string }) => Promise<void>;
+  register: (data: { username?: string; email?: string; password: string; name?: string; asGuest?: boolean }) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   setActiveProfile: (id: string) => void;
@@ -151,7 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await refreshUser(); // Fetch profiles after login
   };
 
-  const register = async (data: { email: string; password: string; name?: string }) => {
+  const register = async (data: { username?: string; email?: string; password: string; name?: string; asGuest?: boolean }) => {
     const res = await apiFetch(API.AUTH.REGISTER, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -190,6 +191,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAdmin: user?.role === 'ADMIN',
       isReseller: user?.role === 'RESELLER' || user?.role === 'ADMIN',
       isFranchisee: user?.role === 'FRANCHISEE' || user?.role === 'ADMIN',
+      showAds: !user ? true : (['ADMIN', 'RESELLER', 'FRANCHISEE'].includes(user.role) ? false : (user.subscription?.status === 'ACTIVE' && new Date(user.subscription.expiresAt) > new Date() ? !!user.subscription.plan?.showAds : true)),
       login,
       register,
       logout,

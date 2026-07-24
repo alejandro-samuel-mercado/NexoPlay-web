@@ -109,13 +109,13 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
           <div className="px-3 py-2.5 rounded-[10px] flex items-center gap-2.5" style={{ background: 'rgba(255,255,255,0.04)' }}>
             <div className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden border-2" style={{ borderColor: '#34D399' }}>
               <img
-                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.email)}`}
+                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.username || user.email)}`}
                 alt="Avatar"
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-black text-white truncate">{user.name || user.email}</p>
+              <p className="text-xs font-black text-white truncate">{user.username || user.name || (user.email?.endsWith('@nexoplay.com') ? user.email.split('@')[0] : user.email)}</p>
               <span
                 className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md inline-block"
                 style={{ background: 'rgba(52,211,153,0.12)', color: '#34D399' }}

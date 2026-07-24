@@ -3,7 +3,7 @@
 import CustomSelect from '@/components/ui/CustomSelect';
 import { useAuth } from '@/context/AuthContext';
 import { CONTENT_TYPES_LIST, getContentTypeIcon, getContentTypeLabel } from '@/lib/content-types';
-import { ChevronDown, LogOut, Moon, Search, Sun, User } from 'lucide-react';
+import { ChevronDown, LogOut, Moon, Search, Sun, User, Store, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -212,6 +212,16 @@ export default function PublicTopBar() {
 
       {/* Right side: Theme & Profile */}
       <div className="flex items-center gap-5">
+        <Link 
+            href="/tienda"
+            className="flex items-center gap-2 px-4 h-10 rounded-xl bg-[var(--color-primary)] text-black font-bold hover:brightness-110 transition shadow-[0_0_15px_rgba(255,179,0,0.3)]"
+            title="Tienda / Planes"
+            style={{ textDecoration: 'none' }}
+        >
+          <Store size={18} />
+          <span className="hidden sm:inline text-sm">Tienda</span>
+        </Link>
+
         <button 
             onClick={toggleTheme}
             className="relative w-10 h-10 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition shadow-inner"
@@ -227,13 +237,17 @@ export default function PublicTopBar() {
               className="flex items-center gap-3 cursor-pointer group bg-[var(--bg-panel)] pl-2 pr-4 py-1.5 rounded-full border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-all shadow-inner"
             >
               <img 
-                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.email || 'Yuki')}`} 
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.username || user.name || user.email || 'Yuki')}`} 
                   alt="Profile" 
                   className="w-9 h-9 rounded-full border border-[var(--border-strong)] object-cover"
               />
               <div className="hidden sm:flex flex-col justify-center">
-                <span className="text-sm font-bold text-[var(--text-main)] group-hover:text-[var(--color-primary)] transition-colors leading-tight">{user.name || user.email}</span>
-                <span className="text-[10px] text-[var(--color-primary)] font-black uppercase tracking-wider leading-tight mt-0.5">{user.role}</span>
+                <span className="text-sm font-bold text-[var(--text-main)] group-hover:text-[var(--color-primary)] transition-colors leading-tight">
+                  {user.username || user.name || (user.email?.endsWith('@nexoplay.com') ? user.email.split('@')[0] : user.email)}
+                </span>
+                <span className="text-[10px] text-[var(--color-primary)] font-black uppercase tracking-wider leading-tight mt-0.5">
+                  {user.role === 'GUEST' ? 'Invitado' : user.role === 'SUBSCRIBER' ? 'Suscriptor' : user.role === 'RESELLER' ? 'Revendedor' : user.role === 'FRANCHISEE' ? 'Franquicia' : 'Administrador'}
+                </span>
               </div>
               <ChevronDown size={16} className={`text-[var(--text-muted)] hidden sm:block ml-1 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
             </div>
@@ -248,7 +262,16 @@ export default function PublicTopBar() {
                   style={{ textDecoration: 'none' }}
                 >
                   <User size={16} />
-                  Mi Perfil
+                 Perfiles
+                </Link>
+                <Link 
+                  href="/configuracion"
+                  onClick={() => setIsUserMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white/5 transition-all"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <Settings size={16} />
+                  Configuración
                 </Link>
                 <button
                   onClick={() => {
@@ -264,7 +287,7 @@ export default function PublicTopBar() {
             )}
           </div>
         ) : (
-          <Link href="/auth/login" className="bg-[var(--color-primary)] text-black px-5 py-2 rounded-full font-bold text-sm hover:brightness-110 transition">
+          <Link href={`/auth/login?redirect=${encodeURIComponent(pathname)}`} className="bg-[var(--color-primary)] text-black px-5 py-2 rounded-full font-bold text-sm hover:brightness-110 transition">
             Iniciar Sesión
           </Link>
         )}

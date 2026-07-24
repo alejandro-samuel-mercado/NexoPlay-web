@@ -1,19 +1,28 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, UserPlus } from 'lucide-react';
 import { API } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { Suspense } from 'react';
 
-export default function RegistroPage() {
+function RegistroForm() {
   const router = useRouter();
-  const { login } = useAuth();
+  const searchParams = useSearchParams();
+  const isGuestMode = searchParams.get('guest') === 'true';
+  const redirectPath = searchParams?.get('redirect') || '/';
+  const { login, register, isLoggedIn, isLoading } = useAuth();
   
-  const [email, setEmail] = useState('');
+  useEffect(() => {
+    if (!isLoading && isLoggedIn) {
+      router.replace(redirectPath);
+    }
+  }, [isLoggedIn, isLoading, router, redirectPath]);
+
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [showPwd, setShowPwd] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,20 +33,12 @@ export default function RegistroPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(API.AUTH.REGISTER, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Error al registrarse');
+      if (!username || !password) {
+        throw new Error('Por favor completa todos los campos');
       }
 
-      // Automatically login after successful registration
-      await login(email, password);
-      router.push('/');
+      await register({ username, password, asGuest: true });
+      router.push(redirectPath);
     } catch (err: any) {
       setError(err.message || 'Error al registrarse');
     } finally {
@@ -75,24 +76,20 @@ export default function RegistroPage() {
           <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
 
           <div className="relative z-10">
-            <h1 className="text-2xl font-black text-[var(--text-main)] mb-2 tracking-tight">Crear Cuenta ✨</h1>
-          <p className="text-sm text-[var(--text-muted)] mb-8">Únete para guardar tus favoritos</p>
+            <h1 className="text-2xl font-black text-[var(--text-main)] mb-2 tracking-tight">
+              {isGuestMode ? 'Continuar como Invitado 🌟' : 'Crear Cuenta ✨'}
+            </h1>
+            <p className="text-sm text-[var(--text-muted)] mb-8">
+              {isGuestMode ? 'Ingresa tus datos para guardar tu progreso' : 'Únete para guardar tus favoritos'}
+            </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 block">Nombre</label>
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)}
-                placeholder="Tu nombre" 
+              <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 block">Nombre de usuario</label>
+              <input type="text" value={username} onChange={(e) => setUsername(e.target.value.trim().toLowerCase())}
+                placeholder="ej: juan123" 
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3 text-[var(--text-main)] outline-none focus:border-white/30 focus:bg-white/10 transition-all placeholder:text-[var(--text-muted)]/50 shadow-inner"
-                required autoComplete="name" />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 block">Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu@email.com" 
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3 text-[var(--text-main)] outline-none focus:border-white/30 focus:bg-white/10 transition-all placeholder:text-[var(--text-muted)]/50 shadow-inner"
-                required autoComplete="email" />
+                required autoComplete="username" minLength={3} />
             </div>
 
             <div>
@@ -116,22 +113,29 @@ export default function RegistroPage() {
                 {error}
               </div>
             )}
-
-            <button type="submit" disabled={loading}
-              className="w-full py-3.5 bg-white/90 backdrop-blur-md border border-white/30 text-black font-black text-[15px] rounded-xl hover:bg-white transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 mt-4 shadow-[0_4px_20px_0_rgba(255,255,255,0.25)]">
-              {loading ? 'Creando...' : <><UserPlus size={18} /> Registrarse</>}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 bg-white/90 backdrop-blur-md border border-white/30 text-black font-black text-[15px] rounded-xl hover:bg-white transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 mt-4 shadow-[0_4px_20px_0_rgba(255,255,255,0.25)]"
+            >
+              {loading ? 'Registrando...' : <><UserPlus size={18} /> Crear Cuenta</>}
             </button>
           </form>
-          
+
           <div className="mt-8 text-center text-sm text-[var(--text-muted)] relative z-10">
-            ¿Ya tienes cuenta?{' '}
-            <Link href="/auth/login" className="text-[var(--color-primary)] font-bold hover:underline">
-              Iniciar sesión
-            </Link>
+            ¿Ya tienes cuenta? <Link href={`/auth/login${redirectPath !== '/' ? `?redirect=${encodeURIComponent(redirectPath)}` : ''}`} className="text-[var(--color-primary)] font-bold hover:underline">Inicia Sesión</Link>
           </div>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegistroPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegistroForm />
+    </Suspense>
   );
 }

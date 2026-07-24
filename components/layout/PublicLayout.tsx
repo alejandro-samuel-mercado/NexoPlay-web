@@ -17,27 +17,29 @@ export default function PublicLayout({
   hideSidebar?: boolean;
   hideTopBar?: boolean;
 }) {
-  const { isLoggedIn, isLoading, activeProfile, isAdmin, isReseller, isFranchisee } = useAuth();
+  const { user, isLoggedIn, isLoading, activeProfile, isAdmin, isReseller, isFranchisee } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [checkingProfile, setCheckingProfile] = useState(true);
 
   useEffect(() => {
     if (!isLoading) {
-      // Solo forzamos a elegir perfil a los SUSCRIPTORES e INVITADOS
-      const needsProfile = isLoggedIn && !activeProfile && !isAdmin && !isReseller && !isFranchisee;
+      // Solo forzamos a elegir perfil a los SUSCRIPTORES
+      const needsProfile = isLoggedIn && !activeProfile && !isAdmin && !isReseller && !isFranchisee && user?.role === 'SUBSCRIBER';
       
       if (needsProfile) {
         // Ignorar redirección si ya estamos en páginas donde no se necesita o ya estamos en perfiles
         const ignoredPaths = ['/perfiles', '/auth/login', '/auth/registro'];
         if (!ignoredPaths.includes(pathname)) {
-          router.replace('/perfiles');
+          // If we need a profile, send them to /perfiles but remember where they wanted to go
+          const redirectTarget = encodeURIComponent(pathname + window.location.search);
+          router.replace(`/perfiles?redirect=${redirectTarget}`);
           return;
         }
       }
       setCheckingProfile(false);
     }
-  }, [isLoggedIn, isLoading, activeProfile, isAdmin, isReseller, isFranchisee, pathname, router]);
+  }, [user, isLoggedIn, isLoading, activeProfile, isAdmin, isReseller, isFranchisee, pathname, router]);
 
   if (isLoading || checkingProfile) {
     return (

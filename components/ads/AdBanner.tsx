@@ -11,12 +11,12 @@ interface Campaign {
 }
 
 export default function AdBanner() {
-  const { user, isSubscriber, isLoading } = useAuth();
+  const { user, showAds, isLoading } = useAuth();
   const [ad, setAd] = useState<Campaign | null>(null);
 
   useEffect(() => {
     // Only show ads for non-subscribers
-    if (isLoading || isSubscriber) return;
+    if (isLoading || !showAds) return;
 
     // Fetch active ads
     API.ADS.active().then((res) => {
@@ -33,7 +33,7 @@ export default function AdBanner() {
         }).catch(console.error);
       }
     }).catch(console.error);
-  }, [isLoading, isSubscriber, user]);
+  }, [isLoading, showAds, user]);
 
   if (!ad) return null;
 

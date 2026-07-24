@@ -13,9 +13,6 @@ const CONFIG_FIELDS = [
   { key: 'site_description', label: 'Descripción', placeholder: 'Tu plataforma de streaming...', icon: <Info size={16} />, type: 'textarea' },
   { key: 'contact_email', label: 'Email de contacto', placeholder: 'hola@nexoplay.com', icon: <Mail size={16} />, type: 'email' },
   { key: 'whatsapp_number', label: 'WhatsApp de soporte', placeholder: '+54911...', icon: <Mail size={16} />, type: 'text' },
-  { key: 'trial_days', label: 'Días de prueba gratis', placeholder: '7', icon: <RefreshCw size={16} />, type: 'number' },
-  { key: 'token_per_view', label: 'Tokens ganados por ver contenido', placeholder: '2', icon: <ShieldCheck size={16} />, type: 'number' },
-  { key: 'token_cost_subscription', label: 'Tokens para regalar 1 mes de suscripción', placeholder: '100', icon: <ShieldCheck size={16} />, type: 'number' },
 ];
 
 export default function ConfiguracionPage() {
@@ -63,7 +60,7 @@ export default function ConfiguracionPage() {
   }
 
   return (
-    <div className="p-6 sm:p-8 max-w-2xl">
+    <div className="p-6 sm:p-8 w-full max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-black text-white flex items-center gap-3">
@@ -87,7 +84,7 @@ export default function ConfiguracionPage() {
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {CONFIG_FIELDS.map(field => (
           <div key={field.key}
             className="p-5 rounded-2xl border-2"
@@ -122,7 +119,7 @@ export default function ConfiguracionPage() {
       <div className="mt-6 p-4 rounded-2xl border-2" style={{ borderColor: 'rgba(255,210,63,0.3)', background: 'rgba(255,210,63,0.06)' }}>
         <p className="text-xs font-bold" style={{ color: 'var(--clay-yellow)' }}>⚠️ Nota</p>
         <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-          Los cambios de configuración se aplican inmediatamente. Algunos valores como los tokens por vista requieren que los usuarios actualicen la página para ver el cambio.
+          Los cambios de configuración se aplican inmediatamente en toda la plataforma. El número de WhatsApp se utilizará para que los usuarios puedan contactar soporte directamente desde la web.
         </p>
       </div>
     </div>

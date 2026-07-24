@@ -20,8 +20,7 @@ export default function PlanesAdminPage() {
 
   const fetch_ = async () => {
     setLoading(true);
-    // API.ADMIN.PLANS now points to /api/admin/subscriptions
-    const res = await apiFetch('/api/admin/subscriptions');
+    const res = await apiFetch(API.ADMIN.SUBSCRIPTIONS);
     if (res.success) setPlans(res.data || []);
     setLoading(false);
   };
@@ -51,7 +50,7 @@ export default function PlanesAdminPage() {
         isActive: !!form.isActive,
       };
       
-      await apiFetch(`/api/admin/subscriptions/${editingId}`, { method: 'PATCH', body: JSON.stringify(payload) });
+      await apiFetch(API.ADMIN.SUBSCRIPTION(editingId!), { method: 'PATCH', body: JSON.stringify(payload) });
       
       setModal(null);
       fetch_();
@@ -70,7 +69,36 @@ export default function PlanesAdminPage() {
         </div>
       </div>
       <span className="text-sm font-bold text-white/70 group-hover:text-white transition-colors">{label}</span>
+      <span className="text-sm font-bold text-white/70 group-hover:text-white transition-colors">{label}</span>
     </label>
+  );
+
+  const renderPlan = (plan: any) => (
+    <div key={plan.id} className="bg-[var(--bg-panel)] backdrop-blur-md border border-[var(--border-subtle)] p-6 rounded-2xl shadow-xl transition-all hover:border-[var(--color-primary)]/50"
+      style={!plan.isActive ? { opacity: 0.5, filter: 'grayscale(100%)' } : {}}>
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h3 className="font-black text-white text-xl">{plan.name}</h3>
+          <p className="text-sm text-white/50">{plan.role} - {plan.tier}</p>
+          <p className="text-3xl font-black mt-2" style={{ color: 'var(--color-primary)' }}>
+            {Number(plan.tokenCost)} <span className="text-sm font-bold text-white/50">Tokens</span>
+          </p>
+        </div>
+        <div className="flex gap-1 bg-black/20 rounded-xl p-1 border border-white/5">
+          <button onClick={() => openEdit(plan)} className="p-2 rounded-lg text-white/60 hover:bg-white/10 hover:text-white transition-colors">
+            <Pencil size={16} />
+          </button>
+        </div>
+      </div>
+      <div className="space-y-2 text-sm text-white/70">
+        <p>Offline: <span className="font-bold text-white bg-white/5 px-2 py-0.5 rounded-md ml-1 border border-white/10">{plan.weeklyOfflineLimit} / sem</span></p>
+        <p>Descargas (B2B): <span className="font-bold text-white bg-white/5 px-2 py-0.5 rounded-md ml-1 border border-white/10">{plan.unlimitedDownloads ? 'Ilimitadas' : `${plan.dailyDownloadLimit} / día`}</span></p>
+        <div className="pt-3 border-t border-white/10 flex flex-wrap gap-2">
+          <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${!plan.showAds ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{plan.showAds ? 'Con Publicidad' : 'Sin Publicidad'}</span>
+          {!plan.isActive && <span className="px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/30">Inactivo</span>}
+        </div>
+      </div>
+    </div>
   );
 
   return (
@@ -84,38 +112,34 @@ export default function PlanesAdminPage() {
         </div>
       </div>
 
-      {/* Plans Grid */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4">
-        {loading
-          ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-64 bg-white/5 rounded-2xl animate-pulse" />)
-          : plans.map((plan) => (
-            <div key={plan.id} className="bg-[var(--bg-panel)] backdrop-blur-md border border-[var(--border-subtle)] p-6 rounded-2xl shadow-xl transition-all hover:border-[var(--color-primary)]/50"
-              style={!plan.isActive ? { opacity: 0.5, filter: 'grayscale(100%)' } : {}}>
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="font-black text-white text-xl">{plan.name}</h3>
-                  <p className="text-sm text-white/50">{plan.role} - {plan.tier}</p>
-                  <p className="text-3xl font-black mt-2" style={{ color: 'var(--color-primary)' }}>
-                    {Number(plan.tokenCost)} <span className="text-sm font-bold text-white/50">Tokens</span>
-                  </p>
-                </div>
-                <div className="flex gap-1 bg-black/20 rounded-xl p-1 border border-white/5">
-                  <button onClick={() => openEdit(plan)} className="p-2 rounded-lg text-white/60 hover:bg-white/10 hover:text-white transition-colors">
-                    <Pencil size={16} />
-                  </button>
-                </div>
-              </div>
-              <div className="space-y-2 text-sm text-white/70">
-                <p>Offline: <span className="font-bold text-white bg-white/5 px-2 py-0.5 rounded-md ml-1 border border-white/10">{plan.weeklyOfflineLimit} / sem</span></p>
-                <p>Descargas (B2B): <span className="font-bold text-white bg-white/5 px-2 py-0.5 rounded-md ml-1 border border-white/10">{plan.unlimitedDownloads ? 'Ilimitadas' : `${plan.dailyDownloadLimit} / día`}</span></p>
-                <div className="pt-3 border-t border-white/10 flex flex-wrap gap-2">
-                  <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${!plan.showAds ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{plan.showAds ? 'Con Publicidad' : 'Sin Publicidad'}</span>
-                  {!plan.isActive && <span className="px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/30">Inactivo</span>}
-                </div>
-              </div>
+      {/* Plans Display */}
+      {loading ? (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-64 bg-white/5 rounded-2xl animate-pulse" />)}
+        </div>
+      ) : (
+        <div className="space-y-12">
+          {/* Planes B2C */}
+          <div>
+            <h2 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-3 flex items-center gap-2">
+               Planes de Usuario Final (B2C)
+            </h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4">
+              {plans.filter(p => p.role === 'SUBSCRIBER').map(renderPlan)}
             </div>
-          ))}
-      </div>
+          </div>
+          
+          {/* Planes B2B */}
+          <div>
+            <h2 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-3 flex items-center gap-2">
+               Planes para Revendedores (B2B)
+            </h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4">
+              {plans.filter(p => p.role === 'RESELLER').map(renderPlan)}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Modal */}
       {modal && (

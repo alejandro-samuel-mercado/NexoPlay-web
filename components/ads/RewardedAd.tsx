@@ -6,14 +6,14 @@ import { useAuth } from '@/context/AuthContext';
 import { Coins, Play, X } from 'lucide-react';
 
 export default function RewardedAd() {
-  const { user, isSubscriber, isLoading } = useAuth();
+  const { user, showAds, isLoading } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [rewarded, setRewarded] = useState(false);
 
   // Only show for non-subscribers logged in
-  if (isLoading || isSubscriber || !user) return null;
+  if (isLoading || !showAds || !user) return null;
 
   const handleStartAd = () => {
     setIsPlaying(true);

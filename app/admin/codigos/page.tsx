@@ -10,7 +10,7 @@ export default function CodigosAdminPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
-  const [createForm, setCreateForm] = useState({ contentId: '', notes: '', expiresAt: '' });
+  const [createForm, setCreateForm] = useState({ contentId: '', notes: '', expiresAt: '', isCatalog: false, isGeneric: false });
   const [creating, setCreating] = useState(false);
   const [createResult, setCreateResult] = useState<any>(null);
   const [filterUsed, setFilterUsed] = useState<string>('');
@@ -39,15 +39,17 @@ export default function CodigosAdminPage() {
   }, []);
 
   const handleCreate = async () => {
-    if (!createForm.contentId) return;
+    if (!createForm.isCatalog && !createForm.isGeneric && !createForm.contentId) return;
     setCreating(true);
     try {
       const res = await apiFetch(API.ADMIN.CODES, {
         method: 'POST',
         body: JSON.stringify({
-          contentId: createForm.contentId,
-          notes: createForm.notes || undefined,
-          expiresAt: createForm.expiresAt || undefined,
+          contentId: (createForm.isCatalog || createForm.isGeneric) ? undefined : createForm.contentId,
+          isCatalog: createForm.isCatalog,
+          isGeneric: createForm.isGeneric,
+          notes: (createForm.isCatalog || createForm.isGeneric) ? undefined : (createForm.notes || undefined),
+          expiresAt: createForm.expiresAt ? new Date(`${createForm.expiresAt}T23:59:59`).toISOString() : undefined,
         }),
       });
       setCreateResult(res.data);
@@ -187,33 +189,64 @@ export default function CodigosAdminPage() {
 
             {!createResult ? (
               <div className="space-y-4">
-                <div>
-                  <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Contenido *</label>
-                  <select value={createForm.contentId}
-                    onChange={(e) => setCreateForm(p => ({ ...p, contentId: e.target.value }))}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors">
-                    <option value="" className="bg-black">Seleccionar contenido...</option>
-                    {contentList.map((c: any) => (
-                      <option key={c.id} value={c.id} className="bg-black">{c.title} ({c.type})</option>
-                    ))}
-                  </select>
+                <div className="flex flex-col gap-3 mb-2">
+                  <div className="flex items-center gap-3 bg-white/5 p-4 rounded-xl border border-white/10">
+                    <input type="checkbox" id="isCatalog"
+                      checked={createForm.isCatalog}
+                      onChange={(e) => setCreateForm(p => ({ ...p, isCatalog: e.target.checked, isGeneric: false, contentId: '', notes: '' }))}
+                      className="w-5 h-5 accent-[var(--color-primary)]"
+                    />
+                    <label htmlFor="isCatalog" className="text-sm font-bold text-white cursor-pointer select-none">
+                      Código de Catálogo Completo (Desbloquea todo)
+                    </label>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 bg-white/5 p-4 rounded-xl border border-white/10">
+                    <input type="checkbox" id="isGeneric"
+                      checked={createForm.isGeneric}
+                      onChange={(e) => setCreateForm(p => ({ ...p, isGeneric: e.target.checked, isCatalog: false, contentId: '', notes: '' }))}
+                      className="w-5 h-5 accent-[var(--color-primary)]"
+                    />
+                    <label htmlFor="isGeneric" className="text-sm font-bold text-white cursor-pointer select-none flex flex-col">
+                      <span>Código Genérico (Comodín)</span>
+                      <span className="text-xs text-white/50 font-normal mt-0.5">Un solo uso para desbloquear cualquier película o serie que el usuario elija</span>
+                    </label>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Notas (opcional)</label>
-                  <input type="text" value={createForm.notes}
-                    onChange={(e) => setCreateForm(p => ({ ...p, notes: e.target.value }))}
-                    placeholder="ej: Para cliente Juan" 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors" />
-                </div>
+                
+                {!createForm.isCatalog && !createForm.isGeneric && (
+                  <div>
+                    <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Contenido *</label>
+                    <select value={createForm.contentId}
+                      onChange={(e) => setCreateForm(p => ({ ...p, contentId: e.target.value }))}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors">
+                      <option value="" className="bg-black">Seleccionar contenido...</option>
+                      {contentList.map((c: any) => (
+                        <option key={c.id} value={c.id} className="bg-black">{c.title} ({c.type})</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                
+                {!createForm.isCatalog && !createForm.isGeneric && (
+                  <div>
+                    <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Notas (opcional)</label>
+                    <input type="text" value={createForm.notes}
+                      onChange={(e) => setCreateForm(p => ({ ...p, notes: e.target.value }))}
+                      placeholder="ej: Para cliente Juan" 
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors" />
+                  </div>
+                )}
+                
                 <div>
                   <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Vence el (opcional)</label>
-                  <input type="datetime-local" value={createForm.expiresAt}
+                  <input type="date" value={createForm.expiresAt}
                     onChange={(e) => setCreateForm(p => ({ ...p, expiresAt: e.target.value }))}
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors [color-scheme:dark]" />
                 </div>
                 <div className="flex gap-3 pt-4">
                   <button onClick={() => setShowCreate(false)} className="px-4 py-3 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors flex-1">Cancelar</button>
-                  <button onClick={handleCreate} disabled={creating || !createForm.contentId}
+                  <button onClick={handleCreate} disabled={creating || (!createForm.isCatalog && !createForm.isGeneric && !createForm.contentId)}
                     className="px-4 py-3 rounded-xl font-bold text-sm bg-[var(--color-primary)] text-black hover:scale-105 transition-transform flex-1 disabled:opacity-50 disabled:hover:scale-100">
                     {creating ? 'Generando...' : 'Generar'}
                   </button>
@@ -231,7 +264,7 @@ export default function CodigosAdminPage() {
                 <div className="space-y-3">
                   <button onClick={() => navigator.clipboard.writeText(createResult.code)}
                     className="w-full px-4 py-3 rounded-xl font-bold text-sm bg-[var(--color-primary)] text-black hover:scale-105 transition-transform shadow-lg">Copiar código</button>
-                  <button onClick={() => { setShowCreate(false); setCreateResult(null); setCreateForm({ contentId: '', notes: '', expiresAt: '' }); }}
+                  <button onClick={() => { setShowCreate(false); setCreateResult(null); setCreateForm({ contentId: '', notes: '', expiresAt: '', isCatalog: false, isGeneric: false }); }}
                     className="w-full px-4 py-3 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors">Cerrar</button>
                 </div>
               </div>
