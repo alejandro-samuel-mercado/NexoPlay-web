@@ -281,7 +281,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<div className="min-h-screen w-full bg-[var(--bg-main)]" />}>
       <LoginContent />
     </Suspense>
   );
