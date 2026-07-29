@@ -33,6 +33,7 @@ export const API = {
     USER_SUB: (id: string) => `${API_BASE}/api/admin/users/${id}/subscription`,
     SUBSCRIPTIONS: `${API_BASE}/api/admin/subscriptions`,
     SUBSCRIPTION: (id: string) => `${API_BASE}/api/admin/subscriptions/${id}`,
+    PLANS: `${API_BASE}/api/admin/plans`,
     CODES: `${API_BASE}/api/admin/codes`,
     CODE: (id: string) => `${API_BASE}/api/admin/codes/${id}`,
     CONTENT: `${API_BASE}/api/admin/content`,

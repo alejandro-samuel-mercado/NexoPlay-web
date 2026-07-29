@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Star, Clock } from 'lucide-react';
 import { resolveImageUrl } from '@/lib/api-routes';
 
@@ -20,10 +21,12 @@ export default function ContentCard({ item }: ContentCardProps) {
     <Link href={`/film/${item.slug}`} className="block group cursor-pointer">
       <div className="relative aspect-[2/3] w-full rounded-[20px] overflow-hidden mb-3 bg-[var(--bg-panel)]">
         {imageUrl ? (
-          <img 
+          <Image 
             src={imageUrl} 
             alt={item.title} 
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
         ) : (

@@ -4,6 +4,7 @@ import { userFetch } from '@/lib/api-client';
 import { API_ROUTES } from '@/lib/api-routes';
 import { ChevronLeft, ChevronRight, Heart, Play } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 
 const resolveImageUrl = (url?: string) => {
@@ -120,8 +121,6 @@ export default function SeriviaHero({ content, contentList }: { content?: any, c
         }
     };
 
-    const getPoster = (item: any) => resolveImageUrl(item?.thumbnails?.find((t: any) => t.type === 'BACKDROP')?.url || item?.thumbnails?.find((t: any) => t.type === 'POSTER')?.url);
-
     return (
         <div className="serivia-hero-root relative w-full h-[60vh] md:h-[70vh] mb-8 flex items-center perspective-1000 group">
             {heroList.map((item, idx) => {
@@ -155,10 +154,12 @@ export default function SeriviaHero({ content, contentList }: { content?: any, c
                         style={style}
                         onClick={() => diff !== 0 && setActiveIndex(idx)}
                     >
-                        <img 
+                        <Image 
                             src={item.backdropUrl || item.posterUrl || resolveImageUrl(item.thumbnails?.find((t: any) => t.type === 'BACKDROP' || t.type === 'POSTER')?.url) || 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=2070'} 
                             alt={item.title || item.slug}
-                            className="w-full h-full object-cover"
+                            fill
+                            priority={diff === 0}
+                            className="object-cover"
                         />
                         
                         {diff !== 0 && <div className={`absolute inset-0 bg-black/${diff === 1 ? '30' : '50'}`}></div>}

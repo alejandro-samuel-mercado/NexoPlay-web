@@ -11,6 +11,7 @@ import { getContentTypeLabel } from '@/lib/content-types';
 import { ArrowLeft, ChevronDown, Download, Heart, MonitorPlay, Play, Star, Tag, Key } from 'lucide-react';
 import UnlockCodeModal from '@/components/content/UnlockCodeModal';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
@@ -36,6 +37,15 @@ export default function FilmDetailPage() {
     const [isFavorited, setIsFavorited] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
+    // Quality selection modal
+    const [qualityModal, setQualityModal] = useState<{
+        open: boolean;
+        qualities: string[];
+        episodeId?: string;
+        epTitle?: string;
+        mode: 'movie' | 'episode';
+    }>({ open: false, qualities: [], mode: 'movie' });
+    const [downloadingQuality, setDownloadingQuality] = useState<string | null>(null);
     
     const favToggledRef = useRef(false);
 
@@ -166,19 +176,40 @@ export default function FilmDetailPage() {
         } catch { setIsFavorited(prev); }
     };
 
-    const handleDownload = async () => {
+    const openQualityModal = async (mode: 'movie' | 'episode', episodeId?: string, epTitle?: string) => {
         if (!content) return;
         setIsDownloading(true);
         try {
+            const url = mode === 'episode'
+                ? `${API_ROUTES.CONTENT.BASE}/${content.id}/download?episodeId=${episodeId}&quality=auto`
+                : `${API_ROUTES.CONTENT.BASE}/${content.id}/download?quality=auto`;
+            const res = await userFetch(url);
+            const json = await res.json();
+            const qualities: string[] = json.data?.availableQualities ?? [];
+            // Add 'auto' as a fallback option always
+            const opts = qualities.length > 0 ? [...qualities, 'auto'] : ['auto'];
+            setQualityModal({ open: true, qualities: opts, episodeId, epTitle, mode });
+        } catch {
+            // If prefetch fails, just show auto
+            setQualityModal({ open: true, qualities: ['auto'], episodeId, epTitle, mode });
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
+    const handleDownload = async (quality = 'auto', episodeId?: string, epTitle?: string) => {
+        if (!content) return;
+        setDownloadingQuality(quality);
+        try {
             const token = localStorage.getItem('nexo_access_token');
             const profileId = localStorage.getItem('nexo_active_profile_id');
-            if (!token) {
-                alert('Debes iniciar sesión para descargar');
-                setIsDownloading(false);
-                return;
-            }
+            if (!token) { alert('Debes iniciar sesión para descargar'); return; }
 
-            const res = await userFetch(`${API_ROUTES.CONTENT.BASE}/${content.id}/download`, {
+            const baseUrl = episodeId
+                ? `${API_ROUTES.CONTENT.BASE}/${content.id}/download?episodeId=${episodeId}&quality=${quality}`
+                : `${API_ROUTES.CONTENT.BASE}/${content.id}/download?quality=${quality}`;
+
+            const res = await userFetch(baseUrl, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     ...(profileId ? { 'X-Profile-Id': profileId } : {}),
@@ -189,48 +220,30 @@ export default function FilmDetailPage() {
                 const errJson = await res.json().catch(() => null);
                 throw new Error(errJson?.error || 'No se pudo obtener el enlace de descarga.');
             }
-            
+
             const json = await res.json();
             if (json.success && json.data?.downloadUrl) {
-                // Trigger download
                 const link = document.createElement('a');
                 link.href = json.data.downloadUrl;
-                link.setAttribute('download', `${content.title}.mp4`);
-                link.setAttribute('target', '_blank'); // Prevent cross-origin navigation
+                const name = epTitle || content.title || 'video';
+                link.setAttribute('download', `${name}.mp4`);
+                link.setAttribute('target', '_blank');
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+                setQualityModal(m => ({ ...m, open: false }));
             } else {
                 throw new Error('El enlace no está disponible.');
             }
         } catch (err: any) {
             alert(err.message);
         } finally {
-            setIsDownloading(false);
+            setDownloadingQuality(null);
         }
     };
 
     const handleEpisodeDownload = async (ep: any, epTitle: string) => {
-        const token = localStorage.getItem('nexo_access_token');
-        if (!token) { alert('Debes iniciar sesión para descargar'); return; }
-        try {
-            const profileId = localStorage.getItem('nexo_active_profile_id');
-            const res = await userFetch(
-                `${API_ROUTES.CONTENT.BASE}/${content.id}/download?episodeId=${ep.id}`,
-                { headers: { 'Authorization': `Bearer ${token}`, ...(profileId ? { 'X-Profile-Id': profileId } : {}) } }
-            );
-            if (!res.ok) { const e = await res.json().catch(() => null); throw new Error(e?.error || 'Error al descargar'); }
-            const json = await res.json();
-            if (json.success && json.data?.downloadUrl) {
-                const link = document.createElement('a');
-                link.href = json.data.downloadUrl;
-                link.setAttribute('download', `${epTitle}.mp4`);
-                link.setAttribute('target', '_blank'); // Prevent cross-origin navigation
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } else { throw new Error('Enlace no disponible'); }
-        } catch (err: any) { alert(err.message); }
+        await openQualityModal('episode', ep.id, epTitle);
     };
 
     if (loading) return (
@@ -285,6 +298,55 @@ export default function FilmDetailPage() {
                                   onUnlocked={() => router.push(`/film/${content.id}/watch`)} isOpen={false}                    />
                 )}
 
+                {/* Quality Selection Modal */}
+                {qualityModal.open && (
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={() => setQualityModal(m => ({ ...m, open: false }))}>
+                        <div className="bg-[#0e1018]/95 border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+                                    <Download size={20} className="text-emerald-400" />
+                                </div>
+                                <h3 className="text-white text-xl font-bold">Seleccionar Calidad</h3>
+                            </div>
+                            <p className="text-white/50 text-sm mb-6">Elige la resolución de descarga según tu conexión y almacenamiento.</p>
+                            <div className="flex flex-col gap-3">
+                                {qualityModal.qualities.map(q => {
+                                    const labels: Record<string, string> = {
+                                        '2160p': '4K Ultra HD  (2160p)', '1080p': 'Full HD  (1080p)',
+                                        '720p': 'HD  (720p)', '480p': 'SD  (480p)',
+                                        '360p': 'Baja  (360p)', 'auto': 'Auto (Recomendado)',
+                                    };
+                                    const sizes: Record<string, string> = {
+                                        '2160p': '~6-8 GB', '1080p': '~2-4 GB',
+                                        '720p': '~1-2 GB', '480p': '~400-800 MB',
+                                        '360p': '~200-400 MB', 'auto': 'Variable',
+                                    };
+                                    const isLoading = downloadingQuality === q;
+                                    return (
+                                        <button
+                                            key={q}
+                                            onClick={() => handleDownload(q, qualityModal.episodeId, qualityModal.epTitle)}
+                                            disabled={!!downloadingQuality}
+                                            className="flex items-center justify-between w-full px-5 py-4 rounded-2xl border border-white/10 bg-white/5 hover:bg-emerald-500/10 hover:border-emerald-500/40 transition-all text-left disabled:opacity-60 group"
+                                        >
+                                            <div>
+                                                <p className="text-white font-bold text-base group-hover:text-emerald-300 transition-colors">{labels[q] ?? q}</p>
+                                                <p className="text-white/40 text-xs mt-0.5">{sizes[q] ?? ''}</p>
+                                            </div>
+                                            {isLoading ? (
+                                                <div className="w-5 h-5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                                            ) : (
+                                                <Download size={18} className="text-white/30 group-hover:text-emerald-400 transition-colors" />
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <button onClick={() => setQualityModal(m => ({ ...m, open: false }))} className="mt-6 w-full text-center text-white/40 text-sm hover:text-white/70 transition">Cancelar</button>
+                        </div>
+                    </div>
+                )}
+
                 {/* ═══ 1. SUPER HERO (Data-Rich, No Details Cards) ═══ */}
                 <div className="serivia-hero-root relative w-[85%] mx-auto h-auto min-h-[75vh] md:min-h-[85vh] rounded-[32px] overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.8)] border border-[var(--border-subtle)] flex items-center -mt-6 md:-mt-18 pt-10 pb-14">
                     
@@ -292,10 +354,12 @@ export default function FilmDetailPage() {
 
                     {/* Background */}
                     {backdropUrl && (
-                        <img 
+                        <Image 
                             src={backdropUrl} 
                             alt={t.title}
-                            className="absolute inset-0 w-full h-full object-cover object-top pointer-events-none"
+                            fill
+                            priority
+                            className="object-cover object-top pointer-events-none"
                         />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent pointer-events-none"></div>
@@ -358,14 +422,14 @@ export default function FilmDetailPage() {
                                     )}
 
                                     {userHasAccess && isReseller && !isSeries && content.downloadAllowed && (
-                                        <button onClick={handleDownload} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
-                                            <Download size={18} /> {isDownloading ? 'Iniciando...' : 'Descargar MP4'}
+                                        <button onClick={() => openQualityModal('movie')} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
+                                            <Download size={18} /> {isDownloading ? 'Cargando...' : 'Descargar MP4'}
                                         </button>
                                     )}
 
                                     {userHasAccess && !isReseller && !isSeries && (
-                                        <button onClick={handleDownload} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
-                                            <Download size={18} /> {isDownloading ? 'Iniciando...' : 'Descargar Offline'}
+                                        <button onClick={() => openQualityModal('movie')} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
+                                            <Download size={18} /> {isDownloading ? 'Cargando...' : 'Descargar Offline'}
                                         </button>
                                     )}
                                 </>
@@ -403,7 +467,7 @@ export default function FilmDetailPage() {
                         </div>
                     </div>
                     {/* Back Button (Inside Hero) - Rendered last for highest interaction priority */}
-                    <button onClick={() => router.back()} className="absolute top-8 left-6 md:top-14 md:left-10 z-[100] inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/40 border border-white/20 text-white hover:bg-white hover:text-black transition-all shadow-2xl cursor-pointer">
+                    <button onClick={() => router.push('/')} className="absolute top-8 left-6 md:top-14 md:left-10 z-[100] inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/40 border border-white/20 text-white hover:bg-white hover:text-black transition-all shadow-2xl cursor-pointer">
                         <ArrowLeft size={24} />
                     </button>
                 </div>
@@ -517,7 +581,7 @@ export default function FilmDetailPage() {
                                     >
                                         <div className="relative w-full aspect-video rounded-xl overflow-hidden shrink-0 bg-[var(--input-bg)] shadow-sm">
                                             {epThumb ? (
-                                                <img src={resolveImageUrl(epThumb)} alt={epTitle} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" />
+                                                <Image src={resolveImageUrl(epThumb) || ''} alt={epTitle} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center text-[var(--border-strong)]">
                                                     <Play size={24} />
@@ -664,17 +728,16 @@ function SeriviaPosterRow({ title, items }: { title: string, items: any[] }) {
                     {items.map((item: any, idx: number) => {
                         const itemTitle = item.translations?.[0]?.title || item.title || item.slug;
                         const posterUrl = item.thumbnails?.find((t: any) => t.type === 'POSTER')?.url || item.posterUrl;
-                        const resolvedImage = posterUrl 
-                            ? (posterUrl.startsWith('http') ? posterUrl : `https://api-streamflex.unixxtech.online/api/${posterUrl.replace(/^\//, '')}`)
-                            : 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=600';
-
+                        
                         return (
                             <Link href={`/film/${item.slug || item.id}`} key={item.id || idx} className="block group/card flex-shrink-0 w-[140px] md:w-[160px]" style={{ textDecoration: 'none' }}>
-                                <div className="serivia-poster overflow-hidden rounded-[16px] mb-3 shadow-[0_8px_20px_rgba(0,0,0,0.4)] relative">
-                                    <img 
-                                        src={resolvedImage} 
+                                <div className="serivia-poster overflow-hidden rounded-[16px] mb-3 shadow-[0_8px_20px_rgba(0,0,0,0.4)] relative aspect-[2/3]">
+                                    <Image 
+                                        src={resolveImageUrl(posterUrl) || 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=600'} 
                                         alt={itemTitle} 
-                                        className="w-full aspect-[2/3] object-cover transition-transform duration-500 group-hover/card:scale-110" 
+                                        fill
+                                        sizes="(max-width: 768px) 33vw, 20vw"
+                                        className="object-cover transition-transform duration-500 group-hover/card:scale-110" 
                                     />
                                     <div className="absolute inset-0 bg-black/0 group-hover/card:bg-black/20 transition-colors duration-300"></div>
                                 </div>

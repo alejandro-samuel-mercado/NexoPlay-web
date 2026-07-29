@@ -43,6 +43,9 @@ export default function ResellerDashboard() {
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [todayCount, setTodayCount] = useState(0);
+  const [totalDownloads, setTotalDownloads] = useState(0);
+  const [downloadsThisPlan, setDownloadsThisPlan] = useState(0);
+  const [planUnlimited, setPlanUnlimited] = useState(false);
   const DAILY_LIMIT = user?.subscription?.plan?.dailyDownloadLimit ?? 30;
 
   const loadData = useCallback(async () => {
@@ -57,7 +60,13 @@ export default function ResellerDashboard() {
       if (walletRes?.data) setWallet(walletRes.data);
       if (contentRes?.data) setCatalog(contentRes.data);
       if (packRes?.data) setWeeklyPack(packRes.data);
-      if (meRes?.data) setTodayCount(meRes.data.downloadStats?.creditsUsedToday ?? 0);
+      if (meRes?.data) {
+        const stats = meRes.data.downloadStats;
+        setTodayCount(stats?.creditsUsedToday ?? 0);
+        setTotalDownloads(stats?.totalDownloads ?? 0);
+        setDownloadsThisPlan(stats?.downloadsThisPlan ?? 0);
+        setPlanUnlimited(stats?.planUnlimited ?? false);
+      }
     } finally {
       setLoading(false);
     }
@@ -188,7 +197,23 @@ export default function ResellerDashboard() {
             <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>1 token = 1 descarga extra</p>
           </div>
 
-          {/* Content available */}
+          {/* Plan-period usage card */}
+          <div className="rounded-2xl p-5 border border-white/5 shadow-xl relative overflow-hidden" style={{ background: 'var(--bg-panel)' }}>
+            <div
+              className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10 pointer-events-none"
+              style={{ background: 'radial-gradient(circle, var(--clay-orange) 0%, transparent 70%)', filter: 'blur(20px)', transform: 'translate(30%, -30%)' }}
+            />
+            <div className="flex items-center gap-2 mb-2 relative z-10">
+              <Clock size={18} style={{ color: 'var(--clay-orange)' }} />
+              <span className="font-black text-white text-sm">Este Plan</span>
+            </div>
+            <p className="text-4xl font-black text-white">{downloadsThisPlan}</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+              {planUnlimited ? 'sin límite' : `de ${DAILY_LIMIT}/día`} · desde inicio
+            </p>
+          </div>
+
+          {/* All-time total card */}
           <div className="rounded-2xl p-5 border border-white/5 shadow-xl relative overflow-hidden" style={{ background: 'var(--bg-panel)' }}>
             <div
               className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10 pointer-events-none"
@@ -196,10 +221,10 @@ export default function ResellerDashboard() {
             />
             <div className="flex items-center gap-2 mb-2 relative z-10">
               <Package size={18} style={{ color: 'var(--clay-purple)' }} />
-              <span className="font-black text-white text-sm">Catálogo</span>
+              <span className="font-black text-white text-sm">Total Histórico</span>
             </div>
-            <p className="text-4xl font-black text-white">{filtered.length}</p>
-            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>títulos disponibles</p>
+            <p className="text-4xl font-black text-white">{totalDownloads}</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>descargas realizadas</p>
           </div>
         </div>
 

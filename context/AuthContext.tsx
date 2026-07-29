@@ -21,6 +21,7 @@ interface NexoUser {
       canDownload: boolean;
       hasHd: boolean;
       has4k: boolean;
+      showAds: boolean;
     };
   } | null;
   downloadStats?: {
