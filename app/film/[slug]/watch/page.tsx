@@ -5,7 +5,7 @@ import VideoPlayer from '@/components/video/VideoPlayer';
 import { API_ORIGIN, API_ROUTES } from '@/lib/api-routes';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, Suspense } from 'react';
 
 interface ContentData {
     id: string;
@@ -24,7 +24,7 @@ interface ContentData {
 
 const backendUrl = API_ORIGIN;
 
-export default function WatchPage() {
+function WatchPageContent() {
     const params = useParams();
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -329,5 +329,13 @@ export default function WatchPage() {
                 showAds={showAds}
             />
         </div>
+    );
+}
+
+export default function WatchPage() {
+    return (
+        <Suspense fallback={<div className="h-screen w-full bg-black flex flex-col items-center justify-center text-white"><Loader2 className="animate-spin mb-4" size={48} color="var(--color-primary)" /><p className="text-xl font-medium">Preparando tu función...</p></div>}>
+            <WatchPageContent />
+        </Suspense>
     );
 }

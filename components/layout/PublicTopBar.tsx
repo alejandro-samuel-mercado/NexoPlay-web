@@ -6,9 +6,9 @@ import { CONTENT_TYPES_LIST, getContentTypeIcon, getContentTypeLabel } from '@/l
 import { ChevronDown, LogOut, Moon, Search, Sun, User, Store, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 
-export default function PublicTopBar() {
+function PublicTopBarContent() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -293,5 +293,13 @@ export default function PublicTopBar() {
         )}
       </div>
     </header>
+  );
+}
+
+export default function PublicTopBar() {
+  return (
+    <Suspense fallback={null}>
+      <PublicTopBarContent />
+    </Suspense>
   );
 }

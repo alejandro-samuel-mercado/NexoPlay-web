@@ -5,8 +5,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Plus, Edit2, Loader2, ArrowRight } from 'lucide-react';
 import { API, apiFetch } from '@/lib/api';
+import { Suspense } from 'react';
 
-export default function ProfileSelectionPage() {
+
+function ProfileSelectionContent() {
   const { user, profiles, activeProfile, setActiveProfile, isLoggedIn, isLoading, refreshUser } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -181,5 +183,13 @@ export default function ProfileSelectionPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ProfileSelectionPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0A0A10] flex items-center justify-center"><Loader2 className="w-12 h-12 text-[var(--clay-teal)] animate-spin" /></div>}>
+      <ProfileSelectionContent />
+    </Suspense>
   );
 }

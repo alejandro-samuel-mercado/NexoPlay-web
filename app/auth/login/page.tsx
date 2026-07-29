@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, LogIn, ChevronDown, Zap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { Suspense } from 'react';
 
 const TEST_USERS = [
   {
@@ -54,7 +55,7 @@ const TEST_USERS = [
   },
 ];
 
-export default function LoginPage() {
+function LoginContent() {
   const { login, isLoggedIn, isLoading } = useAuth();
   const router = useRouter();
 
@@ -275,5 +276,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginContent />
+    </Suspense>
   );
 }
