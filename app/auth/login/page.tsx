@@ -205,75 +205,7 @@ function LoginContent() {
           </div>
         </div>
 
-        {/* Test Users Panel */}
-        <div className="mt-4">
-          <button
-            onClick={() => setShowTestUsers(!showTestUsers)}
-            className="w-full flex items-center justify-between px-4 py-3 rounded-2xl border border-white/10 text-sm font-bold transition-all hover:border-white/20 hover:bg-white/5"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            <div className="flex items-center gap-2">
-              <Zap size={15} style={{ color: '#FBBF24' }} />
-              <span>Usuarios de prueba</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-md font-black" style={{ background: 'rgba(251,191,36,0.15)', color: '#FBBF24' }}>
-                DEV
-              </span>
-            </div>
-            <ChevronDown
-              size={16}
-              className="transition-transform duration-200"
-              style={{ transform: showTestUsers ? 'rotate(180deg)' : 'rotate(0deg)' }}
-            />
-          </button>
 
-          {showTestUsers && (
-            <div
-              className="mt-2 p-4 rounded-2xl border border-white/10 space-y-2 overflow-hidden"
-              style={{
-                background: 'rgba(0,0,0,0.3)',
-                backdropFilter: 'blur(20px)',
-                animation: 'fadeIn 0.2s ease',
-              }}
-            >
-              <p className="text-[10px] font-bold uppercase tracking-wider mb-3" style={{ color: '#6B7280' }}>
-                Click para inicio de sesión rápido
-              </p>
-              {TEST_USERS.map((u) => (
-                <button
-                  key={u.username}
-                  onClick={() => quickLogin(u.username, u.password)}
-                  disabled={loading}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all hover:scale-[1.01] disabled:opacity-50"
-                  style={{ background: u.bg, border: `1px solid ${u.color}30` }}
-                >
-                  <div
-                    className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden"
-                    style={{ border: `2px solid ${u.color}` }}
-                  >
-                    <img
-                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(u.username)}`}
-                      alt={u.name}
-                      className="w-full h-full"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-black text-white truncate">{u.name}</p>
-                    <p className="text-[10px] font-mono truncate" style={{ color: '#6B7280' }}>@{u.username}</p>
-                  </div>
-                  <span
-                    className="text-[9px] font-black px-2 py-0.5 rounded-md flex-shrink-0"
-                    style={{ background: u.color, color: '#0a0a0f' }}
-                  >
-                    {u.role}
-                  </span>
-                </button>
-              ))}
-              <p className="text-[10px] text-center mt-2" style={{ color: '#6B7280' }}>
-                Contraseña: <span className="font-mono font-bold" style={{ color: '#FBBF24' }}>nexo_test_2025</span>
-              </p>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

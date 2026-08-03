@@ -41,9 +41,7 @@ export default function Navbar() {
             <Link href="/" className="flex items-center gap-1.5 text-sm font-bold text-[#A8B3C8] hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/5 transition-all">
               <Home size={15} /> Inicio
             </Link>
-            <Link href="/explorar" className="flex items-center gap-1.5 text-sm font-bold text-[#A8B3C8] hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/5 transition-all">
-              <Compass size={15} /> Explorar
-            </Link>
+
             <Link href="/tienda" className="flex items-center gap-1.5 text-sm font-bold text-[#A8B3C8] hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/5 transition-all">
               <Crown size={15} /> Tienda
             </Link>
@@ -137,9 +135,7 @@ export default function Navbar() {
             <Link href="/" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-[#A8B3C8] hover:text-white hover:bg-white/5">
               <Home size={16} /> Inicio
             </Link>
-            <Link href="/explorar" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-[#A8B3C8] hover:text-white hover:bg-white/5">
-              <Compass size={16} /> Explorar
-            </Link>
+
             <Link href="/tienda" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-[#A8B3C8] hover:text-white hover:bg-white/5">
               <Crown size={16} /> Tienda
             </Link>

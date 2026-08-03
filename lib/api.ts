@@ -40,6 +40,18 @@ export const API = {
     CONTENT_VISIBILITY: (id: string) => `${API_BASE}/api/admin/content/${id}/visibility`,
     CONFIG: `${API_BASE}/api/admin/config`,
   },
+  SOCIAL_ADMIN: {
+    METRICS: `${API_BASE}/api/social/admin/metrics`,
+    SUGGESTIONS: `${API_BASE}/api/social/suggestions/admin`,
+    SUGGESTION: (id: string) => `${API_BASE}/api/social/suggestions/${id}/status`,
+    MODERATION_POSTS: `${API_BASE}/api/social/admin/moderation/posts`,
+    MODERATION_DELETE_POST: (id: string) => `${API_BASE}/api/social/posts/${id}`,
+    RULES: `${API_BASE}/api/social/tokens/rules`,
+    RULE: (id: string) => `${API_BASE}/api/social/tokens/rules/${id}`,
+    GOALS: `${API_BASE}/api/social/tokens/goals`,
+    GOAL: (id: string) => `${API_BASE}/api/social/tokens/goals/${id}`,
+    REDEMPTIONS: `${API_BASE}/api/social/admin/redemptions`,
+  },
   MYLIST: `${API_BASE}/api/mylist`,
   TOKENS: {
     WALLET: `${API_BASE}/api/tokens/wallet`,

@@ -1,49 +1,24 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(req: NextRequest) {
-  const url = req.nextUrl;
-  const hostname = req.headers.get('host') || '';
+export async function middleware(request: NextRequest) {
+  const url = request.nextUrl;
+  const hostname = request.headers.get('host');
 
-  // Allowed domains that are NOT tenants (the main system)
-  const isMainDomain = 
-    hostname.includes('localhost') || 
-    hostname.includes('127.0.0.1') ||
-    hostname === 'nexoplay.com' ||
-    hostname === 'www.nexoplay.com';
-
-  // We extract the subdomain if it's not the main domain
-  let tenantSubdomain = null;
-  if (!isMainDomain) {
-    // e.g. "cineplus.nexoplay.com" -> "cineplus"
-    // Or if they use a custom domain "cineplus.com", we might need a different matching logic.
-    // For now, we assume the first part of the host is the subdomain or the whole host is the tenant identifier.
-    tenantSubdomain = hostname.split('.')[0];
+  // Skip API, static files, and Next.js internals
+  if (url.pathname.startsWith('/api') || url.pathname.startsWith('/_next') || url.pathname.includes('.')) {
+    return NextResponse.next();
   }
 
-  // If there's a tenant, we can pass it to the frontend via a header
-  const requestHeaders = new Headers(req.headers);
-  if (tenantSubdomain) {
-    requestHeaders.set('x-tenant-subdomain', tenantSubdomain);
+  // Very simple multi-tenant interceptor:
+  // If the request isn't coming from localhost or nexoplay.com,
+  // we could potentially rewrite it or append the tenant info.
+  // For now, we inject the domain into a custom header so the frontend can read it.
+  
+  const response = NextResponse.next();
+  if (hostname) {
+    response.headers.set('x-tenant-domain', hostname);
   }
-
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
+  
+  return response;
 }
-
-// See "Matching Paths" below to learn more
-export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
-};

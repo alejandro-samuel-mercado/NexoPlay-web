@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, Film, Key, Crown, Settings, ArrowLeft,
-  Bell, Coins, TrendingUp, Code2, Store, ShieldCheck, BarChart3, Building2
+  Bell, Coins, TrendingUp, Code2, Store, ShieldCheck, BarChart3, Building2, MessageCircleHeart
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -18,6 +18,7 @@ const ADMIN_NAV_ITEMS = [
   { href: '/admin/contenido', icon: Film, label: 'Contenido' },
   { href: '/admin/planes', icon: Crown, label: 'Planes' },
   { href: '/admin/tokens', icon: Coins, label: 'Tokens' },
+  { href: '/admin/social/metricas', icon: MessageCircleHeart, label: 'Nuba Social' },
   { href: '/admin/codigos', icon: Key, label: 'Códigos' },
   { href: '/admin/ads', icon: TrendingUp, label: 'Publicidad' },
   { href: '/admin/tenant', icon: Building2, label: 'Franquicias' },

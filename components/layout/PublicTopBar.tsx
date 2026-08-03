@@ -158,26 +158,7 @@ function PublicTopBarContent() {
         boxShadow: isScrolled ? '0 2px 12px rgba(0,0,0,0.2)' : 'none',
       }}
     >
-      {/* Left side: Category Dropdown */}
-      {pathname !== '/explorar' && (
-        <div className="flex items-center gap-6 shrink-0 relative z-50">
-          <div className="w-34">
-              <CustomSelect 
-                  options={[
-                      { id: '/explorar', name: 'Explorar' },
-                      ...CONTENT_TYPES_LIST.map(t => ({
-                          id: `/explorar?type=${t}`,
-                          name: getContentTypeLabel(t),
-                          icon: getContentTypeIcon(t, 16)
-                      }))
-                  ]}
-                  value="/explorar"
-                  onChange={(val) => val && router.push(val)}
-                  placeholder="Explorar"
-              />
-          </div>
-        </div>
-      )}
+
 
       {/* Center: Search */}
       {!pathname.startsWith('/film') && (
