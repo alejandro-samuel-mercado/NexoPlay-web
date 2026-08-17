@@ -16,30 +16,23 @@ interface LanguageSelectorModalProps {
 }
 
 const formatLanguage = (lang: string, label: string) => {
-  if (label && label !== lang) return label;
   const map: Record<string, string> = {
-    'es': 'Español',
-    'spa': 'Español',
-    'en': 'Inglés',
-    'eng': 'Inglés',
-    'pt': 'Portugués',
-    'por': 'Portugués',
-    'fr': 'Francés',
-    'fra': 'Francés',
-    'it': 'Italiano',
-    'ita': 'Italiano',
-    'de': 'Alemán',
-    'deu': 'Alemán',
-    'ja': 'Japonés',
-    'jpn': 'Japonés',
-    'ko': 'Coreano',
-    'kor': 'Coreano',
-    'audio 1': 'Español (Latino)',
-    'audio 2': 'Inglés (Original)',
-    'audio 3': 'Audio Alternativo 3',
-    'audio 4': 'Audio Alternativo 4',
+    'es': 'Español', 'spa': 'Español',
+    'en': 'Inglés', 'eng': 'Inglés',
+    'pt': 'Portugués', 'por': 'Portugués',
+    'fr': 'Francés', 'fra': 'Francés',
+    'it': 'Italiano', 'ita': 'Italiano',
+    'de': 'Alemán', 'deu': 'Alemán',
+    'ja': 'Japonés', 'jpn': 'Japonés',
+    'ko': 'Coreano', 'kor': 'Coreano',
   };
-  return map[lang.toLowerCase()] || lang.toUpperCase();
+  
+  const mappedLang = map[lang?.toLowerCase()] || lang?.toUpperCase() || 'Unknown';
+  if (label && label.toLowerCase() !== lang?.toLowerCase()) {
+    // Si el label es un texto genérico como "Audio 1" o distinto al código
+    return `${mappedLang} (${label})`;
+  }
+  return mappedLang;
 };
 
 export default function LanguageSelectorModal({ isOpen, onClose, audioTracks, onSelect }: LanguageSelectorModalProps) {
