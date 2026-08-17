@@ -34,6 +34,10 @@ const formatLanguage = (lang: string, label: string) => {
     'jpn': 'Japonés',
     'ko': 'Coreano',
     'kor': 'Coreano',
+    'audio 1': 'Español (Latino)',
+    'audio 2': 'Inglés (Original)',
+    'audio 3': 'Audio Alternativo 3',
+    'audio 4': 'Audio Alternativo 4',
   };
   return map[lang.toLowerCase()] || lang.toUpperCase();
 };
@@ -65,7 +69,7 @@ export default function LanguageSelectorModal({ isOpen, onClose, audioTracks, on
                   {formatLanguage(track.language, track.label)}
                 </span>
                 {track.isDefault && (
-                  <span className="bg-[var(--primary)] text-black text-[10px] font-bold px-2 py-1 rounded-md">
+                  <span className="bg-[var(--primary)] text-white text-[10px] font-bold px-2 py-1 rounded-md">
                     Recomendado
                   </span>
                 )}
