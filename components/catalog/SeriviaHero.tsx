@@ -166,10 +166,11 @@ export default function SeriviaHero({ content, contentList }: { content?: any, c
                         
                         {diff !== 0 && <div className={`absolute inset-0 bg-black/${diff === 1 ? '30' : '50'}`}></div>}
 
-                        {/* Main Card Content overlays */}
                         <div className={`absolute inset-0 transition-opacity duration-500 ${diff === 0 ? 'opacity-100' : 'opacity-0'}`}>
-                            <div className="absolute inset-0 bg-gradient-to-r from-[#1c1d26]/90 via-[#1c1d26]/80 to-transparent [mask-image:linear-gradient(to_right,black_50%,transparent)]"></div>
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#1c1d26]/90 via-transparent to-transparent"></div>
+                            {/* Suave gradiente izquierdo para legibilidad, sin oscurecer toda la imagen */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/10 to-transparent w-1/2"></div>
+                            {/* Gradiente inferior para separar de la sección de abajo */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#1c1d26]/90 via-[#1c1d26]/30 to-transparent"></div>
 
                             <div className="absolute inset-0 p-8 md:p-14 flex flex-col justify-end w-full md:max-w-[70%]">
                                 <div className="flex flex-wrap items-center gap-2 mb-4">
