@@ -10,6 +10,7 @@ import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
 import { getContentTypeLabel } from '@/lib/content-types';
 import { ArrowLeft, ChevronDown, Download, Heart, MonitorPlay, Play, Star, Tag, Key } from 'lucide-react';
 import UnlockCodeModal from '@/components/content/UnlockCodeModal';
+import LanguageSelectorModal, { AudioTrack } from '@/components/ui/LanguageSelectorModal';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
@@ -37,15 +38,12 @@ export default function FilmDetailPage() {
     const [isFavorited, setIsFavorited] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
-    // Quality selection modal
-    const [qualityModal, setQualityModal] = useState<{
-        open: boolean;
-        qualities: string[];
-        episodeId?: string;
-        epTitle?: string;
-        mode: 'movie' | 'episode';
-    }>({ open: false, qualities: [], mode: 'movie' });
+    const [qualityModal, setQualityModal] = useState<{ open: boolean; qualities: string[]; episodeId?: string; epTitle?: string; mode: 'movie' | 'episode'; lang?: string }>({ open: false, qualities: [], mode: 'movie' });
     const [downloadingQuality, setDownloadingQuality] = useState<string | null>(null);
+
+    const [langModalVisible, setLangModalVisible] = useState(false);
+    const [availableAudio, setAvailableAudio] = useState<AudioTrack[]>([]);
+    const [currentDownloadTarget, setCurrentDownloadTarget] = useState<{ mode: 'movie' | 'episode', episodeId?: string, epTitle?: string, episodeData?: any } | null>(null);
     
     const favToggledRef = useRef(false);
 
@@ -176,7 +174,7 @@ export default function FilmDetailPage() {
         } catch { setIsFavorited(prev); }
     };
 
-    const openQualityModal = async (mode: 'movie' | 'episode', episodeId?: string, epTitle?: string) => {
+    const openQualityModal = async (mode: 'movie' | 'episode', episodeId?: string, epTitle?: string, lang?: string) => {
         if (!content) return;
         setIsDownloading(true);
         try {
@@ -188,16 +186,16 @@ export default function FilmDetailPage() {
             const qualities: string[] = json.data?.availableQualities ?? [];
             // Add 'auto' as a fallback option always
             const opts = qualities.length > 0 ? [...qualities, 'auto'] : ['auto'];
-            setQualityModal({ open: true, qualities: opts, episodeId, epTitle, mode });
+            setQualityModal({ open: true, qualities: opts, episodeId, epTitle, mode, lang });
         } catch {
             // If prefetch fails, just show auto
-            setQualityModal({ open: true, qualities: ['auto'], episodeId, epTitle, mode });
+            setQualityModal({ open: true, qualities: ['auto'], episodeId, epTitle, mode, lang });
         } finally {
             setIsDownloading(false);
         }
     };
 
-    const handleDownload = async (quality = 'auto', episodeId?: string, epTitle?: string) => {
+    const handleDownload = async (quality = 'auto', episodeId?: string, epTitle?: string, lang?: string) => {
         if (!content) return;
         setDownloadingQuality(quality);
         try {
@@ -206,8 +204,8 @@ export default function FilmDetailPage() {
             if (!token) { alert('Debes iniciar sesión para descargar'); return; }
 
             const baseUrl = episodeId
-                ? `${API_ROUTES.CONTENT.BASE}/${content.id}/download?episodeId=${episodeId}&quality=${quality}`
-                : `${API_ROUTES.CONTENT.BASE}/${content.id}/download?quality=${quality}`;
+                ? `${API_ROUTES.CONTENT.BASE}/${content.id}/download?episodeId=${episodeId}&quality=${quality}${lang ? '&audio=' + encodeURIComponent(lang) : ''}`
+                : `${API_ROUTES.CONTENT.BASE}/${content.id}/download?quality=${quality}${lang ? '&audio=' + encodeURIComponent(lang) : ''}`;
 
             const res = await userFetch(baseUrl, {
                 headers: {
@@ -242,8 +240,26 @@ export default function FilmDetailPage() {
         }
     };
 
+    const handleDownloadRequest = (mode: 'movie' | 'episode', episodeId?: string, epTitle?: string, episodeData?: any) => {
+        let tracks: AudioTrack[] = [];
+        if (mode === 'movie') {
+            tracks = content?.videoFiles?.[0]?.audioTracks || [];
+        } else {
+            const epVf = episodeData?.videoFiles?.[0];
+            tracks = epVf?.audioTracks || [];
+        }
+
+        if (tracks.length > 1) {
+            setAvailableAudio(tracks);
+            setCurrentDownloadTarget({ mode, episodeId, epTitle, episodeData });
+            setLangModalVisible(true);
+        } else {
+            openQualityModal(mode, episodeId, epTitle, tracks[0]?.language || '');
+        }
+    };
+
     const handleEpisodeDownload = async (ep: any, epTitle: string) => {
-        await openQualityModal('episode', ep.id, epTitle);
+        handleDownloadRequest('episode', ep.id, epTitle, ep);
     };
 
     if (loading) return (
@@ -325,7 +341,7 @@ export default function FilmDetailPage() {
                                     return (
                                         <button
                                             key={q}
-                                            onClick={() => handleDownload(q, qualityModal.episodeId, qualityModal.epTitle)}
+                                            onClick={() => handleDownload(q, qualityModal.episodeId, qualityModal.epTitle, qualityModal.lang)}
                                             disabled={!!downloadingQuality}
                                             className="flex items-center justify-between w-full px-5 py-4 rounded-2xl border border-white/10 bg-white/5 hover:bg-emerald-500/10 hover:border-emerald-500/40 transition-all text-left disabled:opacity-60 group"
                                         >
@@ -422,13 +438,13 @@ export default function FilmDetailPage() {
                                     )}
 
                                     {userHasAccess && isReseller && !isSeries && content.downloadAllowed && (
-                                        <button onClick={() => openQualityModal('movie')} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
+                                        <button onClick={() => handleDownloadRequest('movie')} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
                                             <Download size={18} /> {isDownloading ? 'Cargando...' : 'Descargar MP4'}
                                         </button>
                                     )}
 
                                     {userHasAccess && !isReseller && !isSeries && (
-                                        <button onClick={() => openQualityModal('movie')} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
+                                        <button onClick={() => handleDownloadRequest('movie')} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
                                             <Download size={18} /> {isDownloading ? 'Cargando...' : 'Descargar Offline'}
                                         </button>
                                     )}
@@ -674,8 +690,19 @@ export default function FilmDetailPage() {
                     {recent.length > 0 && <SeriviaPosterRow title="Recién Agregados" items={recent} />}
                     {recommended.length > 0 && <SeriviaPosterRow title="Te Puede Gustar" items={recommended} />}
                 </div>
-                
+
             </div>
+            
+            <LanguageSelectorModal
+                isOpen={langModalVisible}
+                onClose={() => setLangModalVisible(false)}
+                audioTracks={availableAudio}
+                onSelect={(lang) => {
+                    if (currentDownloadTarget) {
+                        openQualityModal(currentDownloadTarget.mode, currentDownloadTarget.episodeId, currentDownloadTarget.epTitle, lang);
+                    }
+                }}
+            />
         </PublicLayout>
     );
 }

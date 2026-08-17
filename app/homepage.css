@@ -3,6 +3,18 @@
    Nuba · Inspired by Crunchyroll, Paramount+, Vix
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* ═══ DESIGN TOKENS — Fluid Spacing (escala desde 1080p a 4K sin bordes desperdiciados) ══ */
+:root {
+    /* Padding horizontal de la página: 20px en móvil, 60px en FHD, 100px en 4K */
+    --page-padding: clamp(20px, 4.5vw, 100px);
+    /* Gap entre tarjetas en filas */
+    --row-gap: clamp(12px, 1.2vw, 24px);
+    /* Ancho de tarjeta en fila horizontal */
+    --card-w: clamp(140px, 11vw, 240px);
+    /* Ancho de tarjeta large en fila horizontal */
+    --card-w-large: clamp(160px, 12.5vw, 280px);
+}
+
 /* ─── LOADING ─────────────────────────────────────────────────────────────── */
 .homepage-loading {
     min-height: 100vh;
@@ -1006,5 +1018,68 @@
     .faq-section {
         padding-left: 16px !important;
         padding-right: 16px !important;
+    }
+}
+
+/* ═══ 2K / QHD (1920px+) ════════════════════════════════════════════════════════ */
+@media (min-width: 1920px) {
+    /* Título hero más grande en 2K */
+    .hero-carousel-title {
+        font-size: clamp(5rem, 5.5vw, 8rem);
+    }
+    .hero-carousel-desc {
+        font-size: 1.15rem;
+        -webkit-line-clamp: 4;
+    }
+    .hero-carousel-info {
+        max-width: 750px;
+    }
+    /* Navbar con más padding */
+    .nav-cinema {
+        padding: 16px var(--page-padding);
+    }
+    /* Film rows con tarjetas más anchas */
+    .film-card {
+        min-width: var(--card-w) !important;
+        max-width: var(--card-w) !important;
+    }
+    .film-card-large {
+        min-width: var(--card-w-large) !important;
+        max-width: var(--card-w-large) !important;
+    }
+    /* Títulos de secciones más grandes */
+    .film-row-title,
+    .serivia-row-title {
+        font-size: 1.5rem !important;
+    }
+    /* Botones hero más grandes */
+    .hero-btn-play,
+    .hero-btn-subscribe {
+        padding: 16px 40px !important;
+        font-size: 1.1rem !important;
+    }
+}
+
+/* ═══ 4K / UHD (2560px+) ════════════════════════════════════════════════════════ */
+@media (min-width: 2560px) {
+    .hero-carousel-title {
+        font-size: clamp(7rem, 6vw, 11rem);
+    }
+    .hero-carousel-info {
+        max-width: 950px;
+    }
+    .hero-carousel-desc {
+        font-size: 1.3rem;
+        max-width: 100%;
+    }
+    /* Títulos de secciones aún más grandes */
+    .film-row-title,
+    .serivia-row-title {
+        font-size: 1.85rem !important;
+    }
+    /* Footer con más espacio */
+    .cinema-footer-links-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 60px !important;
     }
 }

@@ -166,7 +166,7 @@ export default function SeriviaHero({ content, contentList }: { content?: any, c
 
                         {/* Main Card Content overlays */}
                         <div className={`absolute inset-0 transition-opacity duration-500 ${diff === 0 ? 'opacity-100' : 'opacity-0'}`}>
-                            <div className="absolute inset-0 bg-gradient-to-r from-[#1c1d26]/90 via-[#1c1d26]/80 to-transparent backdrop-blur-[4px] [mask-image:linear-gradient(to_right,black_50%,transparent)]"></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-[#1c1d26]/90 via-[#1c1d26]/80 to-transparent [mask-image:linear-gradient(to_right,black_50%,transparent)]"></div>
                             <div className="absolute inset-0 bg-gradient-to-t from-[#1c1d26]/90 via-transparent to-transparent"></div>
 
                             <div className="absolute inset-0 p-8 md:p-14 flex flex-col justify-end w-full md:max-w-[70%]">

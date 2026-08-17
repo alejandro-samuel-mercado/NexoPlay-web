@@ -22,7 +22,7 @@ export const API = {
   },
   DOWNLOADS: {
     REDEEM: `${API_BASE}/api/downloads/redeem`,
-    DOWNLOAD: (contentId: string) => `${API_BASE}/api/downloads/content/${contentId}`,
+    DOWNLOAD: (contentId: string, lang = '') => `${API_BASE}/api/downloads/content/${contentId}${lang ? '?audio=' + encodeURIComponent(lang) : ''}`,
     HISTORY: `${API_BASE}/api/downloads/history`,
     LIBRARY: `${API_BASE}/api/downloads/library`,
   },
@@ -107,10 +107,10 @@ export const API = {
   },
 
   TENANT: {
-    getSettings: async () => apiFetch(`${API_BASE}/api/tenant/settings`),
+    getSettings: async () => apiFetch(`${API_BASE}/api/tenants/mine`),
     updateSettings: async (data: Partial<{ appName: string; primaryColor: string; logoUrl: string; subdomain: string }>) => 
-      apiFetch(`${API_BASE}/api/tenant/settings`, { method: 'PUT', body: JSON.stringify(data) }),
-    getDashboard: async () => apiFetch(`${API_BASE}/api/tenant/dashboard`),
+      apiFetch(`${API_BASE}/api/tenants/mine`, { method: 'PUT', body: JSON.stringify(data) }),
+    getDashboard: async () => apiFetch(`${API_BASE}/api/tenants/mine/dashboard`),
   },
 
   RESELLER: {
@@ -123,11 +123,13 @@ export const API = {
 export async function apiFetch(url: string, options: RequestInit = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('nexo_access_token') : null;
   const activeProfileId = typeof window !== 'undefined' ? localStorage.getItem('nexo_active_profile_id') : null;
-  
+  const domain = typeof window !== 'undefined' ? window.location.hostname : null;
+
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(activeProfileId ? { 'x-profile-id': activeProfileId } : {}),
+    ...(domain ? { 'x-tenant-domain': domain } : {}),
     ...(options.headers || {}),
   };
   const res = await fetch(url, { ...options, headers });

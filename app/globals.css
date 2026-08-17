@@ -155,7 +155,8 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     overflow: hidden; /* Prevent body scrolling so the floating window stays fixed */
-    padding: 1.5vh 1.5vw;
+    /* Fluid padding: scales from 8px on mobile to 24px on 4K — no wasted space */
+    padding: clamp(6px, 1vh, 20px) clamp(6px, 1vw, 20px);
     height: 100vh;
     display: flex;
 }
@@ -190,7 +191,8 @@ body {
     display: flex;
     flex: 1;
     background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%);
-    border-radius: 24px;
+    /* Fluid border-radius: más redondeado en móvil, más sutil en pantallas muy grandes */
+    border-radius: clamp(12px, 1.5vw, 28px);
     box-shadow: 
         0 40px 80px rgba(0,0,0,0.6), 
         inset 0 1px 2px rgba(255,255,255,0.3), 
@@ -199,8 +201,7 @@ body {
     backdrop-filter: blur(40px);
     -webkit-backdrop-filter: blur(40px);
     position: relative;
-    max-width: 1800px;
-    margin: 0 auto;
+    /* Eliminado max-width fijo: el layout ahora ocupa todo el ancho disponible en 2K/4K */
     height: 100%;
     width: 100%;
     overflow: hidden; /* Important so children don't pop out */
@@ -391,11 +392,12 @@ body {
     border-color: var(--color-primary);
 }
 
-/* Poster Grid */
+/* Poster Grid — fluido: más columnas en pantallas 2K+ */
 .serivia-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 20px;
+    /* En 2K (~2560px) con min 200px → ~12 columnas. En FHD (~1920px) → ~9 columnas */
+    grid-template-columns: repeat(auto-fill, minmax(clamp(140px, 10vw, 220px), 1fr));
+    gap: clamp(12px, 1.5vw, 28px);
 }
 .serivia-poster {
     aspect-ratio: 2/3;
@@ -502,12 +504,11 @@ body {
 
 /* Utilidades adicionales */
 .page-container {
-    padding: 0 40px 40px 40px;
-    max-width: 1600px;
-    margin: 0 auto;
+    /* Padding fluido: escala de 20px en móvil a 60px en 2K, sin max-width para aprovechar todo el ancho */
+    padding: 0 clamp(20px, 3vw, 60px) clamp(24px, 3vh, 48px) clamp(20px, 3vw, 60px);
 }
 @media (max-width: 768px) {
-    .page-container { padding: 0 20px 20px 20px; }
+    .page-container { padding: 0 16px 20px 16px; }
     .topbar-wrapper { padding: 20px; }
     .serivia-hero-card { border-radius: 16px; aspect-ratio: 16/9; }
 }
@@ -532,7 +533,8 @@ body {
     scrollbar-width: none;
 }
 .serivia-row-track .serivia-poster {
-    flex: 0 0 160px;
+    /* Ancho fluido para los pósters en fila: más anchos en pantallas grandes */
+    flex: 0 0 clamp(140px, 10vw, 220px);
     transition: transform 0.3s;
 }
 .serivia-row-track .serivia-poster:hover {
