@@ -159,6 +159,8 @@ export default function SeriviaHero({ content, contentList }: { content?: any, c
                             alt={item.title || item.slug}
                             fill
                             priority={diff === 0}
+                            unoptimized
+                            quality={100}
                             className="object-cover"
                         />
                         
