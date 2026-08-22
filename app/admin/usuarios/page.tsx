@@ -14,7 +14,7 @@ export default function UsuariosAdminPage() {
   const [page, setPage] = useState(1);
   const [assignModal, setAssignModal] = useState<{ userId: string; email: string } | null>(null);
   const [createModal, setCreateModal] = useState(false);
-  const [newUser, setNewUser] = useState({ email: '', username: '', password: '', role: 'GUEST', name: '' });
+  const [newUser, setNewUser] = useState({ username: '', password: '', role: 'GUEST' });
   const [selectedPlan, setSelectedPlan] = useState('');
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
 
@@ -51,14 +51,14 @@ export default function UsuariosAdminPage() {
   };
 
   const handleCreateUser = async () => {
-    if (!newUser.email || !newUser.password) return alert('Email y contraseña son obligatorios');
+    if (!newUser.username || !newUser.password) return alert('Usuario y contraseña son obligatorios');
     try {
       await apiFetch(`${API.ADMIN.USERS}`, {
         method: 'POST',
         body: JSON.stringify(newUser),
       });
       setCreateModal(false);
-      setNewUser({ email: '', username: '', password: '', role: 'GUEST', name: '' });
+      setNewUser({ username: '', password: '', role: 'GUEST' });
       fetchUsers();
     } catch (e: any) { alert(e.message); }
   };
@@ -259,11 +259,7 @@ export default function UsuariosAdminPage() {
           <div className="bg-[var(--bg-panel)] p-8 rounded-[24px] w-full max-w-sm border border-[var(--border-subtle)] backdrop-blur-xl shadow-2xl">
             <h3 className="text-xl font-black text-white mb-6">Crear Nuevo Usuario</h3>
             
-            <input type="email" placeholder="Email" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] mb-3 outline-none" />
-            <input type="text" placeholder="Usuario (opcional)" value={newUser.username} onChange={e => setNewUser({...newUser, username: e.target.value})}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] mb-3 outline-none" />
-            <input type="text" placeholder="Nombre completo (opcional)" value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})}
+            <input type="text" placeholder="Nombre de usuario" value={newUser.username} onChange={e => setNewUser({...newUser, username: e.target.value})}
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] mb-3 outline-none" />
             <input type="text" placeholder="Contraseña" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})}
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] mb-3 outline-none" />
