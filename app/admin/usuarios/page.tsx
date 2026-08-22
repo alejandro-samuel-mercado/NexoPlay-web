@@ -13,6 +13,8 @@ export default function UsuariosAdminPage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [assignModal, setAssignModal] = useState<{ userId: string; email: string } | null>(null);
+  const [createModal, setCreateModal] = useState(false);
+  const [newUser, setNewUser] = useState({ email: '', username: '', password: '', role: 'GUEST', name: '' });
   const [selectedPlan, setSelectedPlan] = useState('');
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
 
@@ -48,6 +50,19 @@ export default function UsuariosAdminPage() {
     } catch (e: any) { alert(e.message); }
   };
 
+  const handleCreateUser = async () => {
+    if (!newUser.email || !newUser.password) return alert('Email y contraseña son obligatorios');
+    try {
+      await apiFetch(`${API.ADMIN.USERS}`, {
+        method: 'POST',
+        body: JSON.stringify(newUser),
+      });
+      setCreateModal(false);
+      setNewUser({ email: '', username: '', password: '', role: 'GUEST', name: '' });
+      fetchUsers();
+    } catch (e: any) { alert(e.message); }
+  };
+
   const handleToggleActive = async (id: string, isActive: boolean) => {
     await apiFetch(API.ADMIN.USER(id), { method: 'PATCH', body: JSON.stringify({ isActive: !isActive }) });
     fetchUsers();
@@ -68,6 +83,9 @@ export default function UsuariosAdminPage() {
           </h1>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{total} usuarios registrados</p>
         </div>
+        <button onClick={() => setCreateModal(true)} className="px-5 py-2.5 rounded-xl font-bold text-sm bg-[var(--color-primary)] text-black hover:scale-105 transition-transform">
+          + Crear Usuario
+        </button>
       </div>
 
       {/* Filters */}
@@ -179,6 +197,11 @@ export default function UsuariosAdminPage() {
                     <td className="px-4 py-3 text-[var(--text-muted)] text-[12px]">{new Date(u.createdAt).toLocaleDateString()}</td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => handleToggleActive(u.id, u.isActive)}
+                          className={`px-3 py-2 rounded-xl text-xs font-bold transition-colors inline-flex items-center justify-center ${u.isActive ? 'bg-orange-500/10 text-orange-400 hover:bg-orange-500/20' : 'bg-green-500/10 text-green-400 hover:bg-green-500/20'}`}
+                          title={u.isActive ? 'Suspender acceso' : 'Activar acceso'}>
+                          {u.isActive ? <XCircle size={14} /> : <CheckCircle2 size={14} />}
+                        </button>
                         <button onClick={() => { setAssignModal({ userId: u.id, email: u.email }); setSelectedPlan(u.subscription?.planId || ''); }}
                           className="px-3 py-2 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 transition-colors inline-flex items-center justify-center gap-2">
                           <Crown size={14} /> Plan
@@ -225,6 +248,36 @@ export default function UsuariosAdminPage() {
             <div className="flex gap-3 mt-4">
               <button onClick={() => setAssignModal(null)} className="px-4 py-3 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors flex-1">Cancelar</button>
               <button onClick={handleAssignPlan} className="px-4 py-3 rounded-xl font-bold text-sm bg-[var(--color-primary)] text-black hover:scale-105 transition-transform flex-1">Asignar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Crear Usuario */}
+      {createModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[var(--bg-panel)] p-8 rounded-[24px] w-full max-w-sm border border-[var(--border-subtle)] backdrop-blur-xl shadow-2xl">
+            <h3 className="text-xl font-black text-white mb-6">Crear Nuevo Usuario</h3>
+            
+            <input type="email" placeholder="Email" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] mb-3 outline-none" />
+            <input type="text" placeholder="Usuario (opcional)" value={newUser.username} onChange={e => setNewUser({...newUser, username: e.target.value})}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] mb-3 outline-none" />
+            <input type="text" placeholder="Nombre completo (opcional)" value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] mb-3 outline-none" />
+            <input type="text" placeholder="Contraseña" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] mb-3 outline-none" />
+            
+            <select value={newUser.role} onChange={(e) => setNewUser({...newUser, role: e.target.value})} 
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] mb-6 outline-none">
+              <option value="GUEST" className="bg-black">Invitado</option>
+              <option value="SUBSCRIBER" className="bg-black">Suscripto</option>
+              <option value="ADMIN" className="bg-black">Administrador</option>
+            </select>
+
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => setCreateModal(false)} className="px-4 py-3 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors flex-1">Cancelar</button>
+              <button onClick={handleCreateUser} className="px-4 py-3 rounded-xl font-bold text-sm bg-[var(--color-primary)] text-black hover:scale-105 transition-transform flex-1">Crear</button>
             </div>
           </div>
         </div>
