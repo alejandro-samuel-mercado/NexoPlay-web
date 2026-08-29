@@ -221,7 +221,7 @@ export default function ResellerUsuariosPage() {
             <p className="text-sm mb-6" style={{ color: '#6B7280' }}>Cliente: {assignModal.email}</p>
             <select value={selectedPlan} onChange={e => setSelectedPlan(e.target.value)} className={inputCls + ' mb-6'}>
               <option value="" className="bg-black">Ninguno (remover plan)</option>
-              {plans.map(p => <option key={p.id} value={p.id} className="bg-black">{p.name} — {p.durationDays} días</option>)}
+              {plans.map(p => <option key={p.id} value={p.id} className="bg-black">{p.name} — {p.tokenCost || 0} tokens / {p.durationDays} días</option>)}
             </select>
             <div className="flex gap-3">
               <button onClick={() => setAssignModal(null)} className="flex-1 px-4 py-3 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors">Cancelar</button>
