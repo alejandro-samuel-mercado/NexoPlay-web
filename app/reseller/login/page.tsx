@@ -7,7 +7,7 @@ import { apiFetch, API } from '@/lib/api';
 
 function ResellerLoginContent() {
   const searchParams = useSearchParams();
-  const redirect = searchParams?.get('redirect') || '/reseller/dashboard';
+  const redirect = searchParams?.get('redirect') || '/reseller';
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');

@@ -225,26 +225,8 @@ export default function ConfiguracionPage() {
                             </div>
                             <div className="px-6 py-5 flex flex-col gap-3">
                                 <p className="text-sm text-[var(--text-muted)]">Accede a tus herramientas de revendedor, descarga de contenido y gestión de clientes.</p>
-                                <Link href="/reseller/dashboard" className="flex items-center gap-2 px-5 py-3 bg-[var(--color-primary)] text-black font-bold rounded-xl hover:scale-105 transition text-sm self-start">
+                                <Link href="/reseller" className="flex items-center gap-2 px-5 py-3 bg-[var(--color-primary)] text-black font-bold rounded-xl hover:scale-105 transition text-sm self-start">
                                     Ir a mi Panel <ChevronRight size={16} />
-                                </Link>
-                            </div>
-                        </section>
-                    )}
-
-                    {/* ─── SECCIÓN ADMIN ─── */}
-                    {isAdmin && (
-                        <section className="rounded-2xl border border-red-500/30 overflow-hidden"
-                            style={{ background: 'rgba(239,68,68,0.05)', backdropFilter: 'blur(20px)' }}>
-                            <div className="px-6 py-4 border-b border-red-500/20 flex items-center gap-3">
-                                <Shield size={18} className="text-red-400" />
-                                <h2 className="font-bold text-[var(--text-main)]">Panel de Administración</h2>
-                                <span className="ml-auto text-xs font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">ADMIN</span>
-                            </div>
-                            <div className="px-6 py-5 flex flex-col gap-3">
-                                <p className="text-sm text-[var(--text-muted)]">Accede al panel completo de administración del sistema.</p>
-                                <Link href="/admin" className="flex items-center gap-2 px-5 py-3 bg-red-500 text-white font-bold rounded-xl hover:scale-105 transition text-sm self-start">
-                                    Ir al Panel Admin <ChevronRight size={16} />
                                 </Link>
                             </div>
                         </section>
