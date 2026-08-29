@@ -49,30 +49,6 @@ export default function PublicSidebar() {
 
   // Role-specific panel item with distinct styling
   const getRoleItem = () => {
-    if (isAdmin) return {
-      name: 'Panel Admin',
-      icon: ShieldCheck,
-      path: '/admin',
-      color: '#FF5C5C',
-      bg: 'rgba(255,92,92,0.12)',
-      badge: 'ADMIN',
-    };
-    if (isFranchisee) return {
-      name: 'Mi Franquicia',
-      icon: Store,
-      path: '/admin/tenant',
-      color: '#60A5FA',
-      bg: 'rgba(96,165,250,0.12)',
-      badge: 'FRANQUICIADO',
-    };
-    if (isReseller) return {
-      name: 'Panel Revendedor',
-      icon: Video,
-      path: '/reseller/dashboard',
-      color: '#34D399',
-      bg: 'rgba(52,211,153,0.12)',
-      badge: 'REVENDEDOR',
-    };
     if (user) return {
       name: user.role === 'GUEST' ? 'Panel Invitado' : 'Panel de Cuenta',
       icon: Wallet,

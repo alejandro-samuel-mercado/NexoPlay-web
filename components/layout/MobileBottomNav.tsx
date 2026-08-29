@@ -15,12 +15,6 @@ export default function MobileBottomNav() {
     ...(isLoggedIn ? [{ name: 'Historial', path: '/historial', icon: History }] : [
       { name: 'Mi Lista', path: '/mi-lista', icon: Heart },
     ]),
-    ...(isAdmin
-      ? [{ name: 'Admin', path: '/admin', icon: Shield }]
-      : isReseller
-        ? [{ name: 'Reseller', path: '/reseller/dashboard', icon: Video }]
-        : []
-    ),
     { name: isLoggedIn ? 'Perfil' : 'Entrar', path: isLoggedIn ? '/perfil' : '/auth/login', icon: User },
   ];
 
