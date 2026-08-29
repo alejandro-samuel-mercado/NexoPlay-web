@@ -31,7 +31,7 @@ export default function ResellerUsuariosPage() {
 
   useEffect(() => { fetchUsers(); }, []);
   useEffect(() => {
-    apiFetch(API.ADMIN.PLANS).then(r => { if (r.success) setPlans(r.data?.filter((p: any) => p.role === 'SUBSCRIBER' || p.role === 'GUEST') || []); });
+    apiFetch(`${API_BASE}/api/tokens/plans`).then(r => { if (r.success) setPlans(r.data?.filter((p: any) => p.role === 'SUBSCRIBER' || p.role === 'GUEST') || []); });
   }, []);
 
   const handleCreate = async () => {
