@@ -22,7 +22,7 @@ export default function ResellerDescargasPage() {
   const loadAll = useCallback(async () => {
     setLoading(true);
     const [cat, st] = await Promise.all([
-      apiFetch(`${API.CONTENT.BASE}?limit=300&lang=es`).catch(() => null),
+      apiFetch(`${API.CONTENT.BASE}?limit=100&lang=es`).catch(() => null),
       apiFetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/reseller/stats`).catch(() => null),
     ]);
     if (cat?.data) setCatalog(cat.data);
