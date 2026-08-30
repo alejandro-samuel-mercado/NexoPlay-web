@@ -53,7 +53,7 @@ function ResellerLoginContent() {
             </div>
             <div>
               <h1 className="font-black text-white text-lg leading-tight">Panel Revendedor B2B</h1>
-              <p className="text-xs mt-0.5" style={{ color: '#34D399' }}>NexoPlay · Acceso exclusivo</p>
+              <p className="text-xs mt-0.5" style={{ color: '#34D399' }}>Vexa · Acceso exclusivo</p>
             </div>
           </div>
 
