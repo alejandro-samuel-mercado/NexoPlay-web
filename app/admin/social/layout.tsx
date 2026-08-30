@@ -1,8 +1,8 @@
 'use client';
 
+import { AlertCircle, BarChart2, Coins, Gift, MessageCircleHeart, Target } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MessageCircleHeart, AlertCircle, Coins, Target, Gift, BarChart2 } from 'lucide-react';
 
 const SOCIAL_TABS = [
   { href: '/admin/social/metricas', label: 'Métricas', icon: BarChart2 },
@@ -18,11 +18,11 @@ export default function SocialAdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen p-6 max-w-7xl mx-auto space-y-6">
-      {/* Header Nuba Social */}
+      {/* Header Vexa Social */}
       <div>
         <h1 className="text-3xl font-black text-white flex items-center gap-3">
           <MessageCircleHeart className="text-[#E82C7C]" size={32} />
-          Nuba Social
+          Vexa Social
         </h1>
         <p className="text-[#8B8FA8] mt-1">
           Panel de administración para la red social y sistema de tokens.

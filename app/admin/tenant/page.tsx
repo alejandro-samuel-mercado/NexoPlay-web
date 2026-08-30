@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { API } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { API } from '@/lib/api';
+import { Link2, Palette, Save, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Settings, Save, Palette, Link2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function TenantSettingsPage() {
   const { isAdmin, isFranchisee, isLoading: authLoading } = useAuth();
@@ -97,7 +97,7 @@ export default function TenantSettingsPage() {
               <label className="text-xs font-bold text-white/60 mb-2 flex items-center gap-2 uppercase tracking-wider">
                 <Link2 size={14} /> Subdominio personalizado (Opcional)
               </label>
-              <input type="text" value={formData.subdomain} onChange={e => setFormData({ ...formData, subdomain: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors placeholder-[var(--text-muted)]" placeholder="ej: mivideo (para mivideo.nexoplay.com)" />
+              <input type="text" value={formData.subdomain} onChange={e => setFormData({ ...formData, subdomain: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors placeholder-[var(--text-muted)]" placeholder="ej: mivideo (para mivideo.Vexa.com)" />
             </div>
 
             <button type="submit" disabled={saving} className="w-full px-6 py-3.5 rounded-xl font-bold text-sm bg-[var(--color-primary)] text-black hover:scale-105 transition-transform flex items-center justify-center gap-2 mt-6 disabled:opacity-50 disabled:hover:scale-100">
@@ -121,7 +121,7 @@ export default function TenantSettingsPage() {
               </div>
             )}
             
-            <h3 className="text-2xl font-black text-white relative z-10">{formData.appName || 'NexoPlay'}</h3>
+            <h3 className="text-2xl font-black text-white relative z-10">{formData.appName || 'Vexa'}</h3>
             <p className="text-[#A8B3C8] mt-2 text-sm relative z-10 max-w-xs">Bienvenido a tu plataforma de streaming personalizada.</p>
             
             <button className="mt-8 px-8 py-3 rounded-full font-bold text-[#12121A] transition-transform hover:scale-105 relative z-10" style={{ background: formData.primaryColor }}>

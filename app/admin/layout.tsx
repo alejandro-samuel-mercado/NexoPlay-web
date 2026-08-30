@@ -1,14 +1,26 @@
 'use client';
 import "./admin.css";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import {
-  LayoutDashboard, Users, Film, Key, Crown, Settings, ArrowLeft,
-  Bell, Coins, TrendingUp, Code2, Store, ShieldCheck, BarChart3, Building2, MessageCircleHeart
-} from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
+import {
+    ArrowLeft,
+    BarChart3,
+    Bell,
+    Building2,
+    Code2,
+    Coins,
+    Crown,
+    Film, Key,
+    LayoutDashboard,
+    MessageCircleHeart,
+    Settings,
+    ShieldCheck,
+    Store,
+    TrendingUp,
+    Users
+} from 'lucide-react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 // All nav items for ADMIN
@@ -18,7 +30,7 @@ const ADMIN_NAV_ITEMS = [
   { href: '/admin/contenido', icon: Film, label: 'Contenido' },
   { href: '/admin/planes', icon: Crown, label: 'Planes' },
   { href: '/admin/tokens', icon: Coins, label: 'Tokens' },
-  { href: '/admin/social/metricas', icon: MessageCircleHeart, label: 'Nuba Social' },
+  { href: '/admin/social/metricas', icon: MessageCircleHeart, label: 'Vexa Social' },
   { href: '/admin/codigos', icon: Key, label: 'Códigos' },
   { href: '/admin/ads', icon: TrendingUp, label: 'Publicidad' },
   { href: '/admin/tenant', icon: Building2, label: 'Franquicias' },
@@ -135,13 +147,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </span>
             </div>
           </div>
-          <Link
-            href="/"
-            className="flex items-center gap-2 px-3 py-2 rounded-[10px] text-xs font-bold transition-all hover:bg-white/5"
-            style={{ color: '#6B7280' }}
-          >
-            <ArrowLeft size={14} /> Volver al sitio
-          </Link>
+
         </div>
       </aside>
 

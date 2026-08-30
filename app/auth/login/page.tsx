@@ -196,12 +196,6 @@ function LoginContent() {
                 {loading ? 'Validando...' : <><LogIn size={18} /> Iniciar Sesión</>}
               </button>
             </form>
-
-            <div className="mt-8 text-center text-sm text-[var(--text-muted)] relative z-10 flex flex-col gap-3">
-              <div>
-                ¿No tienes cuenta? <Link href={`/auth/registro${redirectPath !== '/' ? `?redirect=${encodeURIComponent(redirectPath)}` : ''}`} className="text-[var(--color-primary)] font-bold hover:underline">Regístrate gratis</Link>
-              </div>
-            </div>
           </div>
         </div>
 

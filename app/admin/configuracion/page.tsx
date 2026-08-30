@@ -1,17 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Settings, Save, RefreshCw, Globe, Mail, ShieldCheck, Info } from 'lucide-react';
 import { API, apiFetch } from '@/lib/api';
+import { Globe, Info, Mail, RefreshCw, Save, Settings } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface Config {
   [key: string]: string;
 }
 
 const CONFIG_FIELDS = [
-  { key: 'site_name', label: 'Nombre del sitio', placeholder: 'NexoPlay', icon: <Globe size={16} />, type: 'text' },
+  { key: 'site_name', label: 'Nombre del sitio', placeholder: 'Vexa', icon: <Globe size={16} />, type: 'text' },
   { key: 'site_description', label: 'Descripción', placeholder: 'Tu plataforma de streaming...', icon: <Info size={16} />, type: 'textarea' },
-  { key: 'contact_email', label: 'Email de contacto', placeholder: 'hola@nexoplay.com', icon: <Mail size={16} />, type: 'email' },
+  { key: 'contact_email', label: 'Email de contacto', placeholder: 'hola@Vexa.com', icon: <Mail size={16} />, type: 'email' },
   { key: 'whatsapp_number', label: 'WhatsApp de soporte', placeholder: '+54911...', icon: <Mail size={16} />, type: 'text' },
 ];
 
@@ -67,7 +67,7 @@ export default function ConfiguracionPage() {
             <Settings size={28} style={{ color: 'var(--clay-mint)' }} />
             Configuración
           </h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Ajustes generales del sistema NexoPlay</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Ajustes generales del sistema Vexa</p>
         </div>
         <button
           onClick={handleSave}

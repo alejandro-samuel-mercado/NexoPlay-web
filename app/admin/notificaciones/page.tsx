@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { Send, BellRing, Users } from 'lucide-react';
 import { API_BASE, apiFetch } from '@/lib/api';
+import { BellRing, Send, Users } from 'lucide-react';
+import { useState } from 'react';
 
 export default function AdminNotificacionesPage() {
   const [title, setTitle] = useState('');
@@ -122,7 +122,7 @@ export default function AdminNotificacionesPage() {
               </div>
               <div className="flex-1 overflow-hidden">
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs font-bold text-white/90">NexoPlay</span>
+                  <span className="text-xs font-bold text-white/90">Vexa</span>
                   <span className="text-[9px] text-white/50">ahora</span>
                 </div>
                 <p className="text-[11px] font-bold text-white truncate">{title || 'Título del mensaje'}</p>

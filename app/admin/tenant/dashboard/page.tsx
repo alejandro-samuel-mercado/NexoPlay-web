@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { API } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { API } from '@/lib/api';
+import { Activity, Crown, Globe, Palette, TrendingUp, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Users, Crown, Store, TrendingUp, ArrowUpRight, Activity, Globe, Palette } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function TenantDashboardPage() {
   const { isAdmin, isFranchisee, isLoading: authLoading, user } = useAuth();
@@ -82,7 +82,7 @@ export default function TenantDashboardPage() {
             <div>
               <p className="text-xs font-black text-white">{settings.appName}</p>
               {settings.subdomain && (
-                <p className="text-[10px]" style={{ color: '#6B7280' }}>{settings.subdomain}.nexoplay.com</p>
+                <p className="text-[10px]" style={{ color: '#6B7280' }}>{settings.subdomain}.Vexa.com</p>
               )}
             </div>
           </div>
@@ -153,7 +153,7 @@ export default function TenantDashboardPage() {
               <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
                 <span className="text-xs font-bold text-white">Subdominio</span>
                 <span className="text-xs" style={{ color: '#6B7280' }}>
-                  {settings?.subdomain ? `${settings.subdomain}.nexoplay.com` : 'Sin configurar'}
+                  {settings?.subdomain ? `${settings.subdomain}.Vexa.com` : 'Sin configurar'}
                 </span>
               </div>
             </div>
@@ -186,12 +186,12 @@ export default function TenantDashboardPage() {
               <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
                 <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#6B7280' }}>URL Web de tu Tienda</p>
                 <p className="text-xs font-mono text-white">
-                  {settings?.subdomain ? `${settings.subdomain}.nexoplay.com` : 'Configurar subdominio →'}
+                  {settings?.subdomain ? `${settings.subdomain}.Vexa.com` : 'Configurar subdominio →'}
                 </p>
               </div>
               <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
                 <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#6B7280' }}>Contenido</p>
-                <p className="text-xs text-white">Mismo catálogo global de NexoPlay</p>
+                <p className="text-xs text-white">Mismo catálogo global de Vexa</p>
                 <p className="text-[10px] mt-0.5" style={{ color: '#6B7280' }}>Administrado por el Admin Global</p>
               </div>
             </div>

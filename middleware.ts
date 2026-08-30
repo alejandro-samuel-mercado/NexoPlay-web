@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl;
@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Very simple multi-tenant interceptor:
-  // If the request isn't coming from localhost or nexoplay.com,
+  // If the request isn't coming from localhost or Vexa.com,
   // we could potentially rewrite it or append the tenant info.
   // For now, we inject the domain into a custom header so the frontend can read it.
   

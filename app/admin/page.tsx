@@ -1,15 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import {
-  Users, Download, Film, Key, TrendingUp, Crown, Settings,
-  Code2, Activity, Coins, Building2, Bell, BarChart3, Store, ArrowUpRight
-} from 'lucide-react';
-import { API, apiFetch } from '@/lib/api';
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
 import SyncButton from '@/components/admin/SyncButton';
+import { useAuth } from '@/context/AuthContext';
+import { API, apiFetch } from '@/lib/api';
+import {
+    ArrowUpRight,
+    BarChart3,
+    Bell,
+    Building2,
+    Code2,
+    Coins,
+    Crown,
+    Download, Film, Key,
+    Settings,
+    Store,
+    TrendingUp,
+    Users
+} from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 function StatCard({
   icon, label, value, color, trend
@@ -155,7 +165,7 @@ export default function AdminDashboard() {
             </span>
           </div>
           <p className="text-sm" style={{ color: '#6B7280' }}>
-            Resumen completo de NexoPlay
+            Resumen completo de Vexa
           </p>
         </div>
         <SyncButton />

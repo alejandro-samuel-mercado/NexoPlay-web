@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Mail, Phone, Globe, ExternalLink, AtSign, Video, MapPin } from 'lucide-react';
 import { API_ROUTES } from '@/lib/api-routes';
+import { AtSign, ExternalLink, Globe, Video } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 interface FooterProps {
     backdropUrl?: string;
@@ -29,7 +29,7 @@ export default function Footer({ backdropUrl }: FooterProps) {
             .catch(err => console.error('Failed to fetch footer config', err));
     }, []);
 
-    const siteName = config['SITE_NAME'] || 'Nuba';
+    const siteName = config['SITE_NAME'] || 'Vexa';
 
     const ig = config['SOCIAL_INSTAGRAM'];
     const fb = config['SOCIAL_FACEBOOK'];
@@ -61,7 +61,7 @@ export default function Footer({ backdropUrl }: FooterProps) {
                 <div className="cinema-footer-top">
                     <div className="cinema-footer-brand">
                         <Link href="/" className="cinema-footer-logo">
-                            <img src="/logo-nuba.png" alt={siteName} className="cinema-footer-logo-img" />
+                            <img src="/logo-Vexa.png" alt={siteName} className="cinema-footer-logo-img" />
                         </Link>
                         <p className="cinema-footer-tagline">
                             Tu destino de entretenimiento. Miles de películas, series, animes y más al alcance de un clic.

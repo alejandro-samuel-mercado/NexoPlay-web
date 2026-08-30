@@ -13,7 +13,7 @@
     position: relative;
     font-family: var(--font-body);
     color: var(--adm-text);
-    /* Base space color matching NexoPlay */
+    /* Base space color matching Vexa */
     background: 
         radial-gradient(circle at 10% 20%, rgba(71, 85, 105, 0.4) 0%, transparent 35%),
         radial-gradient(circle at 90% 70%, rgba(51, 65, 85, 0.4) 0%, transparent 40%),
@@ -1406,7 +1406,7 @@
 /* ----- HOMEPAGE START ----- */
 /* ═══════════════════════════════════════════════════════════════════════════
    HOMEPAGE — CINEMATOGRAPHIC DESIGN SYSTEM
-   Nuba · Inspired by Crunchyroll, Paramount+, Vix
+   Vexa · Inspired by Crunchyroll, Paramount+, Vix
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ─── LOADING ─────────────────────────────────────────────────────────────── */

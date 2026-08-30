@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import Hls from 'hls.js';
-import { Play, Pause, Volume2, VolumeX, Maximize, Settings, RotateCcw, ArrowLeft, RotateCw, ChevronLeft, ChevronRight, List, X, Headphones, MessageSquare, Lock, Maximize2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { parseVTT, SubtitleCue } from '@/lib/vtt-parser';
+import Hls from 'hls.js';
+import { ArrowLeft, ChevronLeft, ChevronRight, Headphones, List, Maximize2, MessageSquare, Pause, Play, RotateCcw, RotateCw, Settings, Volume2, VolumeX, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
 interface VideoPlayerProps {
     src: string; // The .m3u8 URL
@@ -434,7 +434,7 @@ export default function VideoPlayer({
                     <div className="max-w-2xl text-center flex flex-col items-center">
                         <span className="text-[10px] font-black uppercase tracking-[4px] text-yellow-500 mb-4 block">Publicidad</span>
                         <h2 className="text-3xl md:text-5xl font-black text-white italic tracking-tighter mb-4">
-                            Nexoplay Patrocinado
+                            Vexa Patrocinado
                         </h2>
                         <p className="text-white/60 mb-8 max-w-lg mx-auto">
                             Estás usando el plan Básico o sin suscripción. Disfruta de esta breve publicidad antes de tu contenido. Para quitar los anuncios, actualiza a nuestro plan Premium.

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { API, apiFetch } from '@/lib/api';
+import { useEffect, useState } from 'react';
 
-import { Target, Plus, Pencil, Trash2, X, Save } from 'lucide-react';
+import { Pencil, Plus, Save, Target, X } from 'lucide-react';
 
 
 type Goal = {
@@ -210,7 +210,7 @@ export default function TokenGoalsPage() {
                   value={formData.name}
                   onChange={e => setFormData({...formData, name: e.target.value})}
                   className="w-full bg-black/40 border border-[var(--border-subtle)] rounded-lg text-white px-3 py-2 focus:border-[#E82C7C] focus:outline-none"
-                  placeholder="Ej: 1 Mes de NexoPlay Gratis"
+                  placeholder="Ej: 1 Mes de Vexa Gratis"
                 />
               </div>
               

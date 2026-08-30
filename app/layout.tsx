@@ -1,15 +1,15 @@
-import type { Metadata } from 'next';
-import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
-import { headers } from 'next/headers';
 import { API_BASE } from '@/lib/api';
+import type { Metadata } from 'next';
+import { headers } from 'next/headers';
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: { default: 'NexoPlay — Descargá tu contenido favorito', template: '%s | NexoPlay' },
-  description: 'Explorá, compará y descargá series, películas, animes, documentales y más. Con NexoPlay, el entretenimiento es tuyo.',
+  title: { default: 'Vexa — Descargá tu contenido favorito', template: '%s | Vexa' },
+  description: 'Explorá, compará y descargá series, películas, animes, documentales y más. Con Vexa, el entretenimiento es tuyo.',
   keywords: ['descargar películas', 'series online', 'anime', 'descargas', 'streaming'],
   openGraph: {
-    title: 'NexoPlay',
+    title: 'Vexa',
     description: 'Explorá y descargá tu contenido favorito',
     type: 'website',
   },
@@ -25,7 +25,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const domain = headersList.get('x-tenant-domain');
   
   let tenant = null;
-  if (domain && domain !== 'localhost' && !domain.includes('nexoplay.com')) {
+  if (domain && domain !== 'localhost' && !domain.includes('Vexa.com')) {
     try {
       const res = await fetch(`${API_BASE}/api/tenants/resolve?domain=${domain}`, { next: { revalidate: 60 } });
       const json = await res.json();

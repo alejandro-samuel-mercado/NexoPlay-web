@@ -8,7 +8,7 @@ export default function SyncButton() {
   const [syncing, setSyncing] = useState(false);
 
   const handleSync = async () => {
-    if (!confirm('Esto copiará el catálogo de películas/series desde Nuba a la base de datos de NexoPlay. ¿Continuar?')) return;
+    if (!confirm('Esto copiará el catálogo de películas/series desde Vexa a la base de datos de Vexa. ¿Continuar?')) return;
     setSyncing(true);
     try {
       // Usamos el endpoint de admin por defecto
@@ -34,7 +34,7 @@ export default function SyncButton() {
       style={{ background: 'var(--color-primary)', color: '#000' }}
     >
       <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} />
-      {syncing ? 'Sincronizando...' : 'Sincronizar con NUBA'}
+      {syncing ? 'Sincronizando...' : 'Sincronizar con Vexa'}
     </button>
   );
 }

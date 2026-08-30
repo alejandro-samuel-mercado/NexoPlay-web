@@ -1,30 +1,30 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import PublicLayout from '@/components/layout/PublicLayout';
 import ContentCard from '@/components/catalog/ContentCard';
+import PublicLayout from '@/components/layout/PublicLayout';
 import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
 import { MOCK_FILMS } from '@/lib/mockData';
-import { Loader2, Film, Tv, Sparkles, BookOpen, AlertCircle } from 'lucide-react';
+import { AlertCircle, BookOpen, Film, Loader2, Sparkles, Tv } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 const TIPO_CONFIG: Record<string, { label: string; dbType: string; description: string; icon: React.ReactNode }> = {
     peliculas: {
         label: 'Películas',
         dbType: 'MOVIE',
-        description: 'Todo el catálogo cinematográfico de películas disponible en Nuba.',
+        description: 'Todo el catálogo cinematográfico de películas disponible en Vexa.',
         icon: <Film className="text-[var(--color-primary)]" size={32} />
     },
     series: {
         label: 'Series',
         dbType: 'SERIES',
-        description: 'Las mejores series, temporadas y shows exclusivos en Nuba.',
+        description: 'Las mejores series, temporadas y shows exclusivos en Vexa.',
         icon: <Tv className="text-[var(--color-primary)]" size={32} />
     },
     anime: {
         label: 'Anime',
         dbType: 'ANIME',
-        description: 'Disfruta de lo último del anime japonés y contenido de animación premium en Nuba.',
+        description: 'Disfruta de lo último del anime japonés y contenido de animación premium en Vexa.',
         icon: <Sparkles className="text-[var(--color-primary)]" size={32} />
     },
     documentales: {

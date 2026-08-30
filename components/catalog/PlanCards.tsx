@@ -28,7 +28,7 @@ export default function PlanCards({ plans, whatsappNumber }: PlanCardsProps) {
 
     const handleSelectPlan = (plan: PlanData) => {
         const message = encodeURIComponent(
-            `¡Hola! Me interesa el plan "${plan.name}" de Nuba por $${plan.price}. ¿Podrían darme más información?`
+            `¡Hola! Me interesa el plan "${plan.name}" de Vexa por $${plan.price}. ¿Podrían darme más información?`
         );
         window.open(`https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${message}`, '_blank');
     };

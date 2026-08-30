@@ -95,13 +95,7 @@ export default function Navbar() {
                         className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#A8B3C8] hover:text-white hover:bg-white/5 transition-all">
                         <BookOpen size={14} /> Mi Biblioteca
                       </Link>
-                      {isAdmin && (
-                        <Link href="/admin" onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-2 px-4 py-2 text-sm font-bold transition-all"
-                          style={{ color: 'var(--clay-teal)' }}>
-                          <Crown size={14} /> Panel Admin
-                        </Link>
-                      )}
+
                       <button onClick={handleLogout}
                         className="w-full flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#FF6B6B] hover:bg-white/5 transition-all">
                         <LogOut size={14} /> Cerrar sesión
@@ -150,11 +144,7 @@ export default function Navbar() {
                 <Link href="/biblioteca" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-[#A8B3C8] hover:text-white hover:bg-white/5">
                   <BookOpen size={16} /> Mi Biblioteca
                 </Link>
-                {isAdmin && (
-                  <Link href="/admin" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold" style={{ color: 'var(--clay-teal)' }}>
-                    <Crown size={16} /> Panel Admin
-                  </Link>
-                )}
+
                 <button onClick={() => { handleLogout(); setMenuOpen(false); }}
                   className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-[#FF6B6B]">
                   <LogOut size={16} /> Cerrar sesión

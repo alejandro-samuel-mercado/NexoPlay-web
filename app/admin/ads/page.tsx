@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { apiFetch } from '@/lib/api';
-import { Plus, Trash, Play } from 'lucide-react';
+import { Plus, Trash } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function AdsDashboard() {
   const { user } = useAuth();
@@ -32,7 +32,7 @@ export default function AdsDashboard() {
         body: JSON.stringify({
           name: 'Banner de Prueba',
           imageUrl: 'https://via.placeholder.com/600x150?text=Tu+Anuncio+Aqui',
-          targetUrl: 'https://nexoplay.com',
+          targetUrl: 'https://Vexa.com',
           type: 'BANNER'
         })
       });

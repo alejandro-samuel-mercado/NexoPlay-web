@@ -2,7 +2,7 @@
 
 import SyncButton from '@/components/admin/SyncButton';
 import { API, apiFetch } from '@/lib/api';
-import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
+import { resolveImageUrl } from '@/lib/api-routes';
 import { getContentTypeLabel } from '@/lib/content-types';
 import { BarChart2, Calendar, ChevronLeft, ChevronRight, CloudDownload, Download, Eye, EyeOff, Film, Hash, Loader2, Search, SortAsc, SortDesc } from 'lucide-react';
 import Link from 'next/link';
@@ -24,7 +24,7 @@ interface ContentItem {
     thumbnails?: { type: string; url: string }[];
     posterUrl?: string;
     
-    // NexoPlay extensions
+    // Vexa extensions
     isVisible: boolean;
     isDownloadable: boolean;
     price: number;

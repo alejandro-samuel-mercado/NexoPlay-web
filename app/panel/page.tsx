@@ -1,12 +1,12 @@
 'use client';
 
-import { useAuth } from '@/context/AuthContext';
-import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
-import { userFetch } from '@/lib/api-client';
-import { useState, useEffect } from 'react';
 import PublicLayout from '@/components/layout/PublicLayout';
-import { Wallet, Download, Play, Lock, ChevronRight, Coins, Clock, Trash2, Heart } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { userFetch } from '@/lib/api-client';
+import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
+import { Clock, Coins, Download, Lock, Play, Trash2, Wallet } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 export default function B2CPanelPage() {
     const { user } = useAuth();
@@ -121,7 +121,7 @@ export default function B2CPanelPage() {
                                         <h2 className="text-5xl font-black text-[var(--text-main)] drop-shadow-md flex items-end gap-2">
                                             {wallet?.balance || 0} <span className="text-sm font-bold text-[var(--text-muted)] mb-2 uppercase">Tokens</span>
                                         </h2>
-                                        <p className="text-xs text-[var(--text-muted)] mt-2">Gana 1 Token por cada hora que veas contenido en NexoPlay.</p>
+                                        <p className="text-xs text-[var(--text-muted)] mt-2">Gana 1 Token por cada hora que veas contenido en Vexa.</p>
                                     </div>
                                 </section>
                             </div>

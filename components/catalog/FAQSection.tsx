@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, HelpCircle } from 'lucide-react';
+import { useState } from 'react';
 
 interface FAQItem {
     question: string;
@@ -28,7 +28,7 @@ export default function FAQSection({ items }: FAQSectionProps) {
                     Preguntas <span className="section-title-accent">Frecuentes</span>
                 </h2>
                 <p className="section-subtitle">
-                    Todo lo que necesitas saber sobre Nuba
+                    Todo lo que necesitas saber sobre Vexa
                 </p>
             </div>
 

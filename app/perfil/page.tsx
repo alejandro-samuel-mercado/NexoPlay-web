@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { LogOut, Crown, Clock, Calendar, Shield } from 'lucide-react';
 import PublicLayout from '@/components/layout/PublicLayout';
 import { useAuth } from '@/context/AuthContext';
+import { Calendar, Clock, Crown, LogOut, Shield } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function PerfilPage() {
   const { user, isLoggedIn, isLoading, logout } = useAuth();
@@ -45,7 +45,7 @@ export default function PerfilPage() {
                 {user.username?.[0]?.toUpperCase() || user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
               </div>
               <h2 className="text-xl font-bold text-[var(--text-main)] mb-1 truncate">{user.name || 'Usuario Nexo'}</h2>
-              <p className="text-sm text-[var(--text-muted)] mb-6 truncate">{user.username || (user.email?.endsWith('@nexoplay.com') ? user.email.split('@')[0] : user.email)}</p>
+              <p className="text-sm text-[var(--text-muted)] mb-6 truncate">{user.username || (user.email?.endsWith('@Vexa.com') ? user.email.split('@')[0] : user.email)}</p>
               <div className="mb-8">{getRoleLabel()}</div>
               
               <button onClick={() => logout()} className="w-full bg-[var(--bg-hover)] hover:bg-[var(--bg-hover-strong)] transition-colors text-[var(--text-main)] font-semibold rounded-full py-3 flex items-center justify-center gap-2">
@@ -119,7 +119,7 @@ export default function PerfilPage() {
               <div className="bg-[var(--bg-panel)] p-10 rounded-3xl border border-[var(--border-subtle)] text-center flex flex-col items-center justify-center h-full shadow-xl">
                 <div className="text-5xl mb-4 opacity-50">💔</div>
                 <h3 className="text-xl font-bold text-[var(--text-main)] mb-2">Sin suscripción activa</h3>
-                <p className="text-[var(--text-muted)] mb-8">No tenés ningún plan de NexoPlay activo. Actualizá tu cuenta para descargar sin límites.</p>
+                <p className="text-[var(--text-muted)] mb-8">No tenés ningún plan de Vexa activo. Actualizá tu cuenta para descargar sin límites.</p>
                 <button onClick={() => router.push('/tienda')} className="btn-primary">
                   Ver Planes Disponibles
                 </button>

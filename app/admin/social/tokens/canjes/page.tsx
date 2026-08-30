@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { API, apiFetch } from '@/lib/api';
+import { useEffect, useState } from 'react';
 
-import { Gift, Copy, Check, Search } from 'lucide-react';
+import { Check, Copy, Gift, Search } from 'lucide-react';
 
 
 type Redemption = {
@@ -63,7 +63,7 @@ export default function TokenRedemptionsPage() {
             <Gift className="text-[#E82C7C]" size={20} />
             Canjes Realizados
           </h2>
-          <p className="text-sm text-[#8B8FA8] mt-1">Historial de premios canjeados por los usuarios en Nuba Social.</p>
+          <p className="text-sm text-[#8B8FA8] mt-1">Historial de premios canjeados por los usuarios en Vexa Social.</p>
         </div>
         
         <div className="relative">

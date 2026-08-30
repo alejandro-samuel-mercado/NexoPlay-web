@@ -1,8 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { Heart, LogIn, Sparkles } from 'lucide-react';
 import Link from 'next/link';
-import { Sparkles, LogIn, Heart } from 'lucide-react';
 
 interface CollageItem {
     id: string;
@@ -59,7 +59,7 @@ export default function CollageSection({ items, isLoggedIn, hasPlan }: CollageSe
                         <div className="collage-icon-wrap collage-icon-wrap--thanks">
                             <Heart size={32} fill="#E50914" />
                         </div>
-                        <h2 className="collage-cta-title">¡Gracias por ser parte de Nuba!</h2>
+                        <h2 className="collage-cta-title">¡Gracias por ser parte de Vexa!</h2>
                         <p className="collage-cta-desc">
                             Tu apoyo nos permite seguir trayéndote el mejor contenido.
                             Disfruta de todo lo que tenemos para ti.

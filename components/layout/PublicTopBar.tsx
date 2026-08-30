@@ -1,12 +1,10 @@
 'use client';
 
-import CustomSelect from '@/components/ui/CustomSelect';
 import { useAuth } from '@/context/AuthContext';
-import { CONTENT_TYPES_LIST, getContentTypeIcon, getContentTypeLabel } from '@/lib/content-types';
-import { ChevronDown, LogOut, Moon, Search, Sun, User, Store, Settings } from 'lucide-react';
+import { ChevronDown, LogOut, Moon, Search, Settings, Store, Sun, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState, Suspense } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 
 function PublicTopBarContent() {
   const { user, logout } = useAuth();
@@ -224,7 +222,7 @@ function PublicTopBarContent() {
               />
               <div className="hidden sm:flex flex-col justify-center">
                 <span className="text-sm font-bold text-[var(--text-main)] group-hover:text-[var(--color-primary)] transition-colors leading-tight">
-                  {user.username || user.name || (user.email?.endsWith('@nexoplay.com') ? user.email.split('@')[0] : user.email)}
+                  {user.username || user.name || (user.email?.endsWith('@Vexa.com') ? user.email.split('@')[0] : user.email)}
                 </span>
                 <span className="text-[10px] text-[var(--color-primary)] font-black uppercase tracking-wider leading-tight mt-0.5">
                   {user.role === 'GUEST' ? 'Invitado' : user.role === 'SUBSCRIBER' ? 'Suscriptor' : user.role === 'RESELLER' ? 'Revendedor' : user.role === 'FRANCHISEE' ? 'Franquicia' : 'Administrador'}

@@ -128,52 +128,80 @@ export default function HomePage() {
                     onSelectGenre={setActiveGenreId} 
                 />
 
-                {/* 3. Main Content Row (Single Row as in design) */}
+                {/* 3. Main Content Rows */}
                 <div className="serivia-row-container -mt-4">
                     {isFiltering ? (
                         <div className="flex justify-center items-center py-20 w-full">
                             <div className="w-8 h-8 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin"></div>
                         </div>
-                    ) : filteredContent.length === 0 ? (
-                        <div className="flex justify-center items-center py-20 w-full text-[var(--text-muted)] text-sm">
-                            No hay contenido disponible para este género.
-                        </div>
                     ) : (
-                        <div className="serivia-row-track pb-12 overflow-x-auto hide-scrollbar flex gap-4 pr-8">
-                            {filteredContent.map((item, idx) => {
-                            const title = item.title || item.translations?.[0]?.title || item.slug;
-                            const posterUrl = item.posterUrl || item.thumbnails?.find((t: any) => t.type === 'POSTER')?.url;
-                            const resolvedImage = posterUrl 
-                            ? resolveImageUrl(posterUrl)
-                            : 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=600';
-
-                            return (
-                                <a href={`/film/${item.slug}`} key={item.id || idx} className="block group flex-shrink-0 w-[160px]" style={{ textDecoration: 'none' }}>
-                                    <div className="serivia-poster overflow-hidden rounded-[16px] mb-3 shadow-[0_8px_20px_rgba(0,0,0,0.4)]">
-                                        <img 
-                                            src={resolvedImage} 
-                                            alt={title} 
-                                            className="w-full aspect-[2/3] object-cover transition-transform duration-500 group-hover:scale-110" 
-                                        />
-                                    </div>
-                                    <div className="serivia-poster-info px-1">
-                                        <h3 className="text-white font-bold text-[0.95rem] mb-1 truncate">{title}</h3>
-                                        <div className="flex items-center text-[0.8rem] text-gray-400 gap-2">
-                                            <span>{item.releaseYear || '2024'}</span>
-                                            <span>•</span>
-                                            <span className="truncate">{item.genres?.[0]?.name || item.genres?.[0]?.genre?.name || 'Película'}</span>
-                                            <span className="flex items-center text-[#FFD700] font-bold">
-                                                ★ {item.rating ? item.rating.toFixed(1) : '8.5'}
-                                            </span>
+                        <>
+                            {activeGenreId ? (
+                                <>
+                                    {filteredContent.length === 0 ? (
+                                        <div className="flex justify-center items-center py-20 w-full text-[var(--text-muted)] text-sm">
+                                            No hay contenido disponible para este género.
                                         </div>
-                                    </div>
-                                </a>
-                            );
-                        })}
-                    </div>
+                                    ) : (
+                                        <ContentRow title="Resultados Filtrados" items={filteredContent} />
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    {data?.trending && data.trending.length > 0 && (
+                                        <ContentRow title="Tendencias" items={data.trending} />
+                                    )}
+                                    {data?.recent && data.recent.length > 0 && (
+                                        <div className="mt-8">
+                                            <ContentRow title="Agregados Recientemente" items={data.recent} />
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </>
                     )}
                 </div>
             </div>
         </PublicLayout>
+    );
+}
+
+function ContentRow({ title, items }: { title: string; items: any[] }) {
+    return (
+        <div className="mb-8">
+            <h2 className="text-white text-xl font-bold mb-4 pl-1">{title}</h2>
+            <div className="serivia-row-track pb-4 overflow-x-auto hide-scrollbar flex gap-4 pr-8">
+                {items.map((item, idx) => {
+                    const itemTitle = item.title || item.translations?.[0]?.title || item.slug;
+                    const posterUrl = item.posterUrl || item.thumbnails?.find((t: any) => t.type === 'POSTER')?.url;
+                    const resolvedImage = posterUrl 
+                        ? resolveImageUrl(posterUrl)
+                        : 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=600';
+
+                    return (
+                        <a href={`/film/${item.slug}`} key={item.id || idx} className="block group flex-shrink-0 w-[160px]" style={{ textDecoration: 'none' }}>
+                            <div className="serivia-poster overflow-hidden rounded-[16px] mb-3 shadow-[0_8px_20px_rgba(0,0,0,0.4)]">
+                                <img 
+                                    src={resolvedImage} 
+                                    alt={itemTitle} 
+                                    className="w-full aspect-[2/3] object-cover transition-transform duration-500 group-hover:scale-110" 
+                                />
+                            </div>
+                            <div className="serivia-poster-info px-1">
+                                <h3 className="text-white font-bold text-[0.95rem] mb-1 truncate">{itemTitle}</h3>
+                                <div className="flex items-center text-[0.8rem] text-gray-400 gap-2">
+                                    <span>{item.releaseYear || '2024'}</span>
+                                    <span>•</span>
+                                    <span className="truncate">{item.genres?.[0]?.name || item.genres?.[0]?.genre?.name || 'Película'}</span>
+                                    <span className="flex items-center text-[#FFD700] font-bold">
+                                        ★ {item.rating ? item.rating.toFixed(1) : '8.5'}
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                    );
+                })}
+            </div>
+        </div>
     );
 }
