@@ -14,7 +14,7 @@ export default function UsuariosAdminPage() {
   const [page, setPage] = useState(1);
   const [assignModal, setAssignModal] = useState<{ userId: string; email: string } | null>(null);
   const [createModal, setCreateModal] = useState(false);
-  const [newUser, setNewUser] = useState({ username: '', password: '', role: 'GUEST' });
+  const [newUser, setNewUser] = useState({ username: '', password: '', role: 'SUBSCRIBER' });
   const [selectedPlan, setSelectedPlan] = useState('');
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
   const [infoModal, setInfoModal] = useState<any | null>(null);
@@ -59,7 +59,7 @@ export default function UsuariosAdminPage() {
         body: JSON.stringify(newUser),
       });
       setCreateModal(false);
-      setNewUser({ username: '', password: '', role: 'GUEST' });
+      setNewUser({ username: '', password: '', role: 'SUBSCRIBER' });
       fetchUsers();
     } catch (e: any) { alert(e.message); }
   };
@@ -286,8 +286,8 @@ export default function UsuariosAdminPage() {
             
             <select value={newUser.role} onChange={(e) => setNewUser({...newUser, role: e.target.value})} 
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] mb-6 outline-none">
-              <option value="GUEST" className="bg-black">Invitado</option>
-              <option value="SUBSCRIBER" className="bg-black">Suscripto</option>
+              <option value="SUBSCRIBER" className="bg-black">Suscriptor</option>
+              <option value="RESELLER" className="bg-black">Revendedor</option>
               <option value="ADMIN" className="bg-black">Administrador</option>
             </select>
 

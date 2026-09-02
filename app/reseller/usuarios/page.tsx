@@ -220,10 +220,6 @@ export default function ResellerUsuariosPage() {
                 onChange={e => setNewUser({ ...newUser, username: e.target.value })} className={inputCls} />
               <input type="text" placeholder="Contraseña" value={newUser.password}
                 onChange={e => setNewUser({ ...newUser, password: e.target.value })} className={inputCls} />
-              <select value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })} className={inputCls}>
-                <option value="SUBSCRIBER" className="bg-black">Suscriptor</option>
-                <option value="GUEST" className="bg-black">Invitado (gratis)</option>
-              </select>
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setCreateModal(false)} className="flex-1 px-4 py-3 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors">Cancelar</button>
