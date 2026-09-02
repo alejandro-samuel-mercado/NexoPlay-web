@@ -17,6 +17,7 @@ export default function UsuariosAdminPage() {
   const [newUser, setNewUser] = useState({ username: '', password: '', role: 'GUEST' });
   const [selectedPlan, setSelectedPlan] = useState('');
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
+  const [infoModal, setInfoModal] = useState<any | null>(null);
 
   const togglePassword = (id: string) => {
     setVisiblePasswords(prev => ({ ...prev, [id]: !prev[id] }));
@@ -122,11 +123,11 @@ export default function UsuariosAdminPage() {
               <tr className="border-b border-[var(--border-subtle)] bg-black/20">
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Usuario</th>
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Rol</th>
-                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Tokens</th>
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Suscripción</th>
+                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Vencimiento</th>
+                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Conexiones</th>
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Estado</th>
-                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Registro</th>
-                <th className="px-4 py-3" />
+                <th className="text-right px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -174,18 +175,33 @@ export default function UsuariosAdminPage() {
                         {u.role}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-mono font-bold" style={{ color: '#f59e0b' }}>
-                      {u.tokens?.toLocaleString() || 0} <span className="text-[10px]">T</span>
-                    </td>
                     <td className="px-4 py-3">
                       {isSubActive ? (
                         <div className="flex items-center gap-2">
                           <Crown size={14} className="text-[var(--color-primary)]" />
-                          <span className="text-white font-bold text-[13px]">{u.subscription?.plan?.name || 'Pro'}</span>
+                          <span className="text-white font-bold text-[13px]">{u.subscription?.planName || 'Plan'}</span>
                         </div>
                       ) : (
                         <span className="text-[var(--text-muted)] text-[12px]">Sin suscripción</span>
                       )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {isSubActive && u.subscription?.expiresAt ? (
+                        <span className="text-[12px] font-bold text-white/90">
+                          {new Date(u.subscription.expiresAt).toLocaleDateString()}
+                        </span>
+                      ) : (
+                        <span className="text-[var(--text-muted)] text-[12px]">-</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {isSubActive && u.role === 'SUBSCRIBER' && (
+                        <span className="text-[12px] font-bold text-white/90">{u.subscription?.maxScreens || 1} Pantallas</span>
+                      )}
+                      {isSubActive && u.role === 'RESELLER' && (
+                        <span className="text-[12px] font-bold text-white/90">{u.subscription?.maxSubscribers || 'Ilimitados'} Clientes</span>
+                      )}
+                      {!isSubActive && <span className="text-[var(--text-muted)] text-[12px]">-</span>}
                     </td>
                     <td className="px-4 py-3">
                       {u.isActive ? (
@@ -194,9 +210,13 @@ export default function UsuariosAdminPage() {
                         <span className="text-red-400 font-bold flex items-center gap-1.5 text-[12px]"><XCircle size={14}/> Baneado</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-[var(--text-muted)] text-[12px]">{new Date(u.createdAt).toLocaleDateString()}</td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => setInfoModal(u)}
+                          className="px-3 py-2 rounded-xl text-xs font-bold bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors inline-flex items-center justify-center gap-2"
+                          title="Ver Detalles">
+                          <Eye size={14} /> Detalles
+                        </button>
                         <button onClick={() => handleToggleActive(u.id, u.isActive)}
                           className={`px-3 py-2 rounded-xl text-xs font-bold transition-colors inline-flex items-center justify-center ${u.isActive ? 'bg-orange-500/10 text-orange-400 hover:bg-orange-500/20' : 'bg-green-500/10 text-green-400 hover:bg-green-500/20'}`}
                           title={u.isActive ? 'Suspender acceso' : 'Activar acceso'}>
@@ -274,6 +294,51 @@ export default function UsuariosAdminPage() {
             <div className="flex gap-3 mt-4">
               <button onClick={() => setCreateModal(false)} className="px-4 py-3 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors flex-1">Cancelar</button>
               <button onClick={handleCreateUser} className="px-4 py-3 rounded-xl font-bold text-sm bg-[var(--color-primary)] text-black hover:scale-105 transition-transform flex-1">Crear</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Info Modal */}
+      {infoModal && (
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[var(--bg-panel)] p-8 rounded-[24px] w-full max-w-md border border-[var(--border-subtle)] backdrop-blur-xl shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-black text-white">Detalles del Usuario</h3>
+              <button onClick={() => setInfoModal(null)} className="text-white/40 hover:text-white"><XCircle size={24} /></button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                <p className="text-xs font-bold text-white/50 mb-1">Información Básica</p>
+                <p className="text-sm text-white"><span className="font-bold">Email:</span> {infoModal.email}</p>
+                <p className="text-sm text-white"><span className="font-bold">Usuario:</span> {infoModal.username || '-'}</p>
+                <p className="text-sm text-white"><span className="font-bold">Rol:</span> {infoModal.role}</p>
+                <p className="text-sm text-white"><span className="font-bold">Registro:</span> {new Date(infoModal.createdAt).toLocaleDateString()}</p>
+                <p className="text-sm text-white"><span className="font-bold">Tokens Balance:</span> {infoModal.tokens || 0}</p>
+              </div>
+
+              {infoModal.subscription && infoModal.subscription.status === 'ACTIVE' ? (
+                <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                  <p className="text-xs font-bold text-[var(--color-primary)] mb-1 flex items-center gap-2"><Crown size={14} /> Suscripción Activa</p>
+                  <p className="text-sm text-white"><span className="font-bold">Plan:</span> {infoModal.subscription.planName}</p>
+                  <p className="text-sm text-white"><span className="font-bold">Vence:</span> {new Date(infoModal.subscription.expiresAt).toLocaleDateString()}</p>
+                  {infoModal.role === 'SUBSCRIBER' && (
+                    <p className="text-sm text-white"><span className="font-bold">Pantallas Permitidas:</span> {infoModal.subscription.maxScreens || 1}</p>
+                  )}
+                  {infoModal.role === 'RESELLER' && (
+                    <p className="text-sm text-white"><span className="font-bold">Límite Suscriptores:</span> {infoModal.subscription.maxSubscribers || 'Ilimitados'}</p>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-center">
+                  <p className="text-sm text-white/50">El usuario no tiene una suscripción activa.</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <button onClick={() => setInfoModal(null)} className="px-6 py-2 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors">Cerrar</button>
             </div>
           </div>
         </div>

@@ -172,9 +172,11 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard icon={<Users size={20} />} label="Usuarios Totales" value={stats?.stats?.totalUsers || 0} color="#00D2B4" trend="+12%" />
-        <StatCard icon={<Crown size={20} />} label="Suscripciones Activas" value={stats?.stats?.activeSubscriptions || 0} color="#FFD23F" trend="+5%" />
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+        <StatCard icon={<Users size={20} />} label="Usuarios Totales" value={stats?.stats?.totalUsers || 0} color="#00D2B4" />
+        <StatCard icon={<Crown size={20} />} label="Suscripciones Activas" value={stats?.stats?.activeSubscriptions || 0} color="#FFD23F" />
+        <StatCard icon={<TrendingUp size={20} />} label="Próximas a Vencer" value={stats?.stats?.expiringSoon || 0} color="#EF4444" trend="7 días" />
+        <StatCard icon={<Store size={20} />} label="Revendedores" value={stats?.stats?.totalResellers || 0} color="#3B82F6" />
         <StatCard icon={<Film size={20} />} label="Contenido" value={stats?.stats?.totalContent || 0} color="#FF8C32" />
         <StatCard icon={<Download size={20} />} label="Descargas Totales" value={stats?.stats?.totalDownloads || 0} color="#A855F7" />
       </div>

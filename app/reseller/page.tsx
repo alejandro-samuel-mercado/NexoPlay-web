@@ -63,14 +63,19 @@ export default function ResellerDashboardPage() {
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+        <StatCard icon={Users} label="Total Clientes" color="#60A5FA" href="/reseller/usuarios"
+          value={loading ? '…' : stats?.totalClients ?? 0}
+          sub={stats?.maxSubscribers ? `de ${stats.maxSubscribers} permitidos` : 'Ilimitados'} />
+        <StatCard icon={Zap} label="Clientes Activos" color={C} href="/reseller/usuarios"
+          value={loading ? '…' : stats?.activeClients ?? 0} sub="con plan activo" />
+        <StatCard icon={TrendingUp} label="Próximos a Vencer" color="#EF4444" href="/reseller/usuarios"
+          value={loading ? '…' : stats?.expiringClients ?? 0} sub="vencen en 7 días" />
         <StatCard icon={Download} label="Descargas Hoy" color={C} href="/reseller/descargas"
           value={loading ? '…' : stats?.dailyUsed ?? 0}
-          sub={loading ? '' : `${stats?.dailyRemaining ?? 0} restantes de ${stats?.dailyLimit ?? 0}`} />
+          sub={loading ? '' : `${stats?.dailyRemaining ?? 0} restantes`} />
         <StatCard icon={Coins} label="Tokens" color="#EAB308" href="/reseller/tokens"
-          value={loading ? '…' : wallet?.balance ?? 0} sub="1 token = 1 descarga extra" />
-        <StatCard icon={TrendingUp} label="Total Histórico" color="#A78BFA"
-          value={loading ? '…' : stats?.totalAllTime ?? 0} sub="descargas realizadas" />
+          value={loading ? '…' : wallet?.balance ?? 0} sub="1 token = 1 descarga" />
         <StatCard icon={Package} label="Pack Semanal" color="#F59E0B" href="/reseller/pack"
           value={loading ? '…' : (pack ? pack.contents?.length ?? pack.contentIds?.length ?? 0 : 0)}
           sub={pack ? `"${pack.title}"` : 'No disponible'} />

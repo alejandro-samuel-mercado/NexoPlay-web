@@ -17,6 +17,7 @@ export default function ResellerUsuariosPage() {
   const [selectedPlan, setSelectedPlan] = useState('');
   const [newUser, setNewUser] = useState({ username: '', password: '', role: 'SUBSCRIBER' });
   const [visible, setVisible] = useState<Record<string, boolean>>({});
+  const [infoModal, setInfoModal] = useState<any | null>(null);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
 
   const showToast = (msg: string, ok = true) => { setToast({ msg, ok }); setTimeout(() => setToast(null), 3200); };
@@ -101,7 +102,7 @@ export default function ResellerUsuariosPage() {
           <table className="w-full text-[13px]">
             <thead>
               <tr className="border-b border-white/5" style={{ background: 'rgba(0,0,0,0.2)' }}>
-                {['Cliente', 'Contraseña', 'Plan', 'Estado', 'Registro', ''].map(h => (
+                {['Cliente', 'Contraseña', 'Plan', 'Vencimiento', 'Conexiones', 'Estado', ''].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-[11px] font-bold tracking-wider uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>{h}</th>
                 ))}
               </tr>
@@ -159,13 +160,32 @@ export default function ResellerUsuariosPage() {
                       )}
                     </td>
                     <td className="px-4 py-3">
+                      {subActive && u.subscription?.expiresAt ? (
+                        <span className="text-[12px] font-bold text-white/90">
+                          {new Date(u.subscription.expiresAt).toLocaleDateString()}
+                        </span>
+                      ) : (
+                        <span className="text-[var(--text-muted)] text-[12px]">-</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {subActive && (
+                        <span className="text-[12px] font-bold text-white/90">{u.subscription?.plan?.maxScreens || 1} Pantallas</span>
+                      )}
+                      {!subActive && <span className="text-[var(--text-muted)] text-[12px]">-</span>}
+                    </td>
+                    <td className="px-4 py-3">
                       {u.isActive
                         ? <span className="text-green-400 font-bold flex items-center gap-1 text-[12px]"><CheckCircle2 size={13} /> Activo</span>
                         : <span className="text-red-400 font-bold flex items-center gap-1 text-[12px]"><XCircle size={13} /> Suspendido</span>}
                     </td>
-                    <td className="px-4 py-3 text-[12px]" style={{ color: '#6B7280' }}>{new Date(u.createdAt).toLocaleDateString('es-AR')}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => setInfoModal(u)}
+                          className="px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors flex items-center gap-1.5"
+                          title="Ver Detalles">
+                          <Eye size={13} /> Detalles
+                        </button>
                         <button onClick={() => handleToggle(u.id, u.isActive)}
                           className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${u.isActive ? 'bg-orange-500/10 text-orange-400 hover:bg-orange-500/20' : 'bg-green-500/10 text-green-400 hover:bg-green-500/20'}`}>
                           {u.isActive ? <XCircle size={14} /> : <CheckCircle2 size={14} />}
@@ -226,6 +246,43 @@ export default function ResellerUsuariosPage() {
             <div className="flex gap-3">
               <button onClick={() => setAssignModal(null)} className="flex-1 px-4 py-3 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors">Cancelar</button>
               <button onClick={handleAssign} className="flex-1 px-4 py-3 rounded-xl font-bold text-sm hover:scale-105 transition-transform" style={{ background: '#34D399', color: '#0a0f0a' }}>Asignar</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Info Modal */}
+      {infoModal && (
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="p-8 rounded-[24px] w-full max-w-md border border-[var(--border-subtle)] shadow-2xl" style={{ background: 'var(--bg-panel)' }}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-black text-white">Detalles del Cliente</h3>
+              <button onClick={() => setInfoModal(null)} className="text-white/40 hover:text-white"><XCircle size={24} /></button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                <p className="text-xs font-bold text-white/50 mb-1">Información Básica</p>
+                <p className="text-sm text-white"><span className="font-bold">Email:</span> {infoModal.email}</p>
+                <p className="text-sm text-white"><span className="font-bold">Usuario:</span> {infoModal.username || '-'}</p>
+                <p className="text-sm text-white"><span className="font-bold">Registro:</span> {new Date(infoModal.createdAt).toLocaleDateString()}</p>
+              </div>
+
+              {infoModal.subscription && infoModal.subscription.status === 'ACTIVE' ? (
+                <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                  <p className="text-xs font-bold text-[#34D399] mb-1 flex items-center gap-2"><Crown size={14} /> Suscripción Activa</p>
+                  <p className="text-sm text-white"><span className="font-bold">Plan:</span> {infoModal.subscription.plan.name}</p>
+                  <p className="text-sm text-white"><span className="font-bold">Vence:</span> {new Date(infoModal.subscription.expiresAt).toLocaleDateString()}</p>
+                  <p className="text-sm text-white"><span className="font-bold">Pantallas Permitidas:</span> {infoModal.subscription.plan.maxScreens || 1}</p>
+                </div>
+              ) : (
+                <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-center">
+                  <p className="text-sm text-white/50">El cliente no tiene una suscripción activa.</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <button onClick={() => setInfoModal(null)} className="px-6 py-2 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors">Cerrar</button>
             </div>
           </div>
         </div>

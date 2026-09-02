@@ -30,7 +30,6 @@ const ADMIN_NAV_ITEMS = [
   { href: '/admin/contenido', icon: Film, label: 'Contenido' },
   { href: '/admin/planes', icon: Crown, label: 'Planes' },
   { href: '/admin/tokens', icon: Coins, label: 'Tokens' },
-  { href: '/admin/social/metricas', icon: MessageCircleHeart, label: 'Vexa Social' },
   { href: '/admin/codigos', icon: Key, label: 'Códigos' },
   { href: '/admin/ads', icon: TrendingUp, label: 'Publicidad' },
   { href: '/admin/tenant', icon: Building2, label: 'Franquicias' },
