@@ -71,6 +71,7 @@ export default function UsuariosAdminPage() {
 
   const ROLE_BADGE: Record<string, { label: string; text: string; bg: string; border: string }> = {
     ADMIN: { label: 'Admin', text: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
+    RESELLER: { label: 'Revendedor', text: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
     SUBSCRIBER: { label: 'Suscripto', text: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
     GUEST: { label: 'Invitado', text: 'text-gray-400', bg: 'bg-gray-500/10', border: 'border-gray-500/20' },
   };
@@ -106,8 +107,8 @@ export default function UsuariosAdminPage() {
         <select value={role} onChange={(e) => setRole(e.target.value)} 
           className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors backdrop-blur-md">
           <option value="" className="bg-black">Todos los roles</option>
-          <option value="GUEST" className="bg-black">Invitados</option>
           <option value="SUBSCRIBER" className="bg-black">Suscriptos</option>
+          <option value="RESELLER" className="bg-black">Revendedores</option>
           <option value="ADMIN" className="bg-black">Admins</option>
         </select>
         <button type="submit" className="px-6 py-2.5 rounded-xl font-bold text-sm transition-transform hover:scale-105 active:scale-95 bg-[var(--color-primary)] text-black">
