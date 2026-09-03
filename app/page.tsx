@@ -12,6 +12,7 @@ export default function HomePage() {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<any>(null);
+    const [estrenos, setEstrenos] = useState<any[]>([]);
     const [genres, setGenres] = useState<any[]>(MOCK_GENRES);
     const [activeGenreId, setActiveGenreId] = useState<string | null>(null);
 
@@ -45,6 +46,17 @@ export default function HomePage() {
                     }
                 } catch {
                     setData({ trending: MOCK_FILMS });
+                }
+
+                // Fetch Estrenos for Hero
+                try {
+                    const eRes = await fetch(`${API_ROUTES.CONTENT.LIST}?sort=releaseYear&limit=15`, { cache: 'no-store' });
+                    const eJson = await eRes.json();
+                    if (eJson.success && eJson.data?.length > 0) {
+                        setEstrenos(eJson.data);
+                    }
+                } catch (e) {
+                    console.error('Error fetching estrenos', e);
                 }
             } finally {
                 setLoading(false);
@@ -112,7 +124,7 @@ export default function HomePage() {
         );
     }
 
-    const pool = data?.featured?.length > 0 ? data.featured : (data?.recent?.length > 0 ? data.recent : MOCK_FILMS);
+    const pool = estrenos.length > 0 ? estrenos : (data?.featured?.length > 0 ? data.featured : (data?.recent?.length > 0 ? data.recent : MOCK_FILMS));
     const heroList = [...pool].sort((a: any, b: any) => (b.releaseYear || 0) - (a.releaseYear || 0)).slice(0, 10);
     const heroContent = heroList[0];
 
