@@ -228,7 +228,7 @@ export default function UsuariosAdminPage() {
                           title={u.isActive ? 'Suspender acceso' : 'Activar acceso'}>
                           {u.isActive ? <XCircle size={14} /> : <CheckCircle2 size={14} />}
                         </button>
-                        <button onClick={() => { setAssignModal({ userId: u.id, email: u.email }); setSelectedPlan(u.subscription?.planId || ''); }}
+                        <button onClick={() => { setAssignModal({ userId: u.id, email: u.email, role: u.role }); setSelectedPlan(u.subscription?.planId || ''); }}
                           className="px-3 py-2 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 transition-colors inline-flex items-center justify-center gap-2">
                           <Crown size={14} /> Plan
                         </button>
@@ -266,7 +266,7 @@ export default function UsuariosAdminPage() {
             <select value={selectedPlan} onChange={(e) => setSelectedPlan(e.target.value)} 
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors mb-6">
               <option value="" className="bg-black">Ninguno (Remover)</option>
-              {plans.map(p => (
+              {plans.filter(p => p.role === assignModal.role || assignModal.role === 'ADMIN').map(p => (
                 <option key={p.id} value={p.id} className="bg-black">{p.name} ({p.role} - {p.tier})</option>
               ))}
             </select>
