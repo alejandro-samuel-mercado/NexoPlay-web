@@ -10,8 +10,7 @@ import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
 import { getContentTypeLabel } from '@/lib/content-types';
 import { ArrowLeft, ChevronDown, Download, Heart, MonitorPlay, Play, Star, Tag, Key } from 'lucide-react';
 import UnlockCodeModal from '@/components/content/UnlockCodeModal';
-import LanguageSelectorModal, { AudioTrack } from '@/components/ui/LanguageSelectorModal';
-import Link from 'next/link';
+import DownloadModal from '@/components/film/DownloadModal';import Link from 'next/link';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -38,13 +37,7 @@ export default function FilmDetailPage() {
     const [isFavorited, setIsFavorited] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
-    const [qualityModal, setQualityModal] = useState<{ open: boolean; qualities: string[]; episodeId?: string; epTitle?: string; mode: 'movie' | 'episode'; lang?: string }>({ open: false, qualities: [], mode: 'movie' });
-    const [downloadingQuality, setDownloadingQuality] = useState<string | null>(null);
-
-    const [langModalVisible, setLangModalVisible] = useState(false);
-    const [availableAudio, setAvailableAudio] = useState<AudioTrack[]>([]);
-    const [currentDownloadTarget, setCurrentDownloadTarget] = useState<{ mode: 'movie' | 'episode', episodeId?: string, epTitle?: string, episodeData?: any } | null>(null);
-    
+    const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);    
     const favToggledRef = useRef(false);
 
     // Initial Profile Sync
@@ -174,92 +167,12 @@ export default function FilmDetailPage() {
         } catch { setIsFavorited(prev); }
     };
 
-    const openQualityModal = async (mode: 'movie' | 'episode', episodeId?: string, epTitle?: string, lang?: string) => {
-        if (!content) return;
-        setIsDownloading(true);
-        try {
-            const url = mode === 'episode'
-                ? `${API_ROUTES.CONTENT.BASE}/${content.id}/download?episodeId=${episodeId}&quality=auto`
-                : `${API_ROUTES.CONTENT.BASE}/${content.id}/download?quality=auto`;
-            const res = await userFetch(url);
-            const json = await res.json();
-            const qualities: string[] = json.data?.availableQualities ?? [];
-            // Add 'auto' as a fallback option always
-            const opts = qualities.length > 0 ? [...qualities, 'auto'] : ['auto'];
-            setQualityModal({ open: true, qualities: opts, episodeId, epTitle, mode, lang });
-        } catch {
-            // If prefetch fails, just show auto
-            setQualityModal({ open: true, qualities: ['auto'], episodeId, epTitle, mode, lang });
-        } finally {
-            setIsDownloading(false);
-        }
+    const handleDownloadRequest = (mode?: string, episodeId?: string, epTitle?: string, episodeData?: any) => {
+        setIsDownloadModalOpen(true);
     };
 
-    const handleDownload = async (quality = 'auto', episodeId?: string, epTitle?: string, lang?: string) => {
-        if (!content) return;
-        setDownloadingQuality(quality);
-        try {
-            const token = localStorage.getItem('nexo_access_token');
-            const profileId = localStorage.getItem('nexo_active_profile_id');
-            if (!token) { alert('Debes iniciar sesión para descargar'); return; }
-
-            const baseUrl = episodeId
-                ? `${API_ROUTES.CONTENT.BASE}/${content.id}/download?episodeId=${episodeId}&quality=${quality}${lang ? '&audio=' + encodeURIComponent(lang) : ''}`
-                : `${API_ROUTES.CONTENT.BASE}/${content.id}/download?quality=${quality}${lang ? '&audio=' + encodeURIComponent(lang) : ''}`;
-
-            const res = await userFetch(baseUrl, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    ...(profileId ? { 'X-Profile-Id': profileId } : {}),
-                }
-            });
-
-            if (!res.ok) {
-                const errJson = await res.json().catch(() => null);
-                throw new Error(errJson?.error || 'No se pudo obtener el enlace de descarga.');
-            }
-
-            const json = await res.json();
-            if (json.success && json.data?.downloadUrl) {
-                const link = document.createElement('a');
-                link.href = json.data.downloadUrl;
-                const name = epTitle || content.title || 'video';
-                link.setAttribute('download', `${name}.mp4`);
-                link.setAttribute('target', '_blank');
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                setQualityModal(m => ({ ...m, open: false }));
-            } else {
-                throw new Error('El enlace no está disponible.');
-            }
-        } catch (err: any) {
-            alert(err.message);
-        } finally {
-            setDownloadingQuality(null);
-        }
-    };
-
-    const handleDownloadRequest = (mode: 'movie' | 'episode', episodeId?: string, epTitle?: string, episodeData?: any) => {
-        let tracks: AudioTrack[] = [];
-        if (mode === 'movie') {
-            tracks = content?.videoFiles?.[0]?.audioTracks || [];
-        } else {
-            const epVf = episodeData?.videoFiles?.[0];
-            tracks = epVf?.audioTracks || [];
-        }
-
-        if (tracks.length > 1) {
-            setAvailableAudio(tracks);
-            setCurrentDownloadTarget({ mode, episodeId, epTitle, episodeData });
-            setLangModalVisible(true);
-        } else {
-            openQualityModal(mode, episodeId, epTitle, tracks[0]?.language || '');
-        }
-    };
-
-    const handleEpisodeDownload = async (ep: any, epTitle: string) => {
-        handleDownloadRequest('episode', ep.id, epTitle, ep);
+    const handleEpisodeDownload = (ep?: any, epTitle?: string) => {
+        setIsDownloadModalOpen(true);
     };
 
     if (loading) return (
@@ -314,54 +227,11 @@ export default function FilmDetailPage() {
                                   onUnlocked={() => router.push(`/film/${content.id}/watch`)} isOpen={false}                    />
                 )}
 
-                {/* Quality Selection Modal */}
-                {qualityModal.open && (
-                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={() => setQualityModal(m => ({ ...m, open: false }))}>
-                        <div className="bg-[#0e1018]/95 border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
-                                    <Download size={20} className="text-emerald-400" />
-                                </div>
-                                <h3 className="text-white text-xl font-bold">Seleccionar Calidad</h3>
-                            </div>
-                            <p className="text-white/50 text-sm mb-6">Elige la resolución de descarga según tu conexión y almacenamiento.</p>
-                            <div className="flex flex-col gap-3">
-                                {qualityModal.qualities.map(q => {
-                                    const labels: Record<string, string> = {
-                                        '2160p': '4K Ultra HD  (2160p)', '1080p': 'Full HD  (1080p)',
-                                        '720p': 'HD  (720p)', '480p': 'SD  (480p)',
-                                        '360p': 'Baja  (360p)', 'auto': 'Auto (Recomendado)',
-                                    };
-                                    const sizes: Record<string, string> = {
-                                        '2160p': '~6-8 GB', '1080p': '~2-4 GB',
-                                        '720p': '~1-2 GB', '480p': '~400-800 MB',
-                                        '360p': '~200-400 MB', 'auto': 'Variable',
-                                    };
-                                    const isLoading = downloadingQuality === q;
-                                    return (
-                                        <button
-                                            key={q}
-                                            onClick={() => handleDownload(q, qualityModal.episodeId, qualityModal.epTitle, qualityModal.lang)}
-                                            disabled={!!downloadingQuality}
-                                            className="flex items-center justify-between w-full px-5 py-4 rounded-2xl border border-white/10 bg-white/5 hover:bg-emerald-500/10 hover:border-emerald-500/40 transition-all text-left disabled:opacity-60 group"
-                                        >
-                                            <div>
-                                                <p className="text-white font-bold text-base group-hover:text-emerald-300 transition-colors">{labels[q] ?? q}</p>
-                                                <p className="text-white/40 text-xs mt-0.5">{sizes[q] ?? ''}</p>
-                                            </div>
-                                            {isLoading ? (
-                                                <div className="w-5 h-5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
-                                            ) : (
-                                                <Download size={18} className="text-white/30 group-hover:text-emerald-400 transition-colors" />
-                                            )}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                            <button onClick={() => setQualityModal(m => ({ ...m, open: false }))} className="mt-6 w-full text-center text-white/40 text-sm hover:text-white/70 transition">Cancelar</button>
-                        </div>
-                    </div>
-                )}
+                <DownloadModal 
+                    isOpen={isDownloadModalOpen} 
+                    onClose={() => setIsDownloadModalOpen(false)} 
+                    content={content} 
+                />
 
                 {/* ═══ 1. SUPER HERO (Data-Rich, No Details Cards) ═══ */}
                 <div className="serivia-hero-root relative w-[85%] mx-auto h-auto min-h-[75vh] md:min-h-[85vh] rounded-[32px] overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.8)] border border-[var(--border-subtle)] flex items-center -mt-6 md:-mt-18 pt-10 pb-14">
@@ -437,13 +307,13 @@ export default function FilmDetailPage() {
                                         </>
                                     )}
 
-                                    {userHasAccess && isReseller && !isSeries && content.downloadAllowed && (
+                                    {userHasAccess && isReseller && content.downloadAllowed && (
                                         <button onClick={() => handleDownloadRequest('movie')} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
                                             <Download size={18} /> {isDownloading ? 'Cargando...' : 'Descargar MP4'}
                                         </button>
                                     )}
 
-                                    {userHasAccess && !isReseller && !isSeries && (
+                                    {userHasAccess && !isReseller && (
                                         <button onClick={() => handleDownloadRequest('movie')} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
                                             <Download size={18} /> {isDownloading ? 'Cargando...' : 'Descargar Offline'}
                                         </button>
@@ -642,15 +512,7 @@ export default function FilmDetailPage() {
                                                             )}
                                                         </div>
                                                         
-                                                        {epReady && (
-                                                            <button
-                                                                onClick={e => { e.preventDefault(); e.stopPropagation(); handleEpisodeDownload(ep, epTitle); }}
-                                                                title={`Descargar ${epTitle}`}
-                                                                className="flex items-center justify-center p-2 rounded-full bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 transition-all border border-emerald-500/20"
-                                                            >
-                                                                <Download size={16} strokeWidth={2.5} />
-                                                            </button>
-                                                        )}
+
                                                     </>
                                                 ) : (
                                                     <div className="flex items-center justify-center w-full">
@@ -693,16 +555,6 @@ export default function FilmDetailPage() {
 
             </div>
             
-            <LanguageSelectorModal
-                isOpen={langModalVisible}
-                onClose={() => setLangModalVisible(false)}
-                audioTracks={availableAudio}
-                onSelect={(lang) => {
-                    if (currentDownloadTarget) {
-                        openQualityModal(currentDownloadTarget.mode, currentDownloadTarget.episodeId, currentDownloadTarget.epTitle, lang);
-                    }
-                }}
-            />
         </PublicLayout>
     );
 }
