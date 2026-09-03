@@ -126,7 +126,8 @@ export default function UsuariosAdminPage() {
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Rol</th>
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Suscripción</th>
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Vencimiento</th>
-                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Conexiones</th>
+                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Conex. / Cuentas</th>
+                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Créditos</th>
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Estado</th>
                 <th className="text-right px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Acciones</th>
               </tr>
@@ -134,7 +135,7 @@ export default function UsuariosAdminPage() {
             <tbody>
               {loading ? (
                 Array.from({ length: 8 }).map((_, i) => (
-                  <tr key={i} className="border-b border-white/5"><td colSpan={7} className="px-5 py-4"><div className="h-10 bg-white/5 rounded-lg animate-pulse w-full" /></td></tr>
+                  <tr key={i} className="border-b border-white/5"><td colSpan={8} className="px-5 py-4"><div className="h-10 bg-white/5 rounded-lg animate-pulse w-full" /></td></tr>
                 ))
               ) : users.map((u) => {
                 const rb = ROLE_BADGE[u.role] || ROLE_BADGE.GUEST;
@@ -199,10 +200,18 @@ export default function UsuariosAdminPage() {
                       {isSubActive && u.role === 'SUBSCRIBER' && (
                         <span className="text-[12px] font-bold text-white/90">{u.subscription?.maxScreens || 1} Pantallas</span>
                       )}
-                      {isSubActive && u.role === 'RESELLER' && (
-                        <span className="text-[12px] font-bold text-white/90">{u.subscription?.maxSubscribers || 'Ilimitados'} Clientes</span>
+                      {u.role === 'RESELLER' && (
+                        <span className="text-[12px] font-bold text-white/90">
+                            {u.activeClients !== undefined ? `${u.activeClients}/${u.totalClients}` : '0/0'} Activas
+                        </span>
                       )}
-                      {!isSubActive && <span className="text-[var(--text-muted)] text-[12px]">-</span>}
+                      {u.role === 'ADMIN' && (
+                        <span className="text-[var(--text-muted)] text-[12px]">-</span>
+                      )}
+                      {!isSubActive && u.role === 'SUBSCRIBER' && <span className="text-[var(--text-muted)] text-[12px]">-</span>}
+                    </td>
+                    <td className="px-4 py-3">
+                        <span className="text-[12px] font-bold text-[var(--color-primary)]">{u.tokens || 0}</span>
                     </td>
                     <td className="px-4 py-3">
                       {u.isActive ? (
