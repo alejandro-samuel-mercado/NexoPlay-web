@@ -202,7 +202,7 @@ export default function UsuariosAdminPage() {
                       )}
                       {(u.role === 'RESELLER' || (isSubActive && u.subscription?.maxSubscribers > 0)) && (
                         <span className="text-[12px] font-bold text-white/90">
-                            {u.activeClients !== undefined ? u.activeClients : 0} / {u.subscription?.maxSubscribers || '∞'} Activas
+                            {u.activeClients !== undefined ? u.activeClients : 0} / {u.subscription?.maxSubscribers || 'Ilimitadas'} Activas
                         </span>
                       )}
                       {u.role === 'ADMIN' && (
