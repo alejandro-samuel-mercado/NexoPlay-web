@@ -85,7 +85,7 @@ export default function PublicSidebar() {
             <div className="w-1 h-1 rounded-full bg-black/60"></div>
           </div>
         </div>
-        <span className="text-[22px] font-bold text-[var(--text-main)] lowercase tracking-tight ml-1">serivia</span>
+        <span className="text-[22px] font-bold text-[var(--text-main)] upercase tracking-tight ml-1">Vexa</span>
       </Link>
 
       {/* Menú Principal */}

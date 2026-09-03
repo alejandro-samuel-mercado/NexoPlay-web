@@ -112,7 +112,8 @@ export default function HomePage() {
         );
     }
 
-    const heroList = data?.featured?.length > 0 ? data.featured.slice(0, 10) : (data?.recent?.length > 0 ? data.recent.slice(0, 10) : MOCK_FILMS.slice(0, 10));
+    const pool = data?.featured?.length > 0 ? data.featured : (data?.recent?.length > 0 ? data.recent : MOCK_FILMS);
+    const heroList = [...pool].sort((a: any, b: any) => (b.releaseYear || 0) - (a.releaseYear || 0)).slice(0, 10);
     const heroContent = heroList[0];
 
     return (
