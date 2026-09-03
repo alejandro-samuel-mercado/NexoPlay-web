@@ -197,12 +197,12 @@ export default function UsuariosAdminPage() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      {isSubActive && u.role === 'SUBSCRIBER' && (
+                      {isSubActive && (u.role === 'SUBSCRIBER' && !(u.subscription?.maxSubscribers > 0)) && (
                         <span className="text-[12px] font-bold text-white/90">{u.subscription?.maxScreens || 1} Pantallas</span>
                       )}
-                      {u.role === 'RESELLER' && (
+                      {(u.role === 'RESELLER' || (isSubActive && u.subscription?.maxSubscribers > 0)) && (
                         <span className="text-[12px] font-bold text-white/90">
-                            {u.activeClients !== undefined ? `${u.activeClients}/${u.totalClients}` : '0/0'} Activas
+                            {u.activeClients !== undefined ? u.activeClients : 0} / {u.subscription?.maxSubscribers || '∞'} Activas
                         </span>
                       )}
                       {u.role === 'ADMIN' && (
