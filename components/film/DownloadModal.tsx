@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Download, CheckSquare, Square, HardDrive, MonitorPlay, Volume2, MessageSquare, PlaySquare, CheckCircle2, Film } from 'lucide-react';
+import { X, Download, CheckSquare, Square, HardDrive, MonitorPlay, Volume2, MessageSquare, PlaySquare, CheckCircle2, Film, Star } from 'lucide-react';
 import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
 import { userFetch } from '@/lib/api-client';
 
@@ -14,6 +14,7 @@ export default function DownloadModal({ isOpen, onClose, content }: DownloadModa
     const [selectedQuality, setSelectedQuality] = useState<string>('auto');
     const [selectedAudio, setSelectedAudio] = useState<string>('');
     const [selectedSubtitle, setSelectedSubtitle] = useState<string>('none');
+    const [selectedSeasonNumber, setSelectedSeasonNumber] = useState<number>(1);
     const [isDownloading, setIsDownloading] = useState(false);
 
     // Close on escape
@@ -80,6 +81,9 @@ export default function DownloadModal({ isOpen, onClose, content }: DownloadModa
             else setSelectedAudio('');
             
             setSelectedSubtitle('none'); 
+            if (isSeries && content?.seasons?.[0]?.number) {
+                setSelectedSeasonNumber(content.seasons[0].number);
+            }
             
             if (isSeries && allEpisodes.length > 0) {
                 // Select only the first episode by default to prevent accidental massive downloads
@@ -100,11 +104,16 @@ export default function DownloadModal({ isOpen, onClose, content }: DownloadModa
     };
 
     const toggleAllEpisodes = () => {
-        if (selectedEpisodes.size === allEpisodes.length) {
-            setSelectedEpisodes(new Set());
+        const seasonEpIds = allEpisodes.filter(e => e.seasonNumber === selectedSeasonNumber).map(e => e.id);
+        const next = new Set(selectedEpisodes);
+        const allSelected = seasonEpIds.every(id => next.has(id));
+        
+        if (allSelected) {
+            seasonEpIds.forEach(id => next.delete(id));
         } else {
-            setSelectedEpisodes(new Set(allEpisodes.map(e => e.id)));
+            seasonEpIds.forEach(id => next.add(id));
         }
+        setSelectedEpisodes(next);
     };
 
     const handleDownloadAll = async () => {
@@ -170,60 +179,59 @@ export default function DownloadModal({ isOpen, onClose, content }: DownloadModa
 
     const bgImage = resolveImageUrl(content.backdropUrl || content.posterUrl);
     const filesToDownloadCount = isSeries ? selectedEpisodes.size : 1;
-
     return (
-        <div className="fixed inset-0 z-[500] flex items-center justify-center p-2 md:p-4 animate-in fade-in duration-300">
-            {/* Backdrop with blur */}
-            <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" onClick={!isDownloading ? onClose : undefined} />
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300">
+            {/* Full-screen Backdrop Image */}
+            <div className="absolute inset-0 bg-black/90">
+                <img src={bgImage} alt="" className="w-full h-full object-cover opacity-20" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+            </div>
             
-            <div className="relative w-full max-w-[1400px] h-full max-h-[98vh] md:max-h-[95vh] bg-[#0b0c10] border border-white/10 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl shadow-emerald-500/10 flex flex-col">
+            <div className={`relative w-full ${isSeries ? 'max-w-[1000px]' : 'max-w-2xl'} flex flex-col bg-[#0b0c10]/95 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh]`}>
                 
                 {/* Header */}
-                <div className="relative p-4 md:p-5 border-b border-white/10 overflow-hidden shrink-0">
-                    {/* Header Background */}
-                    <div className="absolute inset-0 opacity-20 mask-image-b">
-                        <img src={bgImage} alt="" className="w-full h-full object-cover" />
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#0b0c10] via-[#0b0c10]/80 to-transparent" />
-                    
-                    <div className="relative flex justify-between items-start">
-                        <div>
-                            <h2 className="text-xl md:text-2xl font-black text-white flex items-center gap-2">
-                                <Download className="text-emerald-400" size={24} />
-                                Centro de Descargas
-                            </h2>
-                            <p className="text-white/60 mt-0.5 text-xs md:text-sm font-medium">{content.title}</p>
-                        </div>
-                        <button 
-                            onClick={onClose} 
-                            disabled={isDownloading}
-                            className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-colors"
-                        >
-                            <X size={20} />
-                        </button>
-                    </div>
+                <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center bg-white/5 shrink-0">
+                    <h2 className="text-xl md:text-2xl font-black text-white tracking-tight line-clamp-1">
+                        {content.title}
+                    </h2>
+                    <button 
+                        onClick={onClose} 
+                        disabled={isDownloading}
+                        className="p-2 bg-black/40 hover:bg-white/20 rounded-full text-white/70 hover:text-white transition-all backdrop-blur-md border border-white/10 z-20 hover:scale-110 disabled:opacity-50 shrink-0 ml-4"
+                    >
+                        <X size={20} />
+                    </button>
                 </div>
 
                 {/* Body */}
-                <div className="flex-1 overflow-hidden flex flex-col md:flex-row bg-black/40">
+                <div className="flex-1 overflow-hidden flex flex-col md:flex-row w-full">
                     
-                    {/* LEFT COLUMN: Episodes (Only if Series) */}
+                    {/* Episodes Section (If Series) */}
                     {isSeries && (
-                        <div className="w-full md:w-4/12 lg:w-3/12 border-b md:border-b-0 md:border-r border-white/10 flex flex-col bg-[#0f1115]">
-                            <div className="p-3 border-b border-white/5 flex justify-between items-center bg-white/5 shrink-0">
-                                <h3 className="font-bold text-sm text-white flex items-center gap-2">
-                                    <PlaySquare size={16} className="text-emerald-400" />
-                                    Episodios
-                                </h3>
+                        <div className="w-full md:w-[320px] lg:w-[350px] shrink-0 border-b md:border-b-0 md:border-r border-white/10 flex flex-col bg-[#0f1115]">
+                            <div className="p-4 border-b border-white/5 flex justify-between items-center bg-white/5 shrink-0 gap-2">
+                                <div className="flex items-center gap-2 w-full">
+                                    <PlaySquare size={16} className="text-emerald-400 shrink-0" />
+                                    <select 
+                                        value={selectedSeasonNumber}
+                                        onChange={(e) => setSelectedSeasonNumber(Number(e.target.value))}
+                                        className="bg-black/50 border border-white/10 rounded-lg text-white text-xs font-bold px-2 py-2 focus:outline-none focus:border-emerald-500 w-full"
+                                    >
+                                        {content.seasons?.map((s: any) => (
+                                            <option key={s.number} value={s.number}>Temporada {s.number}</option>
+                                        ))}
+                                    </select>
+                                </div>
                                 <button 
                                     onClick={toggleAllEpisodes}
-                                    className="text-[10px] uppercase font-bold px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-white transition"
+                                    className="text-[10px] uppercase font-bold px-2.5 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition whitespace-nowrap shrink-0"
                                 >
-                                    {selectedEpisodes.size === allEpisodes.length ? 'Desmarcar' : 'Marcar Todos'}
+                                    Toggle Todo
                                 </button>
                             </div>
-                            <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
-                                {allEpisodes.map((ep) => {
+                            
+                            <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar min-h-0">
+                                {allEpisodes.filter(ep => ep.seasonNumber === selectedSeasonNumber).map((ep) => {
                                     const isSelected = selectedEpisodes.has(ep.id);
                                     const sNum = String(ep.seasonNumber || 1).padStart(2, '0');
                                     const eNum = String(ep.number || 1).padStart(2, '0');
@@ -231,22 +239,20 @@ export default function DownloadModal({ isOpen, onClose, content }: DownloadModa
                                         <div 
                                             key={ep.id}
                                             onClick={() => toggleEpisode(ep.id)}
-                                            className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all border ${isSelected ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-black/20 border-transparent hover:bg-white/5'}`}
+                                            className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all border ${isSelected ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-black/20 border-transparent hover:bg-white/5'}`}
                                         >
-                                            <div className="flex items-center gap-2.5">
-                                                {isSelected ? (
-                                                    <CheckSquare size={16} className="text-emerald-400 shrink-0" />
-                                                ) : (
-                                                    <Square size={16} className="text-white/30 shrink-0" />
-                                                )}
-                                                <div>
-                                                    <p className={`font-semibold text-xs ${isSelected ? 'text-white' : 'text-white/70'} line-clamp-1`}>
-                                                        S{sNum} E{eNum} - {ep.title || `Ep. ${ep.number}`}
-                                                    </p>
-                                                    <p className="text-[10px] text-white/40 mt-0.5">
-                                                        {Math.floor((ep.durationSeconds || 0) / 60)} min
-                                                    </p>
-                                                </div>
+                                            {isSelected ? (
+                                                <CheckSquare size={16} className="text-emerald-400 shrink-0" />
+                                            ) : (
+                                                <Square size={16} className="text-white/30 shrink-0" />
+                                            )}
+                                            <div className="min-w-0">
+                                                <p className={`font-bold text-xs ${isSelected ? 'text-white' : 'text-white/70'} truncate`}>
+                                                    S{sNum} E{eNum} - {ep.title || `Ep. ${ep.number}`}
+                                                </p>
+                                                <p className="text-[10px] text-white/40 mt-1">
+                                                    {Math.floor((ep.durationSeconds || 0) / 60)} min
+                                                </p>
                                             </div>
                                         </div>
                                     );
@@ -255,36 +261,41 @@ export default function DownloadModal({ isOpen, onClose, content }: DownloadModa
                         </div>
                     )}
 
-                    {/* RIGHT COLUMN: Settings */}
-                    <div className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar">
-                        <div className="max-w-4xl mx-auto space-y-5">
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Settings Section */}
+                    <div className="flex-1 overflow-y-auto p-5 md:p-8 custom-scrollbar w-full">
+                        <div className="flex items-center gap-3 mb-8">
+                            <Download className="text-emerald-400" size={20} />
+                            <h3 className="font-bold text-lg text-white">Configurar Descarga</h3>
+                        </div>
+                        
+                        <div className="space-y-8 max-w-3xl">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                 {/* CODEC INFO */}
                                 <div>
-                                    <h3 className="font-bold text-xs text-white/50 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                    <h3 className="font-bold text-[11px] text-white/50 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                                         <Film size={14} /> Códec de Video
                                     </h3>
-                                    <div className="p-2.5 rounded-lg border border-white/10 bg-white/5 inline-flex items-center gap-2">
-                                        <CheckCircle2 size={14} className="text-emerald-400" />
-                                        <span className="font-medium text-xs text-white">{codec}</span>
+                                    <div className="px-4 py-3 rounded-xl border border-white/10 bg-white/5 inline-flex items-center gap-2">
+                                        <CheckCircle2 size={16} className="text-emerald-400" />
+                                        <span className="font-bold text-sm text-white">{codec}</span>
                                     </div>
                                 </div>
 
                                 {/* QUALITY OPTIONS */}
                                 <div>
-                                    <h3 className="font-bold text-xs text-white/50 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                    <h3 className="font-bold text-[11px] text-white/50 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                                         <MonitorPlay size={14} /> Resolución
                                     </h3>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap gap-2.5">
                                         {qualities.map(q => (
                                             <button 
                                                 key={q}
                                                 onClick={() => setSelectedQuality(q)}
-                                                className={`px-4 py-2 rounded-lg border transition-all ${selectedQuality === q ? 'bg-emerald-500/10 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.15)] text-emerald-400 font-bold' : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 text-white/70'}`}
+                                                className={`px-4 py-2 rounded-full border transition-all flex items-center gap-2 ${selectedQuality === q ? 'bg-emerald-500/10 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.15)] text-emerald-400 font-bold' : 'bg-white/5 border-white/5 hover:bg-white/10 text-white/70 font-medium'}`}
                                             >
-                                                <span className="text-xs">
-                                                    {q === 'auto' ? 'Automática' : q}
+                                                {selectedQuality === q && <CheckCircle2 size={14} />}
+                                                <span className="text-sm">
+                                                    {q === 'auto' ? 'Auto' : q}
                                                 </span>
                                             </button>
                                         ))}
@@ -294,29 +305,28 @@ export default function DownloadModal({ isOpen, onClose, content }: DownloadModa
 
                             <hr className="border-white/5" />
 
-                            {/* Audio & Subtitles */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                 {/* Audio */}
                                 <div>
-                                    <h3 className="font-bold text-xs text-white/50 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                    <h3 className="font-bold text-[11px] text-white/50 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                                         <Volume2 size={14} /> Pista de Audio
                                     </h3>
                                     {audios.length === 0 ? (
-                                        <div className="p-2.5 rounded-lg border border-white/10 bg-white/5 text-white/50 text-xs">
-                                            Idioma original (Por defecto)
+                                        <div className="px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white/50 text-sm inline-flex">
+                                            Idioma original
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-1 gap-2">
+                                        <div className="flex flex-wrap gap-2.5">
                                             {audios.map((a: any, i: number) => {
                                                 const lang = a.language || `Pista ${i + 1}`;
                                                 return (
                                                     <button
                                                         key={i}
                                                         onClick={() => setSelectedAudio(lang)}
-                                                        className={`p-2.5 rounded-lg border flex items-center justify-between transition-all ${selectedAudio === lang ? 'bg-emerald-500/10 border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.15)] text-emerald-400 font-bold' : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 text-white/70'}`}
+                                                        className={`px-4 py-2 rounded-full border transition-all flex items-center gap-2 ${selectedAudio === lang ? 'bg-emerald-500/10 border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.15)] text-emerald-400 font-bold' : 'bg-white/5 border-white/5 hover:bg-white/10 text-white/70 font-medium'}`}
                                                     >
-                                                        <span className="text-xs uppercase">{lang}</span>
                                                         {selectedAudio === lang && <CheckCircle2 size={14} />}
+                                                        <span className="text-sm uppercase">{lang}</span>
                                                     </button>
                                                 );
                                             })}
@@ -326,21 +336,21 @@ export default function DownloadModal({ isOpen, onClose, content }: DownloadModa
 
                                 {/* Subtitles */}
                                 <div>
-                                    <h3 className="font-bold text-xs text-white/50 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                        <MessageSquare size={14} /> Subtítulos (Opcional)
+                                    <h3 className="font-bold text-[11px] text-white/50 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                                        <MessageSquare size={14} /> Subtítulos
                                     </h3>
                                     {subtitles.length === 0 ? (
-                                        <div className="p-2.5 rounded-lg border border-white/10 bg-white/5 text-white/50 text-xs">
+                                        <div className="px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white/50 text-sm inline-flex">
                                             No detectados
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-1 gap-2">
+                                        <div className="flex flex-wrap gap-2.5">
                                             <button
                                                 onClick={() => setSelectedSubtitle('none')}
-                                                className={`p-2.5 rounded-lg border flex items-center justify-between transition-all ${selectedSubtitle === 'none' ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 font-bold' : 'bg-white/5 border-white/5 hover:bg-white/10 text-white/70'}`}
+                                                className={`px-4 py-2 rounded-full border transition-all flex items-center gap-2 ${selectedSubtitle === 'none' ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 font-bold' : 'bg-white/5 border-white/5 hover:bg-white/10 text-white/70 font-medium'}`}
                                             >
-                                                <span className="text-xs">Ninguno</span>
                                                 {selectedSubtitle === 'none' && <CheckCircle2 size={14} />}
+                                                <span className="text-sm">Ninguno</span>
                                             </button>
                                             {subtitles.map((s: any, i: number) => {
                                                 const lang = s.language || `Sub ${i + 1}`;
@@ -348,10 +358,10 @@ export default function DownloadModal({ isOpen, onClose, content }: DownloadModa
                                                     <button
                                                         key={i}
                                                         onClick={() => setSelectedSubtitle(lang)}
-                                                        className={`p-2.5 rounded-lg border flex items-center justify-between transition-all ${selectedSubtitle === lang ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 font-bold' : 'bg-white/5 border-white/5 hover:bg-white/10 text-white/70'}`}
+                                                        className={`px-4 py-2 rounded-full border transition-all flex items-center gap-2 ${selectedSubtitle === lang ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 font-bold' : 'bg-white/5 border-white/5 hover:bg-white/10 text-white/70 font-medium'}`}
                                                     >
-                                                        <span className="text-xs uppercase">{lang} {s.isForced ? '(Forzado)' : ''}</span>
                                                         {selectedSubtitle === lang && <CheckCircle2 size={14} />}
+                                                        <span className="text-sm uppercase">{lang} {s.isForced ? '(F)' : ''}</span>
                                                     </button>
                                                 );
                                             })}
@@ -359,49 +369,48 @@ export default function DownloadModal({ isOpen, onClose, content }: DownloadModa
                                     )}
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-white/10 bg-[#0b0c10] flex flex-col sm:flex-row justify-between items-center gap-3 shrink-0">
-                    <div className="text-white/60 font-medium text-xs">
+                <div className="p-4 md:p-6 border-t border-white/10 bg-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 shrink-0 w-full">
+                    <div className="text-white/60 font-medium text-sm">
                         {isSeries ? (
-                            <span><strong className="text-white text-sm">{filesToDownloadCount}</strong> ep. seleccionados</span>
+                            <span><strong className="text-white text-base">{filesToDownloadCount}</strong> ep. seleccionados</span>
                         ) : (
-                            <span><strong className="text-white text-sm">1</strong> película</span>
+                            <span><strong className="text-white text-base">1</strong> película</span>
                         )}
                     </div>
                     <div className="flex gap-3 w-full sm:w-auto">
                         <button 
                             onClick={onClose}
                             disabled={isDownloading}
-                            className="flex-1 sm:flex-none px-5 py-2.5 rounded-full font-bold text-xs text-white bg-white/5 hover:bg-white/10 transition-colors"
+                            className="flex-1 sm:flex-none px-6 py-3 rounded-full font-bold text-sm text-white bg-white/5 hover:bg-white/10 transition-colors"
                         >
                             Cancelar
                         </button>
                         <button 
                             onClick={handleDownloadAll}
                             disabled={isDownloading || (isSeries && filesToDownloadCount === 0)}
-                            className="flex-1 sm:flex-none px-6 py-2.5 rounded-full font-bold text-xs text-black bg-emerald-500 hover:bg-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 sm:flex-none px-8 py-3 rounded-full font-bold text-sm text-black bg-emerald-500 hover:bg-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isDownloading ? (
                                 <>
-                                    <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                                    <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
                                     Procesando...
                                 </>
                             ) : (
                                 <>
-                                    <Download size={16} />
+                                    <Download size={18} />
                                     Descargar {filesToDownloadCount > 1 ? `(${filesToDownloadCount})` : ''}
                                 </>
                             )}
                         </button>
                     </div>
                 </div>
-
             </div>
         </div>
     );
 }
+
