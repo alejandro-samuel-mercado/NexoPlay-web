@@ -12,7 +12,7 @@ export default function UsuariosAdminPage() {
   const [role, setRole] = useState('');
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [assignModal, setAssignModal] = useState<{ userId: string; email: string } | null>(null);
+  const [assignModal, setAssignModal] = useState<{ userId: string; email: string; role: string } | null>(null);
   const [createModal, setCreateModal] = useState(false);
   const [newUser, setNewUser] = useState({ username: '', password: '', role: 'SUBSCRIBER' });
   const [selectedPlan, setSelectedPlan] = useState('');

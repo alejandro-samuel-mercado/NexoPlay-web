@@ -86,7 +86,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               N
             </div>
             <span className="font-black text-white" style={{ fontFamily: 'Space Grotesk' }}>
-              <span style={{ color: roleColor }}>Nexo</span>Play
+             
+              <span className="text-white">Vexa</span>
             </span>
           </div>
           <div
@@ -155,7 +156,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         className="md:hidden fixed top-0 left-0 right-0 z-50 border-b border-[var(--border-subtle)] px-4 py-3 flex items-center justify-between bg-[var(--bg-panel)] backdrop-blur-md"
       >
         <span className="font-black text-white text-sm" style={{ fontFamily: 'Space Grotesk' }}>
-          <span style={{ color: roleColor }}>Nexo</span>Play{' '}
+         
+          <span className="text-white">Vexa</span>{' '}
           <span className="text-xs font-bold" style={{ color: '#6B7280' }}>{panelLabel}</span>
         </span>
         {/* Mobile nav: horizontal scrollable */}

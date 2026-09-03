@@ -53,7 +53,7 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
         <div className="p-5 border-b border-[#1E1E3A]">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 rounded-[8px] border border-white/10 flex items-center justify-center text-sm font-black text-[#0a0f0a] shadow-lg" style={{ background: C }}>R</div>
-            <span className="font-black text-white" style={{ fontFamily: 'Space Grotesk' }}><span style={{ color: C }}>Nexo</span>Play</span>
+            <span className="font-black text-white" style={{ fontFamily: 'Space Grotesk' }}><span style={{ color: C }}></span>Vexa</span>
           </div>
           <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest" style={{ background: CB, color: C }}>
             <ShieldCheck size={12} /> Panel Revendedor B2B

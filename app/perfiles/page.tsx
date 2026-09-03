@@ -76,8 +76,8 @@ function ProfileSelectionContent() {
           N
         </div>
         <span className="font-black text-xl tracking-tight hidden sm:block">
-          <span style={{ color: 'var(--clay-red)' }}>Nexo</span>
-          <span className="text-white">Play</span>
+         
+          <span className="text-white">Vexa</span>
         </span>
       </div>
 

@@ -31,8 +31,8 @@ export default function Navbar() {
               N
             </div>
             <span className="font-black text-xl tracking-tight" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-              <span style={{ color: 'var(--clay-red)' }}>Nexo</span>
-              <span className="text-white">Play</span>
+             
+              <span className="text-white">Vexa</span>
             </span>
           </Link>
 
