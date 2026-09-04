@@ -50,7 +50,7 @@ export default function HomePage() {
 
                 // Fetch Estrenos for Hero
                 try {
-                    const eRes = await fetch(`${API_ROUTES.CONTENT.LIST}?sort=releaseYear&limit=15`, { cache: 'no-store' });
+                    const eRes = await fetch(`${API_ROUTES.CONTENT.LIST}?releaseYear=${new Date().getFullYear()}&sort=createdAt&order=desc&limit=15`, { cache: 'no-store' });
                     const eJson = await eRes.json();
                     if (eJson.success && eJson.data?.length > 0) {
                         setEstrenos(eJson.data);
@@ -124,8 +124,13 @@ export default function HomePage() {
         );
     }
 
-    const pool = estrenos.length > 0 ? estrenos : (data?.featured?.length > 0 ? data.featured : (data?.recent?.length > 0 ? data.recent : MOCK_FILMS));
-    const heroList = [...pool].sort((a: any, b: any) => (b.releaseYear || 0) - (a.releaseYear || 0)).slice(0, 10);
+    const pool = [
+        ...(estrenos || []),
+        ...(data?.recent || []),
+        ...(data?.trending || [])
+    ];
+    const uniquePool = Array.from(new Map(pool.map((item: any) => [item.id, item])).values());
+    const heroList = uniquePool.length > 0 ? uniquePool.sort(() => Math.random() - 0.5).slice(0, 10) : MOCK_FILMS;
     const heroContent = heroList[0];
 
     return (

@@ -108,7 +108,7 @@ export default function PreviewPlayerPage() {
                 
                 <h2 className="text-2xl font-black text-white mb-2">Tiempo Finalizado</h2>
                 <p className="text-[#A8B3C8] text-sm mb-8">
-                  El preview gratuito de 3 minutos ha terminado. Para seguir viendo o descargar <strong>{content.title}</strong>, necesitás una suscripción o un código.
+                  El preview gratuito de 3 minutos ha terminado. Para seguir viendo <strong>{content.title}</strong>, necesitás una suscripción o un código.
                 </p>
                 
                 <div className="space-y-3">
@@ -130,6 +130,15 @@ export default function PreviewPlayerPage() {
                     </div>
                   </div>
                   <div className="group relative w-full">
+                    <Link href="/auth/login" className="btn-clay btn-clay-teal w-full flex items-center justify-center gap-2">
+                      Iniciar sesión
+                    </Link>
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-64 px-4 py-3 bg-[#111218] border border-teal-500/30 text-white text-xs md:text-sm font-semibold rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none text-center shadow-[0_10px_40px_rgba(20,184,166,0.3)] z-50">
+                        Desbloquea todo el catálogo sin límites y mira sin publicidad.
+                    </div>
+                  </div>
+                  {/* Tienda Link - REMOVED BY USER REQUEST
+                  <div className="group relative w-full">
                     <Link href="/auth/login?redirect=/tienda" className="btn-clay btn-clay-teal w-full flex items-center justify-center gap-2">
                       Iniciar sesión
                     </Link>
@@ -137,6 +146,7 @@ export default function PreviewPlayerPage() {
                         Desbloquea todo el catálogo sin límites, descarga episodios y mira sin publicidad.
                     </div>
                   </div>
+                  */}
                   <Link href={`/film/${slug}`} className="btn-clay btn-clay-dark w-full">
                     Volver al detalle
                   </Link>

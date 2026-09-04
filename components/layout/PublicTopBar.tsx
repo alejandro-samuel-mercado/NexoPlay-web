@@ -191,6 +191,7 @@ function PublicTopBarContent() {
 
       {/* Right side: Theme & Profile */}
       <div className="flex items-center gap-5 ml-auto">
+        {/* Tienda Link - REMOVED BY USER REQUEST
         <Link 
             href="/tienda"
             className="flex items-center gap-2 px-4 h-10 rounded-xl bg-[var(--color-primary)] text-black font-bold hover:brightness-110 transition shadow-[0_0_15px_rgba(255,179,0,0.3)]"
@@ -200,6 +201,7 @@ function PublicTopBarContent() {
           <Store size={18} />
           <span className="hidden sm:inline text-sm">Tienda</span>
         </Link>
+        */}
 
         <button 
             onClick={toggleTheme}

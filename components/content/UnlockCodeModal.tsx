@@ -132,7 +132,7 @@ export default function UnlockCodeModal({
             <>
               <div>
                 <p className="text-white/60 text-sm mb-4">
-                  Ingresá el código que recibiste para desbloquear <strong className="text-white">&ldquo;{contentTitle}&rdquo;</strong> y poder verla o descargarla.
+                  Ingresá el código que recibiste para desbloquear <strong className="text-white">&ldquo;{contentTitle}&rdquo;</strong> y poder verla{/* o descargarla */}.
                 </p>
 
                 <label className="text-xs font-bold text-white/50 uppercase tracking-wider mb-2 block">Código de acceso</label>

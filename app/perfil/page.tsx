@@ -119,10 +119,12 @@ export default function PerfilPage() {
               <div className="bg-[var(--bg-panel)] p-10 rounded-3xl border border-[var(--border-subtle)] text-center flex flex-col items-center justify-center h-full shadow-xl">
                 <div className="text-5xl mb-4 opacity-50">💔</div>
                 <h3 className="text-xl font-bold text-[var(--text-main)] mb-2">Sin suscripción activa</h3>
-                <p className="text-[var(--text-muted)] mb-8">No tenés ningún plan de Vexa activo. Actualizá tu cuenta para descargar sin límites.</p>
+                <p className="text-[var(--text-muted)] mb-8">No tenés ningún plan de Vexa activo. Actualizá tu cuenta para ver contenido premium.</p>
+                {/* Tienda Link - REMOVED BY USER REQUEST
                 <button onClick={() => router.push('/tienda')} className="btn-primary">
                   Ver Planes Disponibles
                 </button>
+                */}
               </div>
             )}
           </div>

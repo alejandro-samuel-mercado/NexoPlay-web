@@ -295,6 +295,7 @@ export default function FilmDetailPage() {
                                                     Canjea un código de acceso para desbloquear este título de forma permanente.
                                                 </div>
                                             </div>
+                                            {/* Tienda Link - REMOVED BY USER REQUEST
                                             <div className="group relative inline-block">
                                                 <Link href="/tienda" className="serivia-btn-play bg-[var(--color-primary)] text-black hover:bg-[var(--color-primary)]/80 shadow-xl px-6 py-3 rounded-full font-bold flex items-center gap-2 text-sm md:text-base">
                                                     <Star size={18} className="fill-black" />
@@ -304,9 +305,11 @@ export default function FilmDetailPage() {
                                                     Desbloquea todo el catálogo sin límites, descarga episodios y mira sin publicidad.
                                                 </div>
                                             </div>
+                                            */}
                                         </>
                                     )}
 
+                                    {/* Descargas - REMOVED BY USER REQUEST
                                     {userHasAccess && isReseller && content.downloadAllowed && (
                                         <button onClick={() => handleDownloadRequest('movie')} disabled={isDownloading} className="px-6 py-3 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 font-bold hover:bg-emerald-500/30 flex items-center gap-2 transition-all text-sm md:text-base">
                                             <Download size={18} /> {isDownloading ? 'Cargando...' : 'Descargar MP4'}
@@ -318,6 +321,8 @@ export default function FilmDetailPage() {
                                             <Download size={18} /> {isDownloading ? 'Cargando...' : 'Descargar Offline'}
                                         </button>
                                     )}
+                                    */}
+
                                 </>
                             ) : (
                                 <>
@@ -330,6 +335,7 @@ export default function FilmDetailPage() {
                                             Canjea un código de acceso para desbloquear este título de forma permanente.
                                         </div>
                                     </div>
+                                    {/* Tienda Link - REMOVED BY USER REQUEST
                                     <div className="group relative inline-block">
                                         <Link href="/auth/login?redirect=/tienda" className="serivia-btn-play bg-[var(--color-primary)] text-black hover:bg-[var(--color-primary)]/80 shadow-xl px-6 py-3 rounded-full font-bold flex items-center gap-2 text-sm md:text-base">
                                             <Star size={18} className="fill-black" />
@@ -339,6 +345,8 @@ export default function FilmDetailPage() {
                                             Desbloquea todo el catálogo sin límites, descarga episodios y mira sin publicidad.
                                         </div>
                                     </div>
+                                    */}
+
                                 </>
                             )}
                             {content.trailerUrl && (
