@@ -166,8 +166,13 @@ export default function HomePage() {
                                 </>
                             ) : (
                                 <>
+                                    {estrenos && estrenos.length > 0 && (
+                                        <ContentRow title="Estrenos" items={estrenos} />
+                                    )}
                                     {data?.trending && data.trending.length > 0 && (
-                                        <ContentRow title="Tendencias" items={data.trending} />
+                                        <div className={estrenos && estrenos.length > 0 ? "mt-8" : ""}>
+                                            <ContentRow title="Tendencias" items={data.trending} />
+                                        </div>
                                     )}
                                     {data?.recent && data.recent.length > 0 && (
                                         <div className="mt-8">
