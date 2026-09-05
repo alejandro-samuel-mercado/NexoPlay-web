@@ -166,16 +166,6 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                     </button>
                   )}
                   
-                  {creatorRole === 'ADMIN' && (
-                    <button
-                      onClick={() => setFormData({ ...formData, role: 'ADMIN_RESELLER' })}
-                      className={`p-6 rounded-2xl border-2 text-left transition-all ${formData.role === 'ADMIN_RESELLER' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}
-                    >
-                      <User size={32} className={`mb-4 ${formData.role === 'ADMIN_RESELLER' ? 'text-[var(--color-primary)]' : 'text-white/40'}`} />
-                      <h5 className="text-white font-bold text-lg mb-2">Admin Revendedores</h5>
-                      <p className="text-sm text-white/50">Máximo control. Puede crear incluso súper revendedores.</p>
-                    </button>
-                  )}
                 </div>
               )}
             </div>
@@ -300,7 +290,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                 </div>
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                   <p className="text-xs font-bold text-white/40 uppercase mb-1">Tipo de Cuenta</p>
-                  <p className="text-white font-bold">{type === 'TRIAL' ? 'Prueba (Gratuita)' : type === 'RESELLER' ? (formData.role === 'SUPER_RESELLER' ? 'Súper Revendedor' : formData.role === 'ADMIN_RESELLER' ? 'Admin Revendedores' : 'Revendedor Básico') : 'Cliente Final'}</p>
+                  <p className="text-white font-bold">{type === 'TRIAL' ? 'Prueba (Gratuita)' : type === 'RESELLER' ? (formData.role === 'SUPER_RESELLER' ? 'Súper Revendedor' : 'Revendedor Básico') : 'Cliente Final'}</p>
                 </div>
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                   <p className="text-xs font-bold text-white/40 uppercase mb-1">Usuario</p>
