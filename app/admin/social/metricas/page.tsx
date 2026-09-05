@@ -75,7 +75,7 @@ export default function SocialMetricsPage() {
           <div className="relative z-10">
             <div className="flex items-center gap-3 text-[#8B8FA8] mb-2">
               <Coins size={18} className="text-[#E82C7C]" />
-              <span className="font-semibold text-sm">Tokens en Circulación</span>
+              <span className="font-semibold text-sm">Créditos en Circulación</span>
             </div>
             <p className="text-3xl font-black text-white">{metrics?.tokensCirculating || 0}</p>
           </div>
@@ -84,14 +84,14 @@ export default function SocialMetricsPage() {
         <div className="bg-[#1E1E3A] border border-[var(--border-subtle)] p-5 rounded-xl">
           <div className="flex items-center gap-3 text-[#8B8FA8] mb-2">
             <Gift size={18} className="text-green-400" />
-            <span className="font-semibold text-sm">Tokens Gastados (Canjes)</span>
+            <span className="font-semibold text-sm">Créditos Gastados (Canjes)</span>
           </div>
           <p className="text-3xl font-black text-white">{metrics?.tokensSpent || 0}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        {/* Top Usuarios por Actividad de Tokens */}
+        {/* Top Usuarios por Actividad de Créditos */}
         <div className="bg-[#1E1E3A] border border-[var(--border-subtle)] p-5 rounded-xl">
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[var(--border-subtle)]">
             <TrendingUp size={20} className="text-[#E82C7C]" />

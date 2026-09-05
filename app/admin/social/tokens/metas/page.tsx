@@ -134,7 +134,7 @@ export default function TokenGoalsPage() {
             <Target className="text-[#E82C7C]" size={20} />
             Metas de Canje
           </h2>
-          <p className="text-sm text-[#8B8FA8] mt-1">Definí los premios que los usuarios pueden obtener canjeando sus tokens.</p>
+          <p className="text-sm text-[#8B8FA8] mt-1">Definí los premios que los usuarios pueden obtener canjeando sus créditos.</p>
         </div>
         <button
           onClick={() => openModal()}
@@ -226,7 +226,7 @@ export default function TokenGoalsPage() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-[#8B8FA8] uppercase tracking-wider mb-1">Costo en Tokens</label>
+                  <label className="block text-xs font-bold text-[#8B8FA8] uppercase tracking-wider mb-1">Costo en Créditos</label>
                   <input
                     required
                     type="number"

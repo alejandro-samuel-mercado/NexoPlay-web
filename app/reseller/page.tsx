@@ -74,8 +74,8 @@ export default function ResellerDashboardPage() {
         <StatCard icon={Download} label="Descargas Hoy" color={C} href="/reseller/descargas"
           value={loading ? '…' : stats?.dailyUsed ?? 0}
           sub={loading ? '' : `${stats?.dailyRemaining ?? 0} restantes`} />
-        <StatCard icon={Coins} label="Tokens" color="#EAB308" href="/reseller/tokens"
-          value={loading ? '…' : wallet?.balance ?? 0} sub="1 token = 1 descarga" />
+        <StatCard icon={Coins} label="Créditos" color="#EAB308" href="/reseller/tokens"
+          value={loading ? '…' : wallet?.balance ?? 0} sub="1 crédito = 1 descarga" />
         <StatCard icon={Package} label="Pack Semanal" color="#F59E0B" href="/reseller/pack"
           value={loading ? '…' : (pack ? pack.contents?.length ?? pack.contentIds?.length ?? 0 : 0)}
           sub={pack ? `"${pack.title}"` : 'No disponible'} />
@@ -113,7 +113,7 @@ export default function ResellerDashboardPage() {
           { href: '/reseller/usuarios', icon: Users, label: 'Mis Clientes', desc: 'Crear y gestionar cuentas de suscriptores', color: '#60A5FA' },
           { href: '/reseller/descargas', icon: Download, label: 'Catálogo', desc: 'Buscar y descargar contenido en 4K/1080p', color: C },
           { href: '/reseller/pack', icon: Package, label: 'Pack Semanal', desc: pack ? `${pack.contents?.length ?? 0} títulos disponibles` : 'Sin pack activo', color: '#F59E0B' },
-          { href: '/reseller/tokens', icon: Coins, label: 'Mis Tokens', desc: `Saldo: ${wallet?.balance ?? 0} tokens`, color: '#EAB308' },
+          { href: '/reseller/tokens', icon: Coins, label: 'Mis Créditos', desc: `Saldo: ${wallet?.balance ?? 0} créditos`, color: '#EAB308' },
         ].map(({ href, icon: Icon, label, desc, color }) => (
           <Link key={href} href={href}
             className="group p-5 rounded-[16px] border border-white/5 hover:border-white/10 hover:bg-white/[0.02] transition-all duration-300 flex flex-col items-start gap-4 relative overflow-hidden"

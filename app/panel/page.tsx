@@ -98,7 +98,7 @@ export default function B2CPanelPage() {
                         <h1 className="text-3xl font-black text-[var(--text-main)] mb-2 flex items-center gap-3">
                             <Wallet size={32} className="text-[var(--color-primary)]" /> Panel de Cuenta
                         </h1>
-                        <p className="text-[var(--text-muted)]">Administra tus tokens, descargas y beneficios.</p>
+                        <p className="text-[var(--text-muted)]">Administra tus créditos, descargas y beneficios.</p>
                     </div>
                 </div>
 
@@ -116,12 +116,12 @@ export default function B2CPanelPage() {
                                     style={{ background: 'var(--bg-panel)', backdropFilter: 'blur(20px)' }}>
                                     <div className="p-6 bg-gradient-to-br from-[var(--color-primary)]/10 to-transparent">
                                         <div className="flex items-center gap-2 text-[var(--color-primary)] font-bold mb-4 uppercase tracking-wider text-xs">
-                                            <Coins size={16} /> Billetera de Tokens
+                                            <Coins size={16} /> Billetera de Créditos
                                         </div>
                                         <h2 className="text-5xl font-black text-[var(--text-main)] drop-shadow-md flex items-end gap-2">
-                                            {wallet?.balance || 0} <span className="text-sm font-bold text-[var(--text-muted)] mb-2 uppercase">Tokens</span>
+                                            {wallet?.balance || 0} <span className="text-sm font-bold text-[var(--text-muted)] mb-2 uppercase">Créditos</span>
                                         </h2>
-                                        <p className="text-xs text-[var(--text-muted)] mt-2">Gana 1 Token por cada hora que veas contenido en Vexa.</p>
+                                        <p className="text-xs text-[var(--text-muted)] mt-2">Gana 1 Crédito por cada hora que veas contenido en Vexa.</p>
                                     </div>
                                 </section>
                             </div>

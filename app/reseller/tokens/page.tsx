@@ -27,7 +27,7 @@ export default function ResellerTokensPage() {
 
   const handleBuy = async () => {
     if (amount <= 0) return;
-    if (!confirm(`¿Comprar ${amount} descargas extra por ${amount * 10} tokens?`)) return;
+    if (!confirm(`¿Comprar ${amount} descargas extra por ${amount * 10} créditos?`)) return;
     setBuying(true);
     try {
       const res = await API.RESELLER.buyLimits(amount);
@@ -58,9 +58,9 @@ export default function ResellerTokensPage() {
 
       <div className="mb-8">
         <h1 className="text-3xl font-black text-white flex items-center gap-3">
-          <Coins size={28} style={{ color: '#EAB308' }} /> Mis Tokens
+          <Coins size={28} style={{ color: '#EAB308' }} /> Mis Créditos
         </h1>
-        <p className="text-sm mt-1" style={{ color: '#6B7280' }}>Usá tokens para comprar descargas extra</p>
+        <p className="text-sm mt-1" style={{ color: '#6B7280' }}>Usá créditos para comprar descargas extra</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -73,7 +73,7 @@ export default function ResellerTokensPage() {
           </div>
           <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#6B7280' }}>Saldo actual</p>
           <p className="text-6xl font-black text-white mb-1">{loading ? '…' : (wallet?.balance ?? 0)}</p>
-          <p className="text-sm" style={{ color: '#6B7280' }}>tokens disponibles</p>
+          <p className="text-sm" style={{ color: '#6B7280' }}>créditos disponibles</p>
         </div>
 
         {/* Buy extra downloads */}
@@ -82,13 +82,13 @@ export default function ResellerTokensPage() {
             <Zap size={26} />
           </div>
           <p className="font-black text-white mb-1">Comprar descargas extra</p>
-          <p className="text-xs mb-5" style={{ color: '#6B7280' }}>Cada descarga extra cuesta 10 tokens</p>
+          <p className="text-xs mb-5" style={{ color: '#6B7280' }}>Cada descarga extra cuesta 10 créditos</p>
           <div className="flex items-center gap-3 mb-4">
             <button onClick={() => setAmount(a => Math.max(1, a - 1))} className="w-10 h-10 rounded-xl font-black text-white transition-colors hover:bg-white/10" style={{ background: 'rgba(255,255,255,0.05)' }}>−</button>
             <span className="text-3xl font-black text-white w-16 text-center">{amount}</span>
             <button onClick={() => setAmount(a => a + 1)} className="w-10 h-10 rounded-xl font-black text-white transition-colors hover:bg-white/10" style={{ background: 'rgba(255,255,255,0.05)' }}>+</button>
           </div>
-          <p className="text-xs mb-4" style={{ color: '#6B7280' }}>Costo: <span className="font-black text-white">{amount * 10} tokens</span></p>
+          <p className="text-xs mb-4" style={{ color: '#6B7280' }}>Costo: <span className="font-black text-white">{amount * 10} créditos</span></p>
           <button onClick={handleBuy} disabled={buying || (wallet?.balance ?? 0) < amount * 10}
             className="w-full py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-40 flex items-center justify-center gap-2"
             style={{ background: '#34D399', color: '#0a0f0a' }}>

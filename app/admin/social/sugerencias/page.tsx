@@ -66,7 +66,7 @@ export default function SocialSuggestionsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-white">Sugerencias de la Comunidad</h2>
-          <p className="text-sm text-[#8B8FA8]">Aprobá o rechazá las películas/series que piden los usuarios. Aprobarlas les otorgará tokens automáticamente.</p>
+          <p className="text-sm text-[#8B8FA8]">Aprobá o rechazá las películas/series que piden los usuarios. Aprobarlas les otorgará créditos automáticamente.</p>
         </div>
         
         <div className="flex bg-[#1E1E3A] border border-[var(--border-subtle)] p-1 rounded-lg">

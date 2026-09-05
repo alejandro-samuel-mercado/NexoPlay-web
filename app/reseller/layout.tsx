@@ -11,7 +11,7 @@ const RESELLER_NAV = [
   { href: '/reseller/usuarios', icon: Users, label: 'Mis Clientes' },
   { href: '/reseller/descargas', icon: Download, label: 'Descargas' },
   { href: '/reseller/pack', icon: Package, label: 'Pack Semanal' },
-  { href: '/reseller/tokens', icon: Coins, label: 'Tokens' },
+  { href: '/reseller/tokens', icon: Coins, label: 'Créditos' },
 ];
 
 const C = '#34D399';

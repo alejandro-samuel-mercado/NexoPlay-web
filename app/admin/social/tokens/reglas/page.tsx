@@ -46,7 +46,7 @@ export default function TokenRulesPage() {
       });
       setEdits(newEdits);
     } catch (error) {
-      alert('Error al cargar reglas de tokens');
+      alert('Error al cargar reglas de créditos');
     } finally {
       setIsLoading(false);
     }
@@ -101,7 +101,7 @@ export default function TokenRulesPage() {
             <Settings className="text-[#E82C7C]" size={20} />
             Reglas de Recompensas
           </h2>
-          <p className="text-sm text-[#8B8FA8] mt-1">Configurá cuántos tokens ganan los usuarios por cada acción en la comunidad y el límite máximo por día.</p>
+          <p className="text-sm text-[#8B8FA8] mt-1">Configurá cuántos créditos ganan los usuarios por cada acción en la comunidad y el límite máximo por día.</p>
         </div>
       </div>
 

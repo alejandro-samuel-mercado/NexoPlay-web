@@ -383,7 +383,7 @@ export default function ResellerUsuariosPage() {
             <p className="text-sm mb-6 text-white/50 font-medium">Usuario: <span className="text-white">{assignModal.email}</span></p>
             <select value={selectedPlan} onChange={e => setSelectedPlan(e.target.value)} className={inputCls + ' mb-6 font-bold'}>
               <option value="" className="bg-[#0a0f0a]">Ninguno (remover plan)</option>
-              {plans.map(p => <option key={p.id} value={p.id} className="bg-[#0a0f0a]">{p.name} — {p.tokenCost || 0} tokens / {p.durationDays} días</option>)}
+              {plans.map(p => <option key={p.id} value={p.id} className="bg-[#0a0f0a]">{p.name} — {p.tokenCost || 0} créditos / {p.durationDays} días</option>)}
             </select>
             <div className="flex gap-3">
               <button onClick={() => setAssignModal(null)} className="flex-1 px-4 py-3 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors">Cancelar</button>

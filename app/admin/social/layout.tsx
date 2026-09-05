@@ -8,7 +8,7 @@ const SOCIAL_TABS = [
   { href: '/admin/social/metricas', label: 'Métricas', icon: BarChart2 },
   { href: '/admin/social/sugerencias', label: 'Sugerencias', icon: MessageCircleHeart },
   { href: '/admin/social/moderacion', label: 'Moderación', icon: AlertCircle },
-  { href: '/admin/social/tokens/reglas', label: 'Reglas de Tokens', icon: Coins },
+  { href: '/admin/social/tokens/reglas', label: 'Reglas de Créditos', icon: Coins },
   { href: '/admin/social/tokens/metas', label: 'Metas de Canje', icon: Target },
   { href: '/admin/social/tokens/canjes', label: 'Canjes Realizados', icon: Gift },
 ];
@@ -25,7 +25,7 @@ export default function SocialAdminLayout({ children }: { children: React.ReactN
           Vexa Social
         </h1>
         <p className="text-[#8B8FA8] mt-1">
-          Panel de administración para la red social y sistema de tokens.
+          Panel de administración para la red social y sistema de créditos.
         </p>
       </div>
 
