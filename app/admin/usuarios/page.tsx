@@ -106,7 +106,7 @@ function UsuariosContent() {
           </h1>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{total} usuarios registrados</p>
         </div>
-        <button onClick={() => setCreateModalType(mainTab === 'Clients' ? 'WIZARD' : mainTab === 'Resellers' ? 'WIZARD_RESELLERS' : 'STANDARD')} className="bg-[var(--color-primary)] text-black px-6 py-3 rounded-2xl font-black hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_20px_rgba(0,216,182,0.3)]">
+        <button onClick={() => setCreateModalType(mainTab === 'Clients' ? 'WIZARD' : mainTab === 'Resellers' ? 'WIZARD_RESELLERS' : 'WIZARD_ADMINS')} className="bg-[var(--color-primary)] text-black px-6 py-3 rounded-2xl font-black hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_20px_rgba(0,216,182,0.3)]">
           <UserPlus size={18} />
           {mainTab === 'Admins' ? 'Crear Administrador' : mainTab === 'Resellers' ? 'Crear Revendedor' : 'Crear Cliente Final'}
         </button>
@@ -360,54 +360,18 @@ function UsuariosContent() {
         />
       )}
 
-      {createModalType === 'STANDARD' && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[var(--bg-panel)] p-8 rounded-[24px] w-full max-w-sm border border-[var(--border-subtle)] backdrop-blur-xl shadow-2xl">
-            <h3 className="text-xl font-black text-white mb-6">Crear Nuevo {mainTab === 'Admins' ? 'Admin' : 'Revendedor'}</h3>
-            
-            <div className="mb-3">
-              <input type="text" placeholder="Nombre de usuario" value={newUser.username} onChange={e => setNewUser({...newUser, username: e.target.value})}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] outline-none" />
-              {!newUser.username && <p className="text-xs text-red-400 mt-1">Requerido</p>}
-            </div>
-            
-            <div className="mb-3">
-              <input type="password" placeholder="Contraseña" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] outline-none" />
-              {!newUser.password && <p className="text-xs text-red-400 mt-1">Requerida</p>}
-            </div>
-
-            <div className="mb-3">
-              <input type="password" placeholder="Confirmar Contraseña" value={newUser.confirmPassword} onChange={e => setNewUser({...newUser, confirmPassword: e.target.value})}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] outline-none" />
-              {newUser.password && newUser.confirmPassword && newUser.password !== newUser.confirmPassword && (
-                <p className="text-xs text-red-400 mt-1">Las contraseñas no coinciden</p>
-              )}
-            </div>
-            
-            <select value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-[var(--color-primary)] mb-6 outline-none font-bold text-[var(--color-primary)]">
-              {mainTab === 'Admins' && <option value="ADMIN">Administrador General</option>}
-              {mainTab === 'Resellers' && (
-                <>
-                  <option value="ADMIN_RESELLER">Admin Reseller</option>
-                  <option value="SUPER_RESELLER">Súper Revendedor</option>
-                  <option value="RESELLER">Revendedor</option>
-                </>
-              )}
-            </select>
-
-            <div className="flex gap-3 mt-4">
-              <button onClick={() => setCreateModalType(null)} className="px-4 py-3 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors flex-1">Cancelar</button>
-              <button 
-                disabled={!newUser.username || !newUser.password || !newUser.confirmPassword || (newUser.password !== newUser.confirmPassword)}
-                onClick={() => { handleCreateUser(); setCreateModalType(null); }} 
-                className="px-4 py-3 rounded-xl font-bold text-sm bg-[var(--color-primary)] text-black hover:scale-105 transition-transform flex-1 disabled:opacity-50 disabled:hover:scale-100"
-              >
-                Crear
-              </button>
-            </div>
-          </div>
-        </div>
+      {createModalType === 'WIZARD_ADMINS' && (
+        <UserWizardModal
+          onClose={() => setCreateModalType(null)}
+          onSuccess={() => {
+            setCreateModalType(null);
+            fetchUsers();
+          }}
+          creatorRole="ADMIN"
+          creatorName="Admin"
+          apiEndpoint="/api/admin/users/advanced"
+          mode="ADMINS"
+        />
       )}
 
       {/* Info Modal */}
