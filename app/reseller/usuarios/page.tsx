@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { Users, Search, ChevronDown, Crown, Shield, User, CheckCircle2, XCircle, Copy, Eye, EyeOff, UserPlus, RefreshCcw, Edit2 } from 'lucide-react';
-import { API_BASE, apiFetch } from '@/lib/api';
+import { API_BASE, apiFetch, API } from '@/lib/api';
 import { useSearchParams } from 'next/navigation';
 import UserWizardModal from '@/components/admin/UserWizardModal';
 import { useAuth } from '@/context/AuthContext';
@@ -42,7 +42,7 @@ function ResellerUsuariosContent() {
   const [selectedPlan, setSelectedPlan] = useState('');
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
   const [infoModal, setInfoModal] = useState<any | null>(null);
-  const [editModal, setEditModal] = useState<{ id: string; username: string; name: string; password?: string; isActive: boolean } | null>(null);
+  const [editModal, setEditModal] = useState<{ id: string; username: string; name: string; password?: string; isActive: boolean; planId?: string } | null>(null);
 
   const togglePassword = (id: string) => {
     setVisiblePasswords(prev => ({ ...prev, [id]: !prev[id] }));
