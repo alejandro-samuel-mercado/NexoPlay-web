@@ -129,9 +129,18 @@ export default function HomePage() {
         ...(data?.recent || []),
         ...(data?.trending || [])
     ];
-    const uniquePool = Array.from(new Map(pool.map((item: any) => [item.id, item])).values());
-    const heroList = uniquePool.length > 0 ? uniquePool.sort(() => Math.random() - 0.5).slice(0, 10) : MOCK_FILMS;
+    let uniquePool = Array.from(new Map(pool.map((item: any) => [item.id, item])).values());
+    for (let i = uniquePool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [uniquePool[i], uniquePool[j]] = [uniquePool[j], uniquePool[i]];
+    }
+    const heroList = uniquePool.length > 0 ? uniquePool.slice(0, 10) : MOCK_FILMS;
     const heroContent = heroList[0];
+    const heroIds = new Set(heroList.map((h: any) => h.id));
+
+    const filteredEstrenos = (estrenos || []).filter((item: any) => !heroIds.has(item.id));
+    const filteredTrending = (data?.trending || []).filter((item: any) => !heroIds.has(item.id));
+    const filteredRecent = (data?.recent || []).filter((item: any) => !heroIds.has(item.id));
 
     return (
         <PublicLayout>
@@ -166,17 +175,17 @@ export default function HomePage() {
                                 </>
                             ) : (
                                 <>
-                                    {estrenos && estrenos.length > 0 && (
-                                        <ContentRow title="Estrenos" items={estrenos} />
+                                    {filteredEstrenos && filteredEstrenos.length > 0 && (
+                                        <ContentRow title="Estrenos" items={filteredEstrenos} />
                                     )}
-                                    {data?.trending && data.trending.length > 0 && (
-                                        <div className={estrenos && estrenos.length > 0 ? "mt-8" : ""}>
-                                            <ContentRow title="Tendencias" items={data.trending} />
+                                    {filteredTrending && filteredTrending.length > 0 && (
+                                        <div className={filteredEstrenos && filteredEstrenos.length > 0 ? "mt-8" : ""}>
+                                            <ContentRow title="Tendencias" items={filteredTrending} />
                                         </div>
                                     )}
-                                    {data?.recent && data.recent.length > 0 && (
+                                    {filteredRecent && filteredRecent.length > 0 && (
                                         <div className="mt-8">
-                                            <ContentRow title="Agregados Recientemente" items={data.recent} />
+                                            <ContentRow title="Agregados Recientemente" items={filteredRecent} />
                                         </div>
                                     )}
                                 </>
