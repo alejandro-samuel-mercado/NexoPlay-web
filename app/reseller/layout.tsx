@@ -53,6 +53,7 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
         { href: '/reseller/usuarios?tab=Clients', label: 'Suscriptores' },
       ]
     },
+    ...(canSeeResellers ? [{ href: '/reseller/credit-packs', icon: Package, label: 'Packs de Créditos' }] : []),
     { href: '/reseller/descargas', icon: Download, label: 'Descargas' },
     { href: '/reseller/pack', icon: Package, label: 'Pack Semanal' },
     { href: '/reseller/tokens', icon: Coins, label: 'Créditos' },
