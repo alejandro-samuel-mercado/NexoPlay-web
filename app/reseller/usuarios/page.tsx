@@ -67,12 +67,13 @@ function ResellerUsuariosContent() {
   }, []);
 
   useEffect(() => {
-    if (tabParam) {
-      const validTab = (tabParam === 'Resellers' && canSeeResellers) ? 'Resellers' : 'Clients';
-      setMainTab(validTab);
-      setRole(getInitialRole(validTab));
-      if (validTab === 'Clients') setClientType('regular');
-      setPage(1);
+    if (tabParam === 'Resellers' && canSeeResellers) {
+      setMainTab('Resellers');
+      setRole(getInitialRole('Resellers'));
+    } else {
+      setMainTab('Clients');
+      setRole('SUBSCRIBER');
+      setClientType('regular');
     }
   }, [tabParam, user]);
 
@@ -167,24 +168,8 @@ function ResellerUsuariosContent() {
           </button>
         </div>
 
-        <div className="flex gap-2 bg-[var(--bg-panel)] border border-[var(--border-subtle)] p-1 rounded-xl w-full lg:w-fit overflow-x-auto">
-          {canSeeResellers && (
-            <button onClick={() => { setMainTab('Resellers'); setRole(getInitialRole('Resellers')); setPage(1); }} 
-              className={`shrink-0 px-5 py-2 rounded-lg text-xs font-bold transition-all ${mainTab === 'Resellers' ? 'bg-[#34D399]/20 text-[#34D399] shadow-sm' : 'text-white/40 hover:text-white/80'}`}>
-              Mis Revendedores
-            </button>
-          )}
-          <button onClick={() => { setMainTab('Clients'); setRole('SUBSCRIBER'); setClientType('regular'); setPage(1); }} 
-            className={`shrink-0 px-5 py-2 rounded-lg text-xs font-bold transition-all ${mainTab === 'Clients' && clientType === 'regular' ? 'bg-[#34D399]/20 text-[#34D399] shadow-sm' : 'text-white/40 hover:text-white/80'}`}>
-            Suscriptores
-          </button>
-          <button onClick={() => { setMainTab('Clients'); setRole('SUBSCRIBER'); setClientType('trial'); setPage(1); }} 
-            className={`shrink-0 px-5 py-2 rounded-lg text-xs font-bold transition-all ${mainTab === 'Clients' && clientType === 'trial' ? 'bg-[#34D399]/20 text-[#34D399] shadow-sm' : 'text-white/40 hover:text-white/80'}`}>
-            Cuentas de Prueba
-          </button>
-        </div>
       </div>
-      
+
       {/* Role specific sub-tabs if we are in Resellers tab */}
       {mainTab === 'Resellers' && canSeeResellers && (
         <div className="flex gap-2 mb-4 bg-[var(--bg-panel)] border border-[var(--border-subtle)] p-1 rounded-xl w-fit">
@@ -192,6 +177,14 @@ function ResellerUsuariosContent() {
             <button onClick={() => { setRole('SUPER_RESELLER'); setPage(1); }} className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'SUPER_RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Súper Revendedores</button>
           )}
           <button onClick={() => { setRole('RESELLER'); setPage(1); }} className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Revendedores Normales</button>
+        </div>
+      )}
+
+      {/* Client type sub-tabs if we are in Clients tab */}
+      {mainTab === 'Clients' && (
+        <div className="flex gap-2 mb-4 bg-[var(--bg-panel)] border border-[var(--border-subtle)] p-1 rounded-xl w-fit">
+          <button onClick={() => { setClientType('regular'); setPage(1); }} className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${clientType === 'regular' ? 'bg-[#34D399]/20 text-[#34D399] shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Cuentas normales</button>
+          <button onClick={() => { setClientType('trial'); setPage(1); }} className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${clientType === 'trial' ? 'bg-[#34D399]/20 text-[#34D399] shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Cuentas de Prueba</button>
         </div>
       )}
 
@@ -211,12 +204,8 @@ function ResellerUsuariosContent() {
                 <th className="text-right px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Acciones</th>
               </tr>
             </thead>
-            <tbody className={`transition-opacity duration-200 ${loading && users.length > 0 ? 'opacity-50 pointer-events-none' : ''}`}>
-              {loading && users.length === 0 ? (
-                Array.from({ length: 8 }).map((_, i) => (
-                  <tr key={i} className="border-b border-white/5"><td colSpan={8} className="px-5 py-4"><div className="h-10 bg-white/5 rounded-lg animate-pulse w-full" /></td></tr>
-                ))
-              ) : users.map((u) => {
+            <tbody className={`transition-opacity duration-200 ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
+              {users.map((u) => {
                 const rb = ROLE_BADGE[u.role] || ROLE_BADGE.SUBSCRIBER;
                 const isSubActive = u.subscription?.status === 'ACTIVE';
                 return (

@@ -1,18 +1,10 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
-import { Coins, Download, LayoutDashboard, LogOut, Package, ShieldCheck, Users } from 'lucide-react';
+import { Coins, Download, LayoutDashboard, LogOut, Package, ShieldCheck, Users, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-
-const RESELLER_NAV = [
-  { href: '/reseller', icon: LayoutDashboard, label: 'Dashboard', exact: true },
-  { href: '/reseller/usuarios', icon: Users, label: 'Mis Clientes' },
-  { href: '/reseller/descargas', icon: Download, label: 'Descargas' },
-  { href: '/reseller/pack', icon: Package, label: 'Pack Semanal' },
-  { href: '/reseller/tokens', icon: Coins, label: 'Créditos' },
-];
+import { useEffect, useState } from 'react';
 
 const C = '#34D399';
 const CB = 'rgba(52,211,153,0.15)';
@@ -21,6 +13,7 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const { user, isLoading, logout } = useAuth();
   const router = useRouter();
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
 
   const isLoginPage = pathname === '/reseller/login';
 
@@ -46,6 +39,24 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
 
   const handleLogout = async () => { await logout(); router.replace('/reseller/login'); };
 
+  const canSeeResellers = user.role === 'SUPER_RESELLER' || user.role === 'ADMIN_RESELLER';
+
+  const RESELLER_NAV = [
+    { href: '/reseller', icon: LayoutDashboard, label: 'Dashboard', exact: true },
+    { 
+      href: '/reseller/usuarios', 
+      icon: Users, 
+      label: 'Mis Clientes',
+      subItems: [
+        ...(canSeeResellers ? [{ href: '/reseller/usuarios?tab=Resellers', label: 'Revendedores' }] : []),
+        { href: '/reseller/usuarios?tab=Clients', label: 'Suscriptores' },
+      ]
+    },
+    { href: '/reseller/descargas', icon: Download, label: 'Descargas' },
+    { href: '/reseller/pack', icon: Package, label: 'Pack Semanal' },
+    { href: '/reseller/tokens', icon: Coins, label: 'Créditos' },
+  ];
+
   return (
     <div className="serivia-layout">
       {/* Desktop Sidebar */}
@@ -61,14 +72,59 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
         </div>
 
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {RESELLER_NAV.map(({ href, icon: Icon, label, exact }) => {
-            const active = exact ? pathname === href : pathname.startsWith(href);
+          {RESELLER_NAV.map((item) => {
+            const isPathActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+            const isExpanded = item.subItems ? (expandedMenus[item.href] !== undefined ? expandedMenus[item.href] : isPathActive) : false;
+            const Icon = item.icon;
+
             return (
-              <Link key={href} href={href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-sm font-bold transition-all ${active ? 'text-[#0a0f0a] shadow-md' : 'text-[#8B8FA8] hover:text-white hover:bg-white/5'}`}
-                style={active ? { background: C } : {}}>
-                <Icon size={17} /> {label}
-              </Link>
+              <div key={item.href}>
+                <Link
+                  href={item.href}
+                  onClick={(e) => {
+                    if (item.subItems) {
+                      if (isPathActive) {
+                        e.preventDefault();
+                        setExpandedMenus(prev => ({ ...prev, [item.href]: !isExpanded }));
+                      } else {
+                        setExpandedMenus(prev => ({ ...prev, [item.href]: true }));
+                      }
+                    }
+                  }}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-sm font-bold transition-all group ${
+                    isPathActive ? 'text-white shadow-md' : 'text-[#8B8FA8] hover:text-white hover:bg-white/5'
+                  }`}
+                  style={isPathActive && !item.subItems ? { background: C, color: '#0a0f0a' } : {}}
+                >
+                  <Icon size={17} />
+                  <span className="flex-1">{item.label}</span>
+                  {item.subItems && (
+                    <ChevronDown size={14} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                  )}
+                </Link>
+
+                {item.subItems && isExpanded && (
+                  <div className="mt-1 ml-4 border-l-2 border-white/5 pl-2 space-y-1">
+                    {item.subItems.map(subItem => {
+                      const search = typeof window !== 'undefined' ? window.location.search : '';
+                      const currentFull = pathname + search;
+                      const isSubActive = currentFull.includes(subItem.href.split('?')[1] || '') && pathname === subItem.href.split('?')[0];
+                      
+                      return (
+                        <Link
+                          key={subItem.href}
+                          href={subItem.href}
+                          className={`block px-3 py-2 text-xs font-bold rounded-lg transition-colors ${
+                            isSubActive ? 'bg-white/10 text-white' : 'text-[#8B8FA8] hover:text-white hover:bg-white/5'
+                          }`}
+                        >
+                          {subItem.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>

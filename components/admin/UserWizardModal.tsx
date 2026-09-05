@@ -70,7 +70,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
       const planCost = plans.find(p => p.id === formData.planId)?.tokenCost || 0;
       const totalCost = formData.credits + planCost;
       if ((type === 'SUBSCRIBER' || type === 'RESELLER') && creatorRole !== 'ADMIN' && totalCost > creatorBalance) {
-        setError(`Créditos insuficientes. Tienes ${creatorBalance} y necesitas ${totalCost}`);
+        window.alert(`Créditos insuficientes. Tienes ${creatorBalance} y necesitas ${totalCost}.`);
         return;
       }
     }
@@ -418,7 +418,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
           </button>
           
           <button 
-            disabled={(step === 2 && !isStep2Valid) || loading || (step === 3 && (type === 'SUBSCRIBER' || type === 'RESELLER') && (formData.credits + (plans.find(p => p.id === formData.planId)?.tokenCost || 0)) > creatorBalance && creatorRole !== 'ADMIN')}
+            disabled={(step === 2 && !isStep2Valid) || loading}
             onClick={step === 3 ? handleCreate : handleNext} 
             className="px-6 py-3 rounded-xl font-black text-sm hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:scale-100" 
             style={{ background: 'var(--color-primary)', color: '#0a0f0a', flex: 2 }}>
