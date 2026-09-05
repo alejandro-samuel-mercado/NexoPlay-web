@@ -235,7 +235,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                       <select value={formData.planId} onChange={e => setFormData({ ...formData, planId: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors appearance-none">
                         <option value="" className="bg-gray-900">Sin plan (Por defecto)</option>
                         {plans.map(p => (
-                          <option key={p.id} value={p.id} className="bg-gray-900">{p.name} — {p.tokenCost || 0} créditos</option>
+                          <option key={p.id} value={p.id} className="bg-gray-900">{p.name} {creatorRole !== 'ADMIN' ? `— ${p.tokenCost || 0} créditos` : ''}</option>
                         ))}
                       </select>
                     </div>
