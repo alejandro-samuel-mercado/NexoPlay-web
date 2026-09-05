@@ -8,7 +8,7 @@ interface NexoUser {
   email: string;
   name: string | null;
   username: string | null;
-  role: 'GUEST' | 'SUBSCRIBER' | 'RESELLER' | 'FRANCHISEE' | 'ADMIN';
+  role: 'GUEST' | 'SUBSCRIBER' | 'RESELLER' | 'SUPER_RESELLER' | 'ADMIN_RESELLER' | 'ADMIN';
   avatarUrl: string | null;
   subscription: {
     status: string;
@@ -191,8 +191,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ),
       isAdmin: user?.role === 'ADMIN',
       isReseller: user?.role === 'RESELLER' || user?.role === 'ADMIN',
-      isFranchisee: user?.role === 'FRANCHISEE' || user?.role === 'ADMIN',
-      showAds: !user ? true : (['ADMIN', 'RESELLER', 'FRANCHISEE'].includes(user.role) ? false : (user.subscription?.status === 'ACTIVE' && new Date(user.subscription.expiresAt) > new Date() ? !!user.subscription.plan?.showAds : true)),
+      isFranchisee: user?.role === 'SUPER_RESELLER' || user?.role === 'ADMIN_RESELLER' || user?.role === 'ADMIN',
+      showAds: !user ? true : (['ADMIN', 'ADMIN_RESELLER', 'SUPER_RESELLER', 'RESELLER'].includes(user.role) ? false : (user.subscription?.status === 'ACTIVE' && new Date(user.subscription.expiresAt) > new Date() ? !!user.subscription.plan?.showAds : true)),
       login,
       register,
       logout,

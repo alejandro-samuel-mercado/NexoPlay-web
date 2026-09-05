@@ -227,7 +227,7 @@ function PublicTopBarContent() {
                   {user.username || user.name || (user.email?.endsWith('@Vexa.com') ? user.email.split('@')[0] : user.email)}
                 </span>
                 <span className="text-[10px] text-[var(--color-primary)] font-black uppercase tracking-wider leading-tight mt-0.5">
-                  {user.role === 'GUEST' ? 'Invitado' : user.role === 'SUBSCRIBER' ? 'Suscriptor' : user.role === 'RESELLER' ? 'Revendedor' : user.role === 'FRANCHISEE' ? 'Franquicia' : 'Administrador'}
+                  {user.role === 'GUEST' ? 'Invitado' : user.role === 'SUBSCRIBER' ? 'Suscriptor' : user.role === 'RESELLER' ? 'Revendedor' : user.role === 'SUPER_RESELLER' ? 'Súper Revendedor' : user.role === 'ADMIN_RESELLER' ? 'Admin Reseller' : 'Administrador'}
                 </span>
               </div>
               <ChevronDown size={16} className={`text-[var(--text-muted)] hidden sm:block ml-1 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />

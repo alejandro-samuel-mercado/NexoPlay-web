@@ -28,7 +28,7 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
     if (isLoginPage) return;
     if (!isLoading) {
       if (!user) router.replace('/reseller/login');
-      else if (user.role !== 'RESELLER') router.replace('/reseller/login?error=no-access');
+      else if (!['RESELLER', 'SUPER_RESELLER', 'ADMIN_RESELLER'].includes(user.role)) router.replace('/reseller/login?error=no-access');
     }
   }, [isLoading, user, router, isLoginPage]);
 
@@ -42,7 +42,7 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
     );
   }
 
-  if (!user || user.role !== 'RESELLER') return null;
+  if (!user || !['RESELLER', 'SUPER_RESELLER', 'ADMIN_RESELLER'].includes(user.role)) return null;
 
   const handleLogout = async () => { await logout(); router.replace('/reseller/login'); };
 
@@ -80,7 +80,7 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-black text-white truncate">{user.name || user.username || user.email}</p>
-              <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md inline-block" style={{ background: CB, color: C }}>REVENDEDOR</span>
+              <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md inline-block" style={{ background: CB, color: C }}>{user.role}</span>
             </div>
           </div>
           <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2 rounded-[10px] text-xs font-bold transition-all hover:bg-white/5" style={{ color: '#FF6B6B' }}>

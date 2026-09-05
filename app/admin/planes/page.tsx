@@ -50,7 +50,7 @@ export default function PlanesAdminPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('¿Seguro que deseas eliminar este plan?')) return;
     try {
-      await apiFetch(`/api/admin/subscriptions/${id}`, { method: 'DELETE' });
+      await apiFetch(API.ADMIN.SUBSCRIPTION(id), { method: 'DELETE' });
       fetch_();
     } catch (e: any) { alert(e.message); }
   };
@@ -75,7 +75,7 @@ export default function PlanesAdminPage() {
       if (modal === 'edit') {
         await apiFetch(API.ADMIN.SUBSCRIPTION(editingId!), { method: 'PATCH', body: JSON.stringify(payload) });
       } else {
-        await apiFetch(`/api/admin/subscriptions`, { method: 'POST', body: JSON.stringify({...payload, role: form.role, tier: form.tier}) });
+        await apiFetch(API.ADMIN.SUBSCRIPTIONS, { method: 'POST', body: JSON.stringify({...payload, role: form.role, tier: form.tier}) });
       }
       
       setModal(null);
