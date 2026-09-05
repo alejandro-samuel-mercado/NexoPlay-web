@@ -20,7 +20,7 @@ function UsuariosContent() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [assignModal, setAssignModal] = useState<{ userId: string; email: string; role: string } | null>(null);
-  const [createModalType, setCreateModalType] = useState<'STANDARD' | 'WIZARD' | 'WIZARD_RESELLERS' | null>(null);
+  const [createModalType, setCreateModalType] = useState<'WIZARD_ADMINS' | 'WIZARD' | 'WIZARD_RESELLERS' | null>(null);
   const [newUser, setNewUser] = useState({ username: '', password: '', confirmPassword: '', role: 'SUBSCRIBER' });
   const [selectedPlan, setSelectedPlan] = useState('');
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
@@ -166,10 +166,10 @@ function UsuariosContent() {
               <tr className="border-b border-[var(--border-subtle)] bg-black/20">
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Usuario</th>
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Creado</th>
-                {mainTab !== 'Admins' && <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Suscripción</th>}
-                {mainTab !== 'Admins' && <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Vencimiento</th>}
+                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Suscripción</th>
+                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Vencimiento</th>
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">{mainTab === 'Clients' ? 'Pantallas Activas' : 'Cuentas Activas'}</th>
-                {mainTab !== 'Admins' && <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Créditos</th>}
+                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Créditos</th>
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Estado</th>
                 <th className="text-right px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Acciones</th>
               </tr>
@@ -177,7 +177,7 @@ function UsuariosContent() {
             <tbody className={`transition-opacity duration-200 ${loading && users.length > 0 ? 'opacity-50 pointer-events-none' : ''}`}>
               {loading && users.length === 0 ? (
                 Array.from({ length: 8 }).map((_, i) => (
-                  <tr key={i} className="border-b border-white/5"><td colSpan={mainTab !== 'Admins' ? 8 : 5} className="px-5 py-4"><div className="h-10 bg-white/5 rounded-lg animate-pulse w-full" /></td></tr>
+                  <tr key={i} className="border-b border-white/5"><td colSpan={8} className="px-5 py-4"><div className="h-10 bg-white/5 rounded-lg animate-pulse w-full" /></td></tr>
                 ))
               ) : users.map((u) => {
                 const rb = ROLE_BADGE[u.role] || ROLE_BADGE.SUBSCRIBER;
@@ -219,39 +219,41 @@ function UsuariosContent() {
                         {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '-'}
                       </span>
                     </td>
-                    {mainTab !== 'Admins' && (
-                      <td className="px-4 py-3">
-                        {isSubActive ? (
-                          <div className="flex items-center gap-2">
-                            <Crown size={14} className="text-[var(--color-primary)]" />
-                            <span className="text-white font-bold text-[13px]">{u.subscription?.planName || 'Plan'}</span>
-                          </div>
-                        ) : (
-                          <span className="text-[var(--text-muted)] text-[12px]">Sin suscripción</span>
-                        )}
-                      </td>
-                    )}
-                    {mainTab !== 'Admins' && (
-                      <td className="px-4 py-3">
-                        {isSubActive && u.subscription?.expiresAt ? (
-                          <span className="text-[12px] font-bold text-white/90">
-                            {new Date(u.subscription.expiresAt).toLocaleDateString()}
-                          </span>
-                        ) : (
-                          <span className="text-[var(--text-muted)] text-[12px]">-</span>
-                        )}
-                      </td>
-                    )}
+                    <td className="px-4 py-3">
+                      {u.role === 'ADMIN' ? (
+                        <span className="text-[var(--text-muted)] text-[12px]">-</span>
+                      ) : isSubActive ? (
+                        <div className="flex items-center gap-2">
+                          <Crown size={14} className="text-[var(--color-primary)]" />
+                          <span className="text-white font-bold text-[13px]">{u.subscription?.planName || 'Plan'}</span>
+                        </div>
+                      ) : (
+                        <span className="text-[var(--text-muted)] text-[12px]">Sin suscripción</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {u.role === 'ADMIN' ? (
+                        <span className="text-[var(--text-muted)] text-[12px]">-</span>
+                      ) : isSubActive && u.subscription?.expiresAt ? (
+                        <span className="text-[12px] font-bold text-white/90">
+                          {new Date(u.subscription.expiresAt).toLocaleDateString()}
+                        </span>
+                      ) : (
+                        <span className="text-[var(--text-muted)] text-[12px]">-</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <span className="text-[12px] font-bold text-white/90">
                           {u.activeClients !== undefined ? u.activeClients : 0} Activas
                       </span>
                     </td>
-                    {mainTab !== 'Admins' && (
-                      <td className="px-4 py-3">
+                    <td className="px-4 py-3">
+                      {u.role === 'ADMIN' ? (
+                        <span className="text-[var(--text-muted)] text-[12px]">-</span>
+                      ) : (
                         <span className="text-[12px] font-bold text-[var(--color-primary)]">{u.tokens || 0}</span>
-                      </td>
-                    )}
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       {u.isActive ? (
                         <span className="text-green-400 font-bold flex items-center gap-1.5 text-[12px]"><CheckCircle2 size={14}/> Activo</span>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { UserPlus, User, Lock, Mail, Phone, Clock, Coins, MonitorPlay, CheckCircle2, ChevronRight, ChevronLeft, Loader2, Crown } from 'lucide-react';
+import { UserPlus, User, Lock, Mail, Phone, Clock, Coins, MonitorPlay, CheckCircle2, ChevronRight, ChevronLeft, Loader2, Crown, Gift } from 'lucide-react';
 import { apiFetch, API_BASE } from '@/lib/api';
 
 interface UserWizardModalProps {
@@ -34,6 +34,8 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
   });
 
   const [plans, setPlans] = useState<any[]>([]);
+  const [packages, setPackages] = useState<any[]>([]);
+  const [creditMode, setCreditMode] = useState<'manual'|'package'>('manual');
 
   const [creatorBalance, setCreatorBalance] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -51,6 +53,11 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
           p.isActive && !p.name.toUpperCase().includes('PRUEBA') && 
           (mode === 'RESELLERS' ? p.role === 'RESELLER' : p.role === 'SUBSCRIBER')
         ));
+      }
+    });
+    apiFetch(`${API_BASE}/api/tokens/packages`).then(r => {
+      if (r.success) {
+        setPackages(r.data.filter((p: any) => p.isActive));
       }
     });
   }, []);
@@ -174,12 +181,21 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
               {mode === 'ADMINS' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <button
-                    onClick={() => setFormData({ ...formData, role: 'ADMIN' })}
+                    onClick={() => { setType('ADMIN'); setFormData({ ...formData, role: 'ADMIN' }); }}
                     className={`p-6 rounded-2xl border-2 text-left transition-all ${formData.role === 'ADMIN' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}
                   >
                     <User size={32} className={`mb-4 ${formData.role === 'ADMIN' ? 'text-[var(--color-primary)]' : 'text-white/40'}`} />
                     <h5 className="text-white font-bold text-lg mb-2">Administrador General</h5>
                     <p className="text-sm text-white/50">Acceso total al sistema. No requiere créditos ni planes.</p>
+                  </button>
+
+                  <button
+                    onClick={() => { setType('RESELLER'); setFormData({ ...formData, role: 'ADMIN_RESELLER' }); }}
+                    className={`p-6 rounded-2xl border-2 text-left transition-all ${formData.role === 'ADMIN_RESELLER' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}
+                  >
+                    <Crown size={32} className={`mb-4 ${formData.role === 'ADMIN_RESELLER' ? 'text-[var(--color-primary)]' : 'text-white/40'}`} />
+                    <h5 className="text-white font-bold text-lg mb-2">Admin Revendedores</h5>
+                    <p className="text-sm text-white/50">Control máximo sobre revendedores. No requiere créditos.</p>
                   </button>
                 </div>
               )}
@@ -265,20 +281,47 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                           <span>Créditos a Asignar</span>
                           <span className="text-[var(--color-primary)] normal-case">Saldo: {creatorBalance}</span>
                         </label>
-                        <div className="relative">
-                          <Coins size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-primary)]" />
-                          <input type="number" min="0" value={formData.credits} onChange={e => setFormData({ ...formData, credits: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white font-bold focus:border-[var(--color-primary)] focus:outline-none transition-colors" />
+                        
+                        <div className="flex gap-2 mb-2">
+                          <button 
+                            className={`flex-1 py-1.5 text-xs font-bold rounded-lg border ${creditMode === 'manual' ? 'bg-[var(--color-primary)]/20 border-[var(--color-primary)] text-[var(--color-primary)]' : 'border-white/10 text-white/40 hover:bg-white/5'}`}
+                            onClick={() => setCreditMode('manual')}
+                          >
+                            Manual
+                          </button>
+                          <button 
+                            className={`flex-1 py-1.5 text-xs font-bold rounded-lg border ${creditMode === 'package' ? 'bg-[var(--color-primary)]/20 border-[var(--color-primary)] text-[var(--color-primary)]' : 'border-white/10 text-white/40 hover:bg-white/5'}`}
+                            onClick={() => setCreditMode('package')}
+                          >
+                            Por Paquete
+                          </button>
                         </div>
+
+                        {creditMode === 'manual' ? (
+                          <div className="relative">
+                            <Coins size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-primary)]" />
+                            <input type="number" min="0" value={formData.credits} onChange={e => setFormData({ ...formData, credits: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white font-bold focus:border-[var(--color-primary)] focus:outline-none transition-colors" />
+                          </div>
+                        ) : (
+                          <div className="relative">
+                            <Gift size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-primary)]" />
+                            <select 
+                              onChange={e => {
+                                const pkg = packages.find(p => p.id === e.target.value);
+                                if (pkg) setFormData({ ...formData, credits: pkg.tokens });
+                              }}
+                              className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors appearance-none"
+                            >
+                              <option value="" className="bg-gray-900">Seleccionar Paquete</option>
+                              {packages.map(p => (
+                                <option key={p.id} value={p.id} className="bg-gray-900">{p.name} — {p.tokens} créditos</option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
                         <p className="text-xs text-white/40 mt-2">Los créditos asignados se descontarán de tu saldo.</p>
                       </div>
-                      <div>
-                        <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Conexiones Máximas</label>
-                        <div className="relative">
-                          <MonitorPlay size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
-                          <input type="number" min="1" max="10" value={formData.maxScreens} onChange={e => setFormData({ ...formData, maxScreens: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors" />
-                        </div>
-                      </div>
-                      <div className="col-span-1 sm:col-span-2">
+                      <div className="sm:border-l sm:border-white/10 sm:pl-4">
                         <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">{type === 'RESELLER' ? 'Plan B2B' : 'Plan'} (Opcional)</label>
                         <div className="relative">
                           <Crown size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-primary)]" />
@@ -290,6 +333,16 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                           </select>
                         </div>
                       </div>
+                      
+                      {type === 'SUBSCRIBER' && (
+                        <div>
+                          <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Conexiones Máximas</label>
+                          <div className="relative">
+                            <MonitorPlay size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
+                            <input type="number" min="1" max="10" value={formData.maxScreens} onChange={e => setFormData({ ...formData, maxScreens: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors" />
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -309,7 +362,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                 </div>
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                   <p className="text-xs font-bold text-white/40 uppercase mb-1">Tipo de Cuenta</p>
-                  <p className="text-white font-bold">{type === 'TRIAL' ? 'Prueba (Gratuita)' : type === 'RESELLER' ? (formData.role === 'SUPER_RESELLER' ? 'Súper Revendedor' : 'Revendedor Básico') : type === 'ADMIN' ? 'Administrador General' : 'Cliente Final'}</p>
+                  <p className="text-white font-bold">{type === 'TRIAL' ? 'Prueba (Gratuita)' : type === 'RESELLER' ? (formData.role === 'SUPER_RESELLER' ? 'Súper Revendedor' : formData.role === 'ADMIN_RESELLER' ? 'Admin Revendedores' : 'Revendedor Básico') : type === 'ADMIN' ? 'Administrador General' : 'Cliente Final'}</p>
                 </div>
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                   <p className="text-xs font-bold text-white/40 uppercase mb-1">Usuario</p>
