@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { CheckCircle2, Copy, Crown, Eye, EyeOff, Search, Users, XCircle, UserPlus, Phone, Mail, User, Shield } from 'lucide-react';
+import { CheckCircle2, Copy, Crown, Eye, EyeOff, Search, Users, XCircle, UserPlus, Phone, Mail, User, Shield, RefreshCcw } from 'lucide-react';
 import { API_BASE, API, apiFetch } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import UserWizardModal from '@/components/admin/UserWizardModal';
@@ -15,6 +15,8 @@ export default function ResellerUsuariosPage() {
   const [search, setSearch] = useState('');
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [tab, setTab] = useState<'Clients' | 'Resellers'>('Clients');
+  const [clientType, setClientType] = useState<'regular' | 'trial'>('regular');
   
   const [createModalType, setCreateModalType] = useState<'STANDARD' | 'WIZARD' | null>(null);
   const [assignModal, setAssignModal] = useState<{ userId: string; email: string } | null>(null);
@@ -27,15 +29,20 @@ export default function ResellerUsuariosPage() {
 
   const showToast = (msg: string, ok = true) => { setToast({ msg, ok }); setTimeout(() => setToast(null), 3200); };
 
-  const fetchUsers = async (s = search) => {
+  const fetchUsers = async (s = search, t = tab, ct = clientType) => {
     setLoading(true);
+    const roleParam = t === 'Resellers' ? 'RESELLER' : ''; // simplified
     const params = new URLSearchParams({ limit: '15', page: String(page), ...(s ? { search: s } : {}) });
+    if (t === 'Clients') params.append('clientType', ct);
+    else params.append('role', 'RESELLER'); // API will need to support role filter for resellers if needed, or we just rely on the API returning both if no role is passed, but wait! The API doesn't support role filter for reseller yet!
+    // Actually, in `reseller.router.ts`, we didn't add role filter! Let's pass it anyway.
+    if (t === 'Resellers') params.append('role', 'RESELLER');
     const res = await apiFetch(R(`/users?${params}`)).catch(() => null);
     if (res?.success) { setUsers(res.data || []); setTotal(res.meta?.total || res.data?.length || 0); }
     setLoading(false);
   };
 
-  useEffect(() => { fetchUsers(); }, [page]);
+  useEffect(() => { fetchUsers(); }, [page, tab, clientType]);
   useEffect(() => {
     apiFetch(`${API_BASE}/api/tokens/plans`).then(r => { 
       if (r.success) setPlans(r.data?.filter((p: any) => p.role === 'SUBSCRIBER' || p.role === 'GUEST' || p.role === 'RESELLER') || []); 
@@ -132,14 +139,36 @@ export default function ResellerUsuariosPage() {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="relative max-w-xl group">
-        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-[#34D399] transition-colors" />
-        <input value={search}
-          onChange={e => setSearch(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && fetchUsers()}
-          placeholder="Buscar por usuario, email o nombre..."
-          className="w-full bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-2xl pl-12 pr-4 py-3.5 text-sm text-white outline-none focus:border-[#34D399]/50 focus:bg-white/5 transition-all shadow-lg" />
+      {/* Tabs & Search */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        {/* Search Bar */}
+        <div className="flex gap-3 w-full lg:w-auto">
+          <div className="relative flex-1 lg:w-72 group">
+            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-[#34D399] transition-colors" />
+            <input value={search}
+              onChange={e => setSearch(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && fetchUsers()}
+              placeholder="Buscar por usuario, email o nombre..."
+              className="w-full bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-2xl pl-12 pr-4 py-3 text-sm text-white outline-none focus:border-[#34D399]/50 focus:bg-white/5 transition-all shadow-lg" />
+          </div>
+          <button 
+            onClick={() => fetchUsers()} 
+            disabled={loading}
+            className="p-3 rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-subtle)] text-white hover:text-[#34D399] hover:border-[#34D399] transition-all flex items-center justify-center disabled:opacity-50"
+            title="Refrescar"
+          >
+            <RefreshCcw size={20} className={loading ? 'animate-spin text-[#34D399]' : ''} />
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-2 bg-[var(--bg-panel)] border border-[var(--border-subtle)] p-1 rounded-xl w-full lg:w-fit overflow-x-auto">
+          {(user?.role === 'SUPER_RESELLER' || user?.role === 'ADMIN_RESELLER') && (
+            <button onClick={() => { setTab('Resellers'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${tab === 'Resellers' ? 'bg-[#34D399]/20 text-[#34D399] shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Mis Revendedores</button>
+          )}
+          <button onClick={() => { setTab('Clients'); setClientType('regular'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${tab === 'Clients' && clientType === 'regular' ? 'bg-[#34D399]/20 text-[#34D399] shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Suscriptores</button>
+          <button onClick={() => { setTab('Clients'); setClientType('trial'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${tab === 'Clients' && clientType === 'trial' ? 'bg-[#34D399]/20 text-[#34D399] shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Cuentas de Prueba</button>
+        </div>
       </div>
 
       {/* Table */}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { Users, Search, ChevronDown, Crown, Shield, User, CheckCircle2, XCircle, Copy, Eye, EyeOff, UserPlus } from 'lucide-react';
+import { Users, Search, ChevronDown, Crown, Shield, User, CheckCircle2, XCircle, Copy, Eye, EyeOff, UserPlus, RefreshCcw } from 'lucide-react';
 import { API, apiFetch } from '@/lib/api';
 import { useSearchParams } from 'next/navigation';
 import UserWizardModal from '@/components/admin/UserWizardModal';
@@ -16,6 +16,7 @@ function UsuariosContent() {
   const [search, setSearch] = useState('');
   const [mainTab, setMainTab] = useState<'Admins' | 'Resellers' | 'Clients'>(tabParam || 'Admins');
   const [role, setRole] = useState(tabParam === 'Resellers' ? 'SUPER_RESELLER' : tabParam === 'Clients' ? 'SUBSCRIBER' : 'ADMIN');
+  const [clientType, setClientType] = useState<'regular' | 'trial'>('regular');
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [assignModal, setAssignModal] = useState<{ userId: string; email: string; role: string } | null>(null);
@@ -33,12 +34,13 @@ function UsuariosContent() {
     setLoading(true);
     const currentSearch = forceSearch !== undefined ? forceSearch : search;
     const params = new URLSearchParams({ limit: '15', page: page.toString(), ...(currentSearch ? { search: currentSearch } : {}), ...(role ? { role } : {}) });
+    if (mainTab === 'Clients') params.append('clientType', clientType);
     const res = await apiFetch(`${API.ADMIN.USERS}?${params}`);
     if (res.success) { setUsers(res.data || []); setTotal(res.meta?.total || 0); }
     setLoading(false);
   };
 
-  useEffect(() => { fetchUsers(); }, [page, role]);
+  useEffect(() => { fetchUsers(); }, [page, role, clientType, mainTab]);
   useEffect(() => {
     apiFetch(API.ADMIN.PLANS).then(res => { if (res.success) setPlans(res.data || []); });
   }, []);
@@ -48,7 +50,7 @@ function UsuariosContent() {
       setMainTab(tabParam);
       if (tabParam === 'Admins') setRole('ADMIN');
       else if (tabParam === 'Resellers') setRole('SUPER_RESELLER');
-      else if (tabParam === 'Clients') setRole('SUBSCRIBER');
+      else if (tabParam === 'Clients') { setRole('SUBSCRIBER'); setClientType('regular'); }
       setPage(1);
     }
   }, [tabParam]);
@@ -113,16 +115,26 @@ function UsuariosContent() {
       {/* Search and Sub Tabs */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
         {/* Search */}
-        <form onSubmit={handleSearch} className="relative w-full lg:w-72">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
-          <input value={search} onChange={(e) => {
-            setSearch(e.target.value);
-            if (e.target.value === '') fetchUsers('');
-          }}
-            placeholder="Buscar por email o nombre..." 
-            className="w-full bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-xl pl-11 pr-4 py-2 text-sm text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors backdrop-blur-md" 
-          />
-        </form>
+        <div className="flex items-center gap-3 w-full lg:w-auto">
+          <form onSubmit={handleSearch} className="relative flex-1 lg:w-72">
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+            <input value={search} onChange={(e) => {
+              setSearch(e.target.value);
+              if (e.target.value === '') fetchUsers('');
+            }}
+              placeholder="Buscar por email o nombre..." 
+              className="w-full bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-xl pl-11 pr-4 py-2 text-sm text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors backdrop-blur-md" 
+            />
+          </form>
+          <button 
+            onClick={() => fetchUsers(search)} 
+            disabled={loading}
+            className="p-2.5 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-subtle)] text-white hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-all flex items-center justify-center disabled:opacity-50"
+            title="Refrescar"
+          >
+            <RefreshCcw size={18} className={loading ? 'animate-spin text-[var(--color-primary)]' : ''} />
+          </button>
+        </div>
 
         <div className="flex gap-2 bg-[var(--bg-panel)] border border-[var(--border-subtle)] p-1 rounded-xl w-full lg:w-fit overflow-x-auto">
           {mainTab === 'Admins' && (
@@ -135,6 +147,12 @@ function UsuariosContent() {
             <>
               <button onClick={() => { setRole('SUPER_RESELLER'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'SUPER_RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Súper Revendedores</button>
               <button onClick={() => { setRole('RESELLER'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Revendedores Normales</button>
+            </>
+          )}
+          {mainTab === 'Clients' && (
+            <>
+              <button onClick={() => { setRole('SUBSCRIBER'); setClientType('regular'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${clientType === 'regular' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Suscriptores</button>
+              <button onClick={() => { setRole('SUBSCRIBER'); setClientType('trial'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${clientType === 'trial' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Cuentas de Prueba</button>
             </>
           )}
         </div>
