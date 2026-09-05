@@ -182,8 +182,8 @@ export default function ResellerUsuariosPage() {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
-              {loading ? Array.from({ length: 6 }).map((_, i) => (
+            <tbody className={`divide-y divide-white/5 transition-opacity duration-200 ${loading && users.length > 0 ? 'opacity-50 pointer-events-none' : ''}`}>
+              {loading && users.length === 0 ? Array.from({ length: 6 }).map((_, i) => (
                 <tr key={i}>
                   <td colSpan={6} className="px-5 py-5"><div className="h-12 bg-white/5 rounded-xl animate-pulse" /></td>
                 </tr>

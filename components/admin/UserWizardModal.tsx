@@ -226,13 +226,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
           {/* STEP 3 */}
           {step === 3 && (
             <div className="space-y-6">
-              <div className="p-6 rounded-2xl bg-black/40 border border-white/10 text-center">
-                <div className="w-16 h-16 rounded-full bg-[var(--color-primary)]/20 mx-auto flex items-center justify-center mb-4">
-                  <CheckCircle2 size={32} className="text-[var(--color-primary)]" />
-                </div>
-                <h4 className="text-xl font-black text-white mb-1">Confirmar Creación</h4>
-                <p className="text-white/50 text-sm">Verifica los datos antes de guardar</p>
-              </div>
+              
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 p-4 rounded-xl bg-white/5 border border-white/10">
@@ -268,12 +262,12 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-white/60">Costo de esta operación:</span>
-                  <span className="font-bold text-red-400">-{type === 'TRIAL' ? 0 : formData.credits}</span>
+                  <span className="font-bold text-red-400">-{type === 'TRIAL' || creatorRole === 'ADMIN' ? 0 : formData.credits}</span>
                 </div>
                 <hr className="border-[var(--color-primary)]/20" />
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-white">Tus Créditos Finales:</span>
-                  <span className="font-black text-lg text-[var(--color-primary)]">{creatorBalance - (type === 'TRIAL' ? 0 : formData.credits)}</span>
+                  <span className="font-black text-lg text-[var(--color-primary)]">{creatorBalance - (type === 'TRIAL' || creatorRole === 'ADMIN' ? 0 : formData.credits)}</span>
                 </div>
               </div>
             </div>

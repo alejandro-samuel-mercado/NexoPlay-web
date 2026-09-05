@@ -174,8 +174,8 @@ function UsuariosContent() {
                 <th className="text-right px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Acciones</th>
               </tr>
             </thead>
-            <tbody>
-              {loading ? (
+            <tbody className={`transition-opacity duration-200 ${loading && users.length > 0 ? 'opacity-50 pointer-events-none' : ''}`}>
+              {loading && users.length === 0 ? (
                 Array.from({ length: 8 }).map((_, i) => (
                   <tr key={i} className="border-b border-white/5"><td colSpan={8} className="px-5 py-4"><div className="h-10 bg-white/5 rounded-lg animate-pulse w-full" /></td></tr>
                 ))
