@@ -38,7 +38,7 @@ export default function RewardedAd() {
       const res = await API.ADS.reward({ campaignId: 'rewarded-default' });
       if (res.success) {
         setRewarded(true);
-        alert(`¡Felicidades! Has ganado ${res.rewardedTokens} Tokens.`);
+        alert(`¡Felicidades! Has ganado ${res.rewardedTokens} Créditos.`);
       }
     } catch (e) {
       console.error(e);
@@ -57,7 +57,7 @@ export default function RewardedAd() {
               <Play className="text-[var(--clay-yellow)]" size={20} />
             </div>
             <div>
-              <p className="text-white font-bold text-sm">Gana 5 Tokens Gratis</p>
+              <p className="text-white font-bold text-sm">Gana 5 Créditos Gratis</p>
               <p className="text-xs text-gray-400">Mira un breve anuncio de 15 segundos</p>
             </div>
           </div>
@@ -82,7 +82,7 @@ export default function RewardedAd() {
                 <>
                   <Coins className="text-[var(--clay-yellow)] mx-auto mb-4" size={48} />
                   <h2 className="text-2xl font-black text-white mb-2">Anuncio Patrocinado</h2>
-                  <p className="text-sm text-gray-400 mb-6">Apoya a la plataforma viendo este video y llévate 5 tokens para canjear por películas.</p>
+                  <p className="text-sm text-gray-400 mb-6">Apoya a la plataforma viendo este video y llévate 5 créditos para canjear por películas.</p>
                   <button 
                     onClick={handleStartAd}
                     className="w-full bg-[var(--clay-yellow)] text-black font-black py-3 rounded-xl hover:brightness-110 flex justify-center items-center gap-2"
@@ -105,7 +105,7 @@ export default function RewardedAd() {
                     <Coins size={32} />
                   </div>
                   <h2 className="text-2xl font-black text-white mb-2">¡Misión Cumplida!</h2>
-                  <p className="text-sm text-gray-400 mb-6">Los 5 tokens han sido agregados a tu billetera.</p>
+                  <p className="text-sm text-gray-400 mb-6">Los 5 créditos han sido agregados a tu billetera.</p>
                   <button 
                     onClick={() => {
                       setShowModal(false);

@@ -113,7 +113,7 @@ export default function TokenRulesPage() {
             <thead>
               <tr className="border-b border-[var(--border-subtle)] bg-black/20">
                 <th className="p-4 text-xs font-bold text-[#8B8FA8] uppercase">Acción</th>
-                <th className="p-4 text-xs font-bold text-[#8B8FA8] uppercase w-32">Tokens a Otorgar</th>
+                <th className="p-4 text-xs font-bold text-[#8B8FA8] uppercase w-32">Créditos a Otorgar</th>
                 <th className="p-4 text-xs font-bold text-[#8B8FA8] uppercase w-40">Límite Diario (Veces)</th>
                 <th className="p-4 text-xs font-bold text-[#8B8FA8] uppercase w-24 text-right">Guardar</th>
               </tr>

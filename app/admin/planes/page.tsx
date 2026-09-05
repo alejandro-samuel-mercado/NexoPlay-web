@@ -213,7 +213,7 @@ export default function PlanesAdminPage() {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Costo (Tokens)</label>
+                <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Costo (Créditos)</label>
                 <input type="number" min="0" value={form.tokenCost} onChange={set('tokenCost')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] outline-none" />
               </div>
               <div>

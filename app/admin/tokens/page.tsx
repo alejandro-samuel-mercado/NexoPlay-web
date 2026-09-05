@@ -93,16 +93,16 @@ export default function AdminTokensPage() {
       <div>
         <h1 className="text-3xl font-black text-white flex items-center gap-3">
           <Coins size={28} style={{ color: 'var(--clay-yellow)' }} />
-          Gestión de Tokens
+          Gestión de Créditos
         </h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Administrá los paquetes disponibles y emití tokens manualmente</p>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Administrá los paquetes disponibles y emití créditos manualmente</p>
       </div>
 
-      {/* Emit tokens manually */}
+      {/* Emit credits manually */}
       <div className="p-5 rounded-2xl border-2" style={{ borderColor: 'var(--clay-mint)', background: 'rgba(0,255,180,0.04)', boxShadow: '3px 3px 0 var(--clay-mint)' }}>
         <h2 className="font-black text-white flex items-center gap-2 mb-4">
           <Gift size={18} style={{ color: 'var(--clay-mint)' }} />
-          Emitir Tokens Manualmente
+          Emitir Créditos Manualmente
         </h2>
         <div className="grid sm:grid-cols-3 gap-3 mb-3">
           <input placeholder="ID o email del usuario" value={grantForm.userId}
@@ -122,7 +122,7 @@ export default function AdminTokensPage() {
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black transition-all disabled:opacity-60"
           style={{ background: 'var(--clay-mint)', color: 'var(--clay-ink)', border: '2px solid var(--clay-ink)', boxShadow: '2px 2px 0 var(--clay-ink)' }}>
           <Zap size={14} />
-          {grantLoading ? 'Emitiendo...' : 'Emitir tokens'}
+          {grantLoading ? 'Emitiendo...' : 'Emitir créditos'}
         </button>
         {grantMsg && <p className="text-sm mt-3 font-medium" style={{ color: grantMsg.startsWith('✅') ? 'var(--clay-mint)' : '#ff5050' }}>{grantMsg}</p>}
       </div>
@@ -132,7 +132,7 @@ export default function AdminTokensPage() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-black text-white flex items-center gap-2">
             <Coins size={18} style={{ color: 'var(--clay-yellow)' }} />
-            Paquetes de Tokens
+            Paquetes de Créditos
           </h2>
           <button onClick={() => { setShowForm(true); setEditId(null); setForm({ name: '', tokens: '', priceUSD: '', sortOrder: '0' }); }}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black"
@@ -149,7 +149,7 @@ export default function AdminTokensPage() {
                 onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
                 className="px-3 py-2 rounded-xl text-sm text-white outline-none"
                 style={{ background: 'rgba(255,255,255,0.05)', border: '2px solid rgba(255,255,255,0.1)' }} />
-              <input type="number" placeholder="Tokens (ej. 270)" value={form.tokens}
+              <input type="number" placeholder="Créditos (ej. 270)" value={form.tokens}
                 onChange={e => setForm(p => ({ ...p, tokens: e.target.value }))}
                 className="px-3 py-2 rounded-xl text-sm text-white outline-none"
                 style={{ background: 'rgba(255,255,255,0.05)', border: '2px solid rgba(255,255,255,0.1)' }} />
@@ -189,7 +189,7 @@ export default function AdminTokensPage() {
                 <div className="flex items-center gap-4">
                   <div className="text-center w-16">
                     <p className="text-2xl font-black text-white">{pkg.tokens}</p>
-                    <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--clay-yellow)' }}>tokens</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--clay-yellow)' }}>créditos</p>
                   </div>
                   <div>
                     <p className="font-black text-white">{pkg.name}</p>

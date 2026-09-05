@@ -420,7 +420,7 @@ function UsuariosContent() {
                 <p className="text-sm text-white"><span className="font-bold">Usuario:</span> {infoModal.username || '-'}</p>
                 <p className="text-sm text-white"><span className="font-bold">Rol:</span> {infoModal.role}</p>
                 <p className="text-sm text-white"><span className="font-bold">Registro:</span> {new Date(infoModal.createdAt).toLocaleDateString()}</p>
-                <p className="text-sm text-white"><span className="font-bold">Tokens Balance:</span> {infoModal.tokens || 0}</p>
+                <p className="text-sm text-white"><span className="font-bold">Créditos:</span> {infoModal.tokens || 0}</p>
               </div>
 
               {infoModal.subscription && infoModal.subscription.status === 'ACTIVE' ? (

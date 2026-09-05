@@ -127,11 +127,11 @@ export default function TiendaPage() {
     if (!user) { showMessage('error', 'Debes iniciar sesión para comprar un plan.'); return; }
     const cost = plan.tokenCost;
     if (tokenBalance < cost) {
-      showMessage('error', `Tokens insuficientes. Este plan cuesta ${cost}T y tienes ${tokenBalance}T.`);
+      showMessage('error', `Créditos insuficientes. Este plan cuesta ${cost}C y tienes ${tokenBalance}C.`);
       setActiveTab('tokens');
       return;
     }
-    if (!confirm(`¿Confirmar compra de "${plan.name}" por ${cost} tokens? Tendrás acceso por ${plan.durationDays} días.`)) return;
+    if (!confirm(`¿Confirmar compra de "${plan.name}" por ${cost} créditos? Tendrás acceso por ${plan.durationDays} días.`)) return;
 
     setBuying(plan.id);
     try {
@@ -154,7 +154,7 @@ export default function TiendaPage() {
   };
 
   const handleBuyTokens = (pkg: TokenPackage) => {
-    const msg = `Hola, quiero comprar el paquete *${pkg.name}* (${pkg.tokens} Tokens) por $${pkg.priceUSD} USD.\nMi email de cuenta: ${user?.email || 'Sin cuenta'}`;
+    const msg = `Hola, quiero comprar el paquete *${pkg.name}* (${pkg.tokens} Créditos) por $${pkg.priceUSD} USD.\nMi email de cuenta: ${user?.email || 'Sin cuenta'}`;
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -197,8 +197,8 @@ export default function TiendaPage() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[4px] mb-2" style={{ color: 'var(--color-primary)' }}>Tienda</p>
-              <h1 className="text-4xl md:text-5xl font-black text-white uppercase italic tracking-tight">Tokens & Planes</h1>
-              <p className="text-white/50 mt-2 text-sm">Con tokens puedes comprar suscripciones, películas sueltas y más.</p>
+              <h1 className="text-4xl md:text-5xl font-black text-white uppercase italic tracking-tight">Créditos & Planes</h1>
+              <p className="text-white/50 mt-2 text-sm">Con créditos puedes comprar suscripciones, películas sueltas y más.</p>
             </div>
 
             {user && (
@@ -206,7 +206,7 @@ export default function TiendaPage() {
                 <Coins size={28} style={{ color: '#f59e0b' }} />
                 <div>
                   <p className="text-xs text-white/50 uppercase tracking-widest">Tu saldo</p>
-                  <p className="text-3xl font-black text-white">{tokenBalance.toLocaleString()} <span className="text-lg font-bold" style={{ color: '#f59e0b' }}>T</span></p>
+                  <p className="text-3xl font-black text-white">{tokenBalance.toLocaleString()} <span className="text-lg font-bold" style={{ color: '#f59e0b' }}>C</span></p>
                 </div>
               </div>
             )}
@@ -227,7 +227,7 @@ export default function TiendaPage() {
         <div className="flex gap-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-1.5 w-fit mb-8">
           {[
             { key: 'planes', label: 'Suscripciones', icon: Crown },
-            { key: 'tokens', label: 'Paquetes de Tokens', icon: Coins },
+            { key: 'tokens', label: 'Paquetes de Créditos', icon: Coins },
             { key: 'historial', label: 'Mi Historial', icon: History },
           ].map(({ key, label, icon: Icon }) => (
             <button
@@ -251,8 +251,8 @@ export default function TiendaPage() {
             {activeTab === 'planes' && (
               <div>
                 <p className="text-white/50 text-sm mb-6">
-                  Paga tu suscripción usando tus tokens. No se necesita tarjeta de crédito.<br />
-                  Para recargar tokens, ve a la pestaña <strong className="text-white">Paquetes de Tokens</strong>.
+                  Paga tu suscripción usando tus créditos. No se necesita tarjeta de crédito.<br />
+                  Para recargar créditos, ve a la pestaña <strong className="text-white">Paquetes de Créditos</strong>.
                 </p>
 
                 {plans.length === 0 ? (
@@ -306,7 +306,7 @@ export default function TiendaPage() {
                           >
                             {buying === plan.id ? (
                               <span className="inline-block w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                            ) : isCurrentPlan ? '✓ Plan Activo' : canAfford ? `Suscribirse por ${cost}T` : `Necesitas ${cost - tokenBalance}T más`}
+                            ) : isCurrentPlan ? '✓ Plan Activo' : canAfford ? `Suscribirse por ${cost}C` : `Necesitas ${cost - tokenBalance}C más`}
                           </button>
                         </div>
                       );
@@ -325,13 +325,13 @@ export default function TiendaPage() {
                     <p className="text-amber-200 font-bold mb-1">Pago vía WhatsApp</p>
                     <p className="text-amber-200/70 text-sm">
                       Al hacer clic en un paquete, se abrirá WhatsApp con el mensaje listo. 
-                      El administrador confirmará el pago y acreditará los tokens en tu cuenta.
+                      El administrador confirmará el pago y acreditará los créditos en tu cuenta.
                     </p>
                   </div>
                 </div>
 
                 {packages.length === 0 ? (
-                  <div className="text-center py-16 text-white/30">No hay paquetes de tokens disponibles.</div>
+                  <div className="text-center py-16 text-white/30">No hay paquetes de créditos disponibles.</div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-12">
                     {packages.map((pkg) => (
@@ -344,7 +344,7 @@ export default function TiendaPage() {
                           <Coins size={24} style={{ color: '#f59e0b' }} />
                         </div>
                         <div>
-                          <p className="text-2xl font-black text-white">{pkg.tokens.toLocaleString()}<span className="text-sm font-bold text-amber-400 ml-1">T</span></p>
+                          <p className="text-2xl font-black text-white">{pkg.tokens.toLocaleString()}<span className="text-sm font-bold text-amber-400 ml-1">C</span></p>
                           <p className="text-white/40 text-xs mt-1">{pkg.name}</p>
                         </div>
                         <div className="mt-auto">
@@ -359,10 +359,10 @@ export default function TiendaPage() {
                 )}
 
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-                  <h3 className="font-black text-white mb-3 flex items-center gap-2"><Zap size={18} style={{ color: 'var(--color-primary)' }} /> ¿Cómo ganar tokens gratis?</h3>
-                  <ul className="space-y-2 text-sm text-white/60">
-                    <li>🎬 <strong className="text-white/80">Ver contenido</strong> — Gana <strong className="text-white">1 token cada 10 minutos</strong> que veas. El contador se acumula por contenido y se reinicia cada 24hs.</li>
-                    <li>📦 <strong className="text-white/80">Comprar paquetes</strong> — Adquirí tokens directamente desde la pestaña de arriba y usalos para activar cualquier suscripción.</li>
+                  <h3 className="font-black text-white mb-3 flex items-center gap-2"><Zap size={18} style={{ color: 'var(--color-primary)' }} /> ¿Cómo ganar créditos gratis?</h3>
+                  <ul className="text-sm text-white/60 space-y-2 mb-6">
+                    <li>🎬 <strong className="text-white/80">Ver contenido</strong> — Gana <strong className="text-white">1 crédito cada 10 minutos</strong> que veas. El contador se acumula por contenido y se reinicia cada 24hs.</li>
+                    <li>📦 <strong className="text-white/80">Comprar paquetes</strong> — Adquirí créditos directamente desde la pestaña de arriba y usalos para activar cualquier suscripción.</li>
                   </ul>
                 </div>
               </div>
@@ -376,7 +376,7 @@ export default function TiendaPage() {
                 ) : transactions.length === 0 ? (
                   <div className="text-center py-16 text-white/30">
                     <History size={48} className="mx-auto mb-4 opacity-30" />
-                    <p>No hay transacciones aún. ¡Ve contenido para ganar tus primeros tokens!</p>
+                    <p>No hay transacciones aún. ¡Ve contenido para ganar tus primeros créditos!</p>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-2">
