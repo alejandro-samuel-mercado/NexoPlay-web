@@ -176,7 +176,7 @@ function ResellerUsuariosContent() {
           {user?.role === 'ADMIN_RESELLER' && (
             <button onClick={() => { setRole('SUPER_RESELLER'); setPage(1); }} className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'SUPER_RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Súper Revendedores</button>
           )}
-          <button onClick={() => { setRole('RESELLER'); setPage(1); }} className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Revendedores Normales</button>
+       
         </div>
       )}
 

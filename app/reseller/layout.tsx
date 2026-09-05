@@ -3,7 +3,7 @@
 import { useAuth } from '@/context/AuthContext';
 import { Coins, Download, LayoutDashboard, LogOut, Package, ShieldCheck, Users, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 const C = '#34D399';
@@ -11,6 +11,7 @@ const CB = 'rgba(52,211,153,0.15)';
 
 export default function ResellerLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user, isLoading, logout } = useAuth();
   const router = useRouter();
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
@@ -106,9 +107,8 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
                 {item.subItems && isExpanded && (
                   <div className="mt-1 ml-4 border-l-2 border-white/5 pl-2 space-y-1">
                     {item.subItems.map(subItem => {
-                      const search = typeof window !== 'undefined' ? window.location.search : '';
-                      const currentFull = pathname + search;
-                      const isSubActive = currentFull.includes(subItem.href.split('?')[1] || '') && pathname === subItem.href.split('?')[0];
+                      // subItem.href is like '/reseller/usuarios?tab=Clients'
+                      const isSubActive = searchParams.get('tab') ? subItem.href.includes(`tab=${searchParams.get('tab')}`) : (subItem.href.includes('tab=Resellers') && canSeeResellers) || (subItem.href.includes('tab=Clients') && !canSeeResellers);
                       
                       return (
                         <Link
