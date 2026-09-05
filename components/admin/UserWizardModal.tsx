@@ -10,11 +10,12 @@ interface UserWizardModalProps {
   creatorRole: string; // 'ADMIN' | 'RESELLER' | 'SUPER_RESELLER' | 'ADMIN_RESELLER'
   creatorName?: string;
   apiEndpoint: string; // '/api/admin/users/advanced' or '/api/reseller/users/advanced'
+  mode?: 'USERS' | 'RESELLERS';
 }
 
-export default function UserWizardModal({ onClose, onSuccess, creatorRole, creatorName = 'Tú', apiEndpoint }: UserWizardModalProps) {
+export default function UserWizardModal({ onClose, onSuccess, creatorRole, creatorName = 'Tú', apiEndpoint, mode = 'USERS' }: UserWizardModalProps) {
   const [step, setStep] = useState(1);
-  const [type, setType] = useState<'TRIAL' | 'SUBSCRIBER'>('TRIAL');
+  const [type, setType] = useState<'TRIAL' | 'SUBSCRIBER' | 'RESELLER'>(mode === 'RESELLERS' ? 'RESELLER' : 'TRIAL');
   
   const [formData, setFormData] = useState({
     name: '',
@@ -26,7 +27,8 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
     durationHours: 1,
     maxScreens: 3,
     credits: 0,
-    planId: ''
+    planId: '',
+    role: 'RESELLER'
   });
 
   const [plans, setPlans] = useState<any[]>([]);
@@ -43,7 +45,10 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
     });
     apiFetch(`${API_BASE}/api/tokens/plans`).then(r => {
       if (r.success) {
-        setPlans(r.data.filter((p: any) => p.role === 'SUBSCRIBER' && p.isActive && !p.name.toUpperCase().includes('PRUEBA')));
+        setPlans(r.data.filter((p: any) => 
+          p.isActive && !p.name.toUpperCase().includes('PRUEBA') && 
+          (mode === 'RESELLERS' ? p.role === 'RESELLER' : p.role === 'SUBSCRIBER')
+        ));
       }
     });
   }, []);
@@ -55,7 +60,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
       if (!isStep2Valid) return;
       const planCost = plans.find(p => p.id === formData.planId)?.tokenCost || 0;
       const totalCost = formData.credits + planCost;
-      if (type === 'SUBSCRIBER' && creatorRole !== 'ADMIN' && totalCost > creatorBalance) {
+      if ((type === 'SUBSCRIBER' || type === 'RESELLER') && creatorRole !== 'ADMIN' && totalCost > creatorBalance) {
         setError(`Créditos insuficientes. Tienes ${creatorBalance} y necesitas ${totalCost}`);
         return;
       }
@@ -117,24 +122,62 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
           {step === 1 && (
             <div className="space-y-6">
               <h4 className="text-lg font-bold text-white mb-4">¿Qué tipo de cuenta deseas crear?</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <button
-                  onClick={() => setType('TRIAL')}
-                  className={`p-6 rounded-2xl border-2 text-left transition-all ${type === 'TRIAL' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}
-                >
-                  <Clock size={32} className={`mb-4 ${type === 'TRIAL' ? 'text-[var(--color-primary)]' : 'text-white/40'}`} />
-                  <h5 className="text-white font-bold text-lg mb-2">Cuenta de Prueba</h5>
-                  <p className="text-sm text-white/50">Por horas. No consume créditos.</p>
-                </button>
-                <button
-                  onClick={() => setType('SUBSCRIBER')}
-                  className={`p-6 rounded-2xl border-2 text-left transition-all ${type === 'SUBSCRIBER' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}
-                >
-                  <User size={32} className={`mb-4 ${type === 'SUBSCRIBER' ? 'text-[var(--color-primary)]' : 'text-white/40'}`} />
-                  <h5 className="text-white font-bold text-lg mb-2">Cliente Final (Normal)</h5>
-                  <p className="text-sm text-white/50">Puedes asignarle créditos. Consume de tu saldo.</p>
-                </button>
-              </div>
+              
+              {mode === 'USERS' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <button
+                    onClick={() => setType('TRIAL')}
+                    className={`p-6 rounded-2xl border-2 text-left transition-all ${type === 'TRIAL' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}
+                  >
+                    <Clock size={32} className={`mb-4 ${type === 'TRIAL' ? 'text-[var(--color-primary)]' : 'text-white/40'}`} />
+                    <h5 className="text-white font-bold text-lg mb-2">Cuenta de Prueba</h5>
+                    <p className="text-sm text-white/50">Por horas. No consume créditos.</p>
+                  </button>
+                  <button
+                    onClick={() => setType('SUBSCRIBER')}
+                    className={`p-6 rounded-2xl border-2 text-left transition-all ${type === 'SUBSCRIBER' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}
+                  >
+                    <User size={32} className={`mb-4 ${type === 'SUBSCRIBER' ? 'text-[var(--color-primary)]' : 'text-white/40'}`} />
+                    <h5 className="text-white font-bold text-lg mb-2">Cliente Final (Normal)</h5>
+                    <p className="text-sm text-white/50">Puedes asignarle créditos. Consume de tu saldo.</p>
+                  </button>
+                </div>
+              )}
+
+              {mode === 'RESELLERS' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <button
+                    onClick={() => setFormData({ ...formData, role: 'RESELLER' })}
+                    className={`p-6 rounded-2xl border-2 text-left transition-all ${formData.role === 'RESELLER' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}
+                  >
+                    <UserPlus size={32} className={`mb-4 ${formData.role === 'RESELLER' ? 'text-[var(--color-primary)]' : 'text-white/40'}`} />
+                    <h5 className="text-white font-bold text-lg mb-2">Revendedor Básico</h5>
+                    <p className="text-sm text-white/50">Puede crear clientes finales y pruebas. No puede crear otros revendedores.</p>
+                  </button>
+
+                  {creatorRole === 'ADMIN' && (
+                    <button
+                      onClick={() => setFormData({ ...formData, role: 'SUPER_RESELLER' })}
+                      className={`p-6 rounded-2xl border-2 text-left transition-all ${formData.role === 'SUPER_RESELLER' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}
+                    >
+                      <Crown size={32} className={`mb-4 ${formData.role === 'SUPER_RESELLER' ? 'text-[var(--color-primary)]' : 'text-white/40'}`} />
+                      <h5 className="text-white font-bold text-lg mb-2">Súper Revendedor</h5>
+                      <p className="text-sm text-white/50">Puede crear clientes, pruebas y revendedores básicos.</p>
+                    </button>
+                  )}
+                  
+                  {creatorRole === 'ADMIN' && (
+                    <button
+                      onClick={() => setFormData({ ...formData, role: 'ADMIN_RESELLER' })}
+                      className={`p-6 rounded-2xl border-2 text-left transition-all ${formData.role === 'ADMIN_RESELLER' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}
+                    >
+                      <User size={32} className={`mb-4 ${formData.role === 'ADMIN_RESELLER' ? 'text-[var(--color-primary)]' : 'text-white/40'}`} />
+                      <h5 className="text-white font-bold text-lg mb-2">Admin Revendedores</h5>
+                      <p className="text-sm text-white/50">Máximo control. Puede crear incluso súper revendedores.</p>
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -208,7 +251,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                 </div>
               )}
 
-              {type === 'SUBSCRIBER' && (
+              {(type === 'SUBSCRIBER' || type === 'RESELLER') && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs font-bold text-white/60 mb-2 flex items-center justify-between uppercase tracking-wider">
@@ -222,14 +265,14 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                     <p className="text-xs text-white/40 mt-2">Los créditos asignados se descontarán de tu saldo.</p>
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Conexiones Máximas (Por Defecto 3)</label>
+                    <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Conexiones Máximas</label>
                     <div className="relative">
                       <MonitorPlay size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
                       <input type="number" min="1" max="10" value={formData.maxScreens} onChange={e => setFormData({ ...formData, maxScreens: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors" />
                     </div>
                   </div>
                   <div className="col-span-1 sm:col-span-2">
-                    <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Plan (Opcional)</label>
+                    <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Plan B2B (Opcional)</label>
                     <div className="relative">
                       <Crown size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-primary)]" />
                       <select value={formData.planId} onChange={e => setFormData({ ...formData, planId: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors appearance-none">
@@ -257,7 +300,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                 </div>
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                   <p className="text-xs font-bold text-white/40 uppercase mb-1">Tipo de Cuenta</p>
-                  <p className="text-white font-bold">{type === 'TRIAL' ? 'Prueba (Gratuita)' : 'Cliente Final (Suscriptor)'}</p>
+                  <p className="text-white font-bold">{type === 'TRIAL' ? 'Prueba (Gratuita)' : type === 'RESELLER' ? (formData.role === 'SUPER_RESELLER' ? 'Súper Revendedor' : formData.role === 'ADMIN_RESELLER' ? 'Admin Revendedores' : 'Revendedor Básico') : 'Cliente Final'}</p>
                 </div>
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                   <p className="text-xs font-bold text-white/40 uppercase mb-1">Usuario</p>
@@ -269,7 +312,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                     <p className="text-white font-bold">{formData.durationHours} Horas / {formData.maxScreens} Pantallas</p>
                   </div>
                 )}
-                {type === 'SUBSCRIBER' && (
+                {(type === 'SUBSCRIBER' || type === 'RESELLER') && (
                   <>
                     <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                       <p className="text-xs font-bold text-white/40 uppercase mb-1">Plan Asignado</p>
@@ -313,7 +356,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
           </button>
           
           <button 
-            disabled={(step === 2 && !isStep2Valid) || loading || (step === 3 && type === 'SUBSCRIBER' && (formData.credits + (plans.find(p => p.id === formData.planId)?.tokenCost || 0)) > creatorBalance && creatorRole !== 'ADMIN')}
+            disabled={(step === 2 && !isStep2Valid) || loading || (step === 3 && (type === 'SUBSCRIBER' || type === 'RESELLER') && (formData.credits + (plans.find(p => p.id === formData.planId)?.tokenCost || 0)) > creatorBalance && creatorRole !== 'ADMIN')}
             onClick={step === 3 ? handleCreate : handleNext} 
             className="px-6 py-3 rounded-xl font-black text-sm hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:scale-100" 
             style={{ background: 'var(--color-primary)', color: '#0a0f0a', flex: 2 }}>

@@ -20,7 +20,7 @@ function UsuariosContent() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [assignModal, setAssignModal] = useState<{ userId: string; email: string; role: string } | null>(null);
-  const [createModalType, setCreateModalType] = useState<'STANDARD' | 'WIZARD' | null>(null);
+  const [createModalType, setCreateModalType] = useState<'STANDARD' | 'WIZARD' | 'WIZARD_RESELLERS' | null>(null);
   const [newUser, setNewUser] = useState({ username: '', password: '', confirmPassword: '', role: 'SUBSCRIBER' });
   const [selectedPlan, setSelectedPlan] = useState('');
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
@@ -106,7 +106,7 @@ function UsuariosContent() {
           </h1>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{total} usuarios registrados</p>
         </div>
-        <button onClick={() => setCreateModalType(mainTab === 'Clients' ? 'WIZARD' : 'STANDARD')} className="bg-[var(--color-primary)] text-black px-6 py-3 rounded-2xl font-black hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_20px_rgba(0,216,182,0.3)]">
+        <button onClick={() => setCreateModalType(mainTab === 'Clients' ? 'WIZARD' : mainTab === 'Resellers' ? 'WIZARD_RESELLERS' : 'STANDARD')} className="bg-[var(--color-primary)] text-black px-6 py-3 rounded-2xl font-black hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_20px_rgba(0,216,182,0.3)]">
           <UserPlus size={18} />
           {mainTab === 'Admins' ? 'Crear Administrador' : mainTab === 'Resellers' ? 'Crear Revendedor' : 'Crear Cliente Final'}
         </button>
@@ -341,6 +341,21 @@ function UsuariosContent() {
           creatorRole="ADMIN"
           creatorName="Admin"
           apiEndpoint="/api/admin/users/advanced"
+          mode="USERS"
+        />
+      )}
+
+      {createModalType === 'WIZARD_RESELLERS' && (
+        <UserWizardModal
+          onClose={() => setCreateModalType(null)}
+          onSuccess={() => {
+            setCreateModalType(null);
+            fetchUsers();
+          }}
+          creatorRole="ADMIN"
+          creatorName="Admin"
+          apiEndpoint="/api/admin/users/advanced"
+          mode="RESELLERS"
         />
       )}
 
