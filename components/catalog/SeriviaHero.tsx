@@ -28,14 +28,41 @@ export default function SeriviaHero({ content, contentList }: { content?: any, c
     const nextSlide = () => setActiveIndex((prev) => (prev + 1) % heroList.length);
     const prevSlide = () => setActiveIndex((prev) => (prev - 1 + heroList.length) % heroList.length);
 
-    // Auto-play every 10 seconds
+    // Handle auto-play and manual interactions
     useEffect(() => {
         if (heroList.length <= 1) return;
         const timer = setInterval(() => {
             setActiveIndex((prev) => (prev + 1) % heroList.length);
         }, 10000);
         return () => clearInterval(timer);
-    }, [heroList.length]);
+    }, [heroList.length, activeIndex]); // Restart timer when activeIndex changes manually
+
+    // Touch handlers for swipe on mobile
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEndHandler = () => {
+        if (!touchStart || !touchEnd) return;
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+        if (isLeftSwipe) {
+            nextSlide();
+        } else if (isRightSwipe) {
+            prevSlide();
+        }
+    };
 
     // Check favorite status of the active main item
     useEffect(() => {
@@ -122,7 +149,12 @@ export default function SeriviaHero({ content, contentList }: { content?: any, c
     };
 
     return (
-        <div className="serivia-hero-root relative w-full h-[60vh] md:h-[70vh] mb-8 flex items-center perspective-1000 group">
+        <div 
+            className="serivia-hero-root relative w-full h-[60vh] md:h-[70vh] mb-8 flex items-center perspective-1000 group overflow-hidden md:overflow-visible"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEndHandler}
+        >
             {heroList.map((item, idx) => {
                 const diff = (idx - activeIndex + heroList.length) % heroList.length;
                 
@@ -150,9 +182,11 @@ export default function SeriviaHero({ content, contentList }: { content?: any, c
                 return (
                     <div 
                         key={item.id || idx} 
-                        className={cardClass} 
+                        className={`${cardClass} ${diff !== 0 ? 'hidden md:block' : ''}`} 
                         style={style}
-                        onClick={() => diff !== 0 && setActiveIndex(idx)}
+                        onClick={() => {
+                            if (diff !== 0) setActiveIndex(idx);
+                        }}
                     >
                         <Image 
                             src={item.backdropUrl || item.posterUrl || resolveImageUrl(item.thumbnails?.find((t: any) => t.type === 'BACKDROP' || t.type === 'POSTER')?.url) || 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=2070'} 
