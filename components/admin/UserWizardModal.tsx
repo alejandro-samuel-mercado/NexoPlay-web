@@ -8,10 +8,11 @@ interface UserWizardModalProps {
   onClose: () => void;
   onSuccess: () => void;
   creatorRole: string; // 'ADMIN' | 'RESELLER' | 'SUPER_RESELLER' | 'ADMIN_RESELLER'
+  creatorName?: string;
   apiEndpoint: string; // '/api/admin/users/advanced' or '/api/reseller/users/advanced'
 }
 
-export default function UserWizardModal({ onClose, onSuccess, creatorRole, apiEndpoint }: UserWizardModalProps) {
+export default function UserWizardModal({ onClose, onSuccess, creatorRole, creatorName = 'Tú', apiEndpoint }: UserWizardModalProps) {
   const [step, setStep] = useState(1);
   const [type, setType] = useState<'TRIAL' | 'SUBSCRIBER'>('TRIAL');
   
@@ -234,6 +235,10 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, apiEn
               </div>
 
               <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2 p-4 rounded-xl bg-white/5 border border-white/10">
+                  <p className="text-xs font-bold text-[var(--color-primary)] uppercase mb-1">Creado Por</p>
+                  <p className="text-white font-bold">{creatorName}</p>
+                </div>
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                   <p className="text-xs font-bold text-white/40 uppercase mb-1">Tipo de Cuenta</p>
                   <p className="text-white font-bold">{type === 'TRIAL' ? 'Prueba (Gratuita)' : 'Cliente Final (Suscriptor)'}</p>

@@ -325,6 +325,7 @@ function UsuariosContent() {
             fetchUsers();
           }}
           creatorRole="ADMIN"
+          creatorName="Admin"
           apiEndpoint="/api/admin/users/advanced"
         />
       )}

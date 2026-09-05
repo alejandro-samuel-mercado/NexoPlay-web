@@ -269,6 +269,7 @@ export default function ResellerUsuariosPage() {
             fetchUsers();
           }}
           creatorRole={user?.role || ''}
+          creatorName={user?.username || user?.name || user?.email || 'Tú'}
           apiEndpoint="/api/reseller/users/advanced"
         />
       )}
