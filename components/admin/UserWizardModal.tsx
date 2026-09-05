@@ -25,8 +25,11 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
     phone: '',
     durationHours: 1,
     maxScreens: 3,
-    credits: 0
+    credits: 0,
+    planId: ''
   });
+
+  const [plans, setPlans] = useState<any[]>([]);
 
   const [creatorBalance, setCreatorBalance] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -38,6 +41,11 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
         setCreatorBalance(res.data.wallet.balance);
       }
     });
+    apiFetch(`${API_BASE}/api/tokens/plans`).then(r => {
+      if (r.success) {
+        setPlans(r.data.filter((p: any) => p.role === 'SUBSCRIBER' && p.isActive));
+      }
+    });
   }, []);
 
   const isStep2Valid = formData.username && formData.password && formData.confirmPassword && (formData.password === formData.confirmPassword);
@@ -45,8 +53,10 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
   const handleNext = () => {
     if (step === 2) {
       if (!isStep2Valid) return;
-      if (type === 'SUBSCRIBER' && creatorRole !== 'ADMIN' && formData.credits > creatorBalance) {
-        setError(`Créditos insuficientes. Tienes ${creatorBalance} y necesitas ${formData.credits}`);
+      const planCost = plans.find(p => p.id === formData.planId)?.tokenCost || 0;
+      const totalCost = formData.credits + planCost;
+      if (type === 'SUBSCRIBER' && creatorRole !== 'ADMIN' && totalCost > creatorBalance) {
+        setError(`Créditos insuficientes. Tienes ${creatorBalance} y necesitas ${totalCost}`);
         return;
       }
     }
@@ -218,6 +228,18 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                       <input type="number" min="1" max="10" value={formData.maxScreens} onChange={e => setFormData({ ...formData, maxScreens: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors" />
                     </div>
                   </div>
+                  <div className="col-span-1 sm:col-span-2">
+                    <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Plan (Opcional)</label>
+                    <div className="relative">
+                      <Crown size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-primary)]" />
+                      <select value={formData.planId} onChange={e => setFormData({ ...formData, planId: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors appearance-none">
+                        <option value="" className="bg-gray-900">Sin plan (Por defecto)</option>
+                        {plans.map(p => (
+                          <option key={p.id} value={p.id} className="bg-gray-900">{p.name} — {p.tokenCost || 0} créditos</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -248,10 +270,16 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                   </div>
                 )}
                 {type === 'SUBSCRIBER' && (
-                  <div className="col-span-2 p-4 rounded-xl bg-white/5 border border-white/10">
-                    <p className="text-xs font-bold text-white/40 uppercase mb-1">Pantallas Permitidas (Sin Plan)</p>
-                    <p className="text-white font-bold">{formData.maxScreens}</p>
-                  </div>
+                  <>
+                    <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                      <p className="text-xs font-bold text-white/40 uppercase mb-1">Plan Asignado</p>
+                      <p className="text-white font-bold">{formData.planId ? plans.find(p => p.id === formData.planId)?.name : 'Sin plan'}</p>
+                    </div>
+                    <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                      <p className="text-xs font-bold text-white/40 uppercase mb-1">Pantallas Máximas</p>
+                      <p className="text-white font-bold">{formData.planId ? plans.find(p => p.id === formData.planId)?.maxScreens || formData.maxScreens : formData.maxScreens}</p>
+                    </div>
+                  </>
                 )}
               </div>
 
@@ -262,12 +290,12 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-white/60">Costo de esta operación:</span>
-                  <span className="font-bold text-red-400">-{type === 'TRIAL' || creatorRole === 'ADMIN' ? 0 : formData.credits}</span>
+                  <span className="font-bold text-red-400">-{type === 'TRIAL' || creatorRole === 'ADMIN' ? 0 : formData.credits + (plans.find(p => p.id === formData.planId)?.tokenCost || 0)}</span>
                 </div>
                 <hr className="border-[var(--color-primary)]/20" />
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-white">Tus Créditos Finales:</span>
-                  <span className="font-black text-lg text-[var(--color-primary)]">{creatorBalance - (type === 'TRIAL' || creatorRole === 'ADMIN' ? 0 : formData.credits)}</span>
+                  <span className="font-black text-lg text-[var(--color-primary)]">{creatorBalance - (type === 'TRIAL' || creatorRole === 'ADMIN' ? 0 : formData.credits + (plans.find(p => p.id === formData.planId)?.tokenCost || 0))}</span>
                 </div>
               </div>
             </div>
@@ -285,7 +313,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
           </button>
           
           <button 
-            disabled={(step === 2 && !isStep2Valid) || loading || (step === 3 && type === 'SUBSCRIBER' && formData.credits > creatorBalance && creatorRole !== 'ADMIN')}
+            disabled={(step === 2 && !isStep2Valid) || loading || (step === 3 && type === 'SUBSCRIBER' && (formData.credits + (plans.find(p => p.id === formData.planId)?.tokenCost || 0)) > creatorBalance && creatorRole !== 'ADMIN')}
             onClick={step === 3 ? handleCreate : handleNext} 
             className="px-6 py-3 rounded-xl font-black text-sm hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:scale-100" 
             style={{ background: 'var(--color-primary)', color: '#0a0f0a', flex: 2 }}>
