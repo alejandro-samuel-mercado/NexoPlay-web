@@ -140,7 +140,7 @@ export default function UsuariosAdminPage() {
                   <tr key={i} className="border-b border-white/5"><td colSpan={8} className="px-5 py-4"><div className="h-10 bg-white/5 rounded-lg animate-pulse w-full" /></td></tr>
                 ))
               ) : users.map((u) => {
-                const rb = ROLE_BADGE[u.role] || ROLE_BADGE.GUEST;
+                const rb = ROLE_BADGE[u.role] || ROLE_BADGE.SUBSCRIBER;
                 const isSubActive = u.subscription?.status === 'ACTIVE';
                 return (
                   <tr key={u.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
