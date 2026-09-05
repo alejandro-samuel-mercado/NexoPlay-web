@@ -148,7 +148,7 @@ export default function ResellerUsuariosPage() {
           <table className="w-full text-[13px]">
             <thead>
               <tr className="border-b border-white/5 bg-black/40">
-                {['Usuario', 'Rol', 'Contraseña', 'Plan', 'Estado', 'Acciones'].map(h => (
+                {['Usuario', 'Creado', 'Contraseña', 'Plan', 'Estado', 'Acciones'].map(h => (
                   <th key={h} className="text-left px-5 py-4 text-[11px] font-black tracking-widest text-white/40 uppercase">{h}</th>
                 ))}
               </tr>
@@ -180,8 +180,8 @@ export default function ResellerUsuariosPage() {
                       </div>
                     </td>
                     <td className="px-5 py-4">
-                      <span className={`px-2.5 py-1 rounded-[8px] text-[10px] font-black tracking-widest uppercase border ${rColor}`}>
-                        {u.role}
+                      <span className="text-[12px] font-bold text-white/80">
+                        {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '-'}
                       </span>
                     </td>
                     <td className="px-5 py-4">
@@ -218,18 +218,13 @@ export default function ResellerUsuariosPage() {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => setInfoModal(u)}
-                          className="w-8 h-8 flex items-center justify-center rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors"
-                          title="Ver Detalles">
-                          <Eye size={15} />
-                        </button>
                         <button onClick={() => handleToggle(u.id, u.isActive)}
-                          className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors ${u.isActive ? 'bg-orange-500/10 text-orange-400 hover:bg-orange-500/20' : 'bg-green-500/10 text-green-400 hover:bg-green-500/20'}`}>
-                          {u.isActive ? <XCircle size={15} /> : <CheckCircle2 size={15} />}
+                          className={`px-3 py-2 flex items-center justify-center gap-2 rounded-xl text-xs font-bold transition-all hover:scale-105 ${u.isActive ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-green-500 text-white shadow-lg shadow-green-500/20'}`}>
+                          {u.isActive ? <><XCircle size={14} /> Desactivar</> : <><CheckCircle2 size={14} /> Activar</>}
                         </button>
                         <button onClick={() => { setAssignModal({ userId: u.id, email: u.email }); setSelectedPlan(u.subscription?.planId || ''); }}
-                          className="px-3 py-1.5 h-8 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 transition-colors flex items-center gap-1.5">
-                          <Crown size={14} /> Plan
+                          className="px-3 py-2 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 transition-all hover:scale-105 flex items-center gap-1.5">
+                          <Crown size={14} /> Cambiar/Asignar plan
                         </button>
                       </div>
                     </td>

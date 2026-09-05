@@ -147,10 +147,10 @@ function UsuariosContent() {
             <thead>
               <tr className="border-b border-[var(--border-subtle)] bg-black/20">
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Usuario</th>
-                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Rol</th>
+                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Creado</th>
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Suscripción</th>
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Vencimiento</th>
-                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Conex. / Cuentas</th>
+                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">{mainTab === 'Clients' ? 'Pantallas Activas' : 'Cuentas Activas'}</th>
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Créditos</th>
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Estado</th>
                 <th className="text-right px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Acciones</th>
@@ -197,8 +197,8 @@ function UsuariosContent() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider border transition-colors ${rb.bg} ${rb.text} ${rb.border}`}>
-                        {u.role}
+                      <span className="text-[12px] font-bold text-white/80">
+                        {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '-'}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -242,19 +242,14 @@ function UsuariosContent() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => setInfoModal(u)}
-                          className="px-3 py-2 rounded-xl text-xs font-bold bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors inline-flex items-center justify-center gap-2"
-                          title="Ver Detalles">
-                          <Eye size={14} /> Detalles
-                        </button>
                         <button onClick={() => handleToggleActive(u.id, u.isActive)}
-                          className={`px-3 py-2 rounded-xl text-xs font-bold transition-colors inline-flex items-center justify-center ${u.isActive ? 'bg-orange-500/10 text-orange-400 hover:bg-orange-500/20' : 'bg-green-500/10 text-green-400 hover:bg-green-500/20'}`}
+                          className={`px-3 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105 inline-flex items-center justify-center gap-2 ${u.isActive ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-green-500 text-white shadow-lg shadow-green-500/20'}`}
                           title={u.isActive ? 'Suspender acceso' : 'Activar acceso'}>
-                          {u.isActive ? <XCircle size={14} /> : <CheckCircle2 size={14} />}
+                          {u.isActive ? <><XCircle size={14} /> Desactivar</> : <><CheckCircle2 size={14} /> Activar</>}
                         </button>
                         <button onClick={() => { setAssignModal({ userId: u.id, email: u.email, role: u.role }); setSelectedPlan(u.subscription?.planId || ''); }}
-                          className="px-3 py-2 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 transition-colors inline-flex items-center justify-center gap-2">
-                          <Crown size={14} /> Plan
+                          className="px-3 py-2 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 transition-all hover:scale-105 inline-flex items-center justify-center gap-2">
+                          <Crown size={14} /> Cambiar/Asignar plan
                         </button>
                         <button onClick={async () => {
                             if (window.confirm('¿Seguro que deseas eliminar este usuario? Esto es irreversible y bloqueará su acceso.')) {
@@ -263,9 +258,10 @@ function UsuariosContent() {
                                 fetchUsers();
                               } catch (e: any) { alert(e.message); }
                             }
-                          }}
-                          className="px-3 py-2 rounded-xl text-xs font-bold bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors inline-flex items-center justify-center">
-                          <XCircle size={14} />
+                          }} 
+                          className="px-3 py-2 rounded-xl text-xs font-bold bg-red-500 text-white shadow-lg shadow-red-500/20 hover:scale-105 transition-all inline-flex items-center justify-center gap-2"
+                          title="Eliminar usuario">
+                          <XCircle size={14} /> Eliminar
                         </button>
                       </div>
                     </td>
