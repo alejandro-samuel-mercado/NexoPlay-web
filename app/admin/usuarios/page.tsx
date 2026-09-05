@@ -1,20 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Users, Search, ChevronDown, Crown, Shield, User, CheckCircle2, XCircle, Copy, Eye, EyeOff } from 'lucide-react';
+import { useEffect, useState, Suspense } from 'react';
+import { Users, Search, ChevronDown, Crown, Shield, User, CheckCircle2, XCircle, Copy, Eye, EyeOff, UserPlus } from 'lucide-react';
 import { API, apiFetch } from '@/lib/api';
+import { useSearchParams } from 'next/navigation';
+import UserWizardModal from '@/components/admin/UserWizardModal';
 
-export default function UsuariosAdminPage() {
+function UsuariosContent() {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab') as 'Admins' | 'Resellers' | 'Clients' | null;
+
   const [users, setUsers] = useState<any[]>([]);
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [role, setRole] = useState('');
+  const [mainTab, setMainTab] = useState<'Admins' | 'Resellers' | 'Clients'>(tabParam || 'Admins');
+  const [role, setRole] = useState(tabParam === 'Resellers' ? 'SUPER_RESELLER' : tabParam === 'Clients' ? 'SUBSCRIBER' : 'ADMIN');
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [assignModal, setAssignModal] = useState<{ userId: string; email: string; role: string } | null>(null);
-  const [createModal, setCreateModal] = useState(false);
-  const [newUser, setNewUser] = useState({ username: '', password: '', role: 'SUBSCRIBER' });
+  const [createModalType, setCreateModalType] = useState<'STANDARD' | 'WIZARD' | null>(null);
+  const [newUser, setNewUser] = useState({ username: '', password: '', confirmPassword: '', role: 'SUBSCRIBER' });
   const [selectedPlan, setSelectedPlan] = useState('');
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
   const [infoModal, setInfoModal] = useState<any | null>(null);
@@ -26,7 +32,7 @@ export default function UsuariosAdminPage() {
   const fetchUsers = async (forceSearch?: string) => {
     setLoading(true);
     const currentSearch = forceSearch !== undefined ? forceSearch : search;
-    const params = new URLSearchParams({ limit: '30', ...(currentSearch ? { search: currentSearch } : {}), ...(role ? { role } : {}) });
+    const params = new URLSearchParams({ limit: '15', page: page.toString(), ...(currentSearch ? { search: currentSearch } : {}), ...(role ? { role } : {}) });
     const res = await apiFetch(`${API.ADMIN.USERS}?${params}`);
     if (res.success) { setUsers(res.data || []); setTotal(res.meta?.total || 0); }
     setLoading(false);
@@ -36,6 +42,16 @@ export default function UsuariosAdminPage() {
   useEffect(() => {
     apiFetch(API.ADMIN.PLANS).then(res => { if (res.success) setPlans(res.data || []); });
   }, []);
+
+  useEffect(() => {
+    if (tabParam) {
+      setMainTab(tabParam);
+      if (tabParam === 'Admins') setRole('ADMIN');
+      else if (tabParam === 'Resellers') setRole('SUPER_RESELLER');
+      else if (tabParam === 'Clients') setRole('SUBSCRIBER');
+      setPage(1);
+    }
+  }, [tabParam]);
 
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setPage(1); fetchUsers(); };
 
@@ -52,14 +68,16 @@ export default function UsuariosAdminPage() {
   };
 
   const handleCreateUser = async () => {
-    if (!newUser.username || !newUser.password) return alert('Usuario y contraseña son obligatorios');
+    if (!newUser.username || !newUser.password || !newUser.confirmPassword) return alert('Todos los campos son obligatorios');
+    if (newUser.password !== newUser.confirmPassword) return alert('Las contraseñas no coinciden');
+    
     try {
       await apiFetch(`${API.ADMIN.USERS}`, {
         method: 'POST',
         body: JSON.stringify(newUser),
       });
-      setCreateModal(false);
-      setNewUser({ username: '', password: '', role: 'SUBSCRIBER' });
+      setCreateModalType(null);
+      setNewUser({ username: '', password: '', confirmPassword: '', role: 'SUBSCRIBER' });
       fetchUsers();
     } catch (e: any) { alert(e.message); }
   };
@@ -86,37 +104,41 @@ export default function UsuariosAdminPage() {
           </h1>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{total} usuarios registrados</p>
         </div>
-        <button onClick={() => setCreateModal(true)} className="px-5 py-2.5 rounded-xl font-bold text-sm bg-[var(--color-primary)] text-black hover:scale-105 transition-transform">
-          + Crear Usuario
+        <button onClick={() => setCreateModalType(mainTab === 'Clients' ? 'WIZARD' : 'STANDARD')} className="bg-[var(--color-primary)] text-black px-6 py-3 rounded-2xl font-black hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_20px_rgba(0,216,182,0.3)]">
+          <UserPlus size={18} />
+          {mainTab === 'Admins' ? 'Crear Administrador' : mainTab === 'Resellers' ? 'Crear Revendedor' : 'Crear Cliente Final'}
         </button>
       </div>
 
-      {/* Filters */}
-      <form onSubmit={handleSearch} className="flex flex-col lg:flex-row gap-4 mb-8">
-        <div className="relative flex-1 lg:w-72">
+      {/* Search and Sub Tabs */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
+        {/* Search */}
+        <form onSubmit={handleSearch} className="relative w-full lg:w-72">
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
           <input value={search} onChange={(e) => {
             setSearch(e.target.value);
-            if (e.target.value === '') {
-              fetchUsers('');
-            }
+            if (e.target.value === '') fetchUsers('');
           }}
             placeholder="Buscar por email o nombre..." 
-            className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-2 text-sm text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors backdrop-blur-md" 
+            className="w-full bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-xl pl-11 pr-4 py-2 text-sm text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors backdrop-blur-md" 
           />
+        </form>
+
+        <div className="flex gap-2 bg-[var(--bg-panel)] border border-[var(--border-subtle)] p-1 rounded-xl w-full lg:w-fit overflow-x-auto">
+          {mainTab === 'Admins' && (
+            <>
+              <button onClick={() => { setRole('ADMIN'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'ADMIN' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Admin Generales</button>
+              <button onClick={() => { setRole('ADMIN_RESELLER'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'ADMIN_RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Admin Revendedores</button>
+            </>
+          )}
+          {mainTab === 'Resellers' && (
+            <>
+              <button onClick={() => { setRole('SUPER_RESELLER'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'SUPER_RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Súper Revendedores</button>
+              <button onClick={() => { setRole('RESELLER'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Revendedores Normales</button>
+            </>
+          )}
         </div>
-        <select value={role} onChange={(e) => setRole(e.target.value)} className="bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-xl px-4 py-2 text-sm font-bold text-white outline-none focus:border-[var(--color-primary)]">
-          <option value="">Todos los Roles</option>
-          <option value="ADMIN">Admins</option>
-          <option value="ADMIN_RESELLER">Admin Resellers</option>
-          <option value="SUPER_RESELLER">Súper Revendedores</option>
-          <option value="RESELLER">Revendedores</option>
-          <option value="SUBSCRIBER">Suscriptores</option>
-        </select>
-        <button type="submit" className="px-6 py-2.5 rounded-xl font-bold text-sm transition-transform hover:scale-105 active:scale-95 bg-[var(--color-primary)] text-black">
-          Buscar
-        </button>
-      </form>
+      </div>
 
       {/* Table */}
       <div className="rounded-2xl overflow-hidden border border-[var(--border-subtle)] shadow-2xl backdrop-blur-xl bg-[var(--bg-panel)]">
@@ -258,6 +280,19 @@ export default function UsuariosAdminPage() {
         )}
       </div>
 
+      {/* Pagination */}
+      {total > 15 && (
+        <div className="flex items-center justify-between mt-6 bg-[var(--bg-panel)] p-4 rounded-xl border border-[var(--border-subtle)]">
+          <span className="text-sm text-[var(--text-muted)] font-bold">
+            Mostrando {(page - 1) * 15 + 1} - {Math.min(page * 15, total)} de {total}
+          </span>
+          <div className="flex gap-2">
+            <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-30 text-sm font-bold transition-colors text-white">Anterior</button>
+            <button disabled={page * 15 >= total} onClick={() => setPage(page + 1)} className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-30 text-sm font-bold transition-colors text-white">Siguiente</button>
+          </div>
+        </div>
+      )}
+
       {/* Modal Asignar Plan */}
       {assignModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
@@ -282,27 +317,63 @@ export default function UsuariosAdminPage() {
       )}
 
       {/* Modal Crear Usuario */}
-      {createModal && (
+      {createModalType === 'WIZARD' && (
+        <UserWizardModal
+          onClose={() => setCreateModalType(null)}
+          onSuccess={() => {
+            setCreateModalType(null);
+            fetchUsers();
+          }}
+          creatorRole="ADMIN"
+          apiEndpoint="/api/admin/users/advanced"
+        />
+      )}
+
+      {createModalType === 'STANDARD' && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[var(--bg-panel)] p-8 rounded-[24px] w-full max-w-sm border border-[var(--border-subtle)] backdrop-blur-xl shadow-2xl">
-            <h3 className="text-xl font-black text-white mb-6">Crear Nuevo Usuario</h3>
+            <h3 className="text-xl font-black text-white mb-6">Crear Nuevo {mainTab === 'Admins' ? 'Admin' : 'Revendedor'}</h3>
             
-            <input type="text" placeholder="Nombre de usuario" value={newUser.username} onChange={e => setNewUser({...newUser, username: e.target.value})}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] mb-3 outline-none" />
-            <input type="text" placeholder="Contraseña" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] mb-3 outline-none" />
+            <div className="mb-3">
+              <input type="text" placeholder="Nombre de usuario" value={newUser.username} onChange={e => setNewUser({...newUser, username: e.target.value})}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] outline-none" />
+              {!newUser.username && <p className="text-xs text-red-400 mt-1">Requerido</p>}
+            </div>
+            
+            <div className="mb-3">
+              <input type="password" placeholder="Contraseña" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] outline-none" />
+              {!newUser.password && <p className="text-xs text-red-400 mt-1">Requerida</p>}
+            </div>
+
+            <div className="mb-3">
+              <input type="password" placeholder="Confirmar Contraseña" value={newUser.confirmPassword} onChange={e => setNewUser({...newUser, confirmPassword: e.target.value})}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] outline-none" />
+              {newUser.password && newUser.confirmPassword && newUser.password !== newUser.confirmPassword && (
+                <p className="text-xs text-red-400 mt-1">Las contraseñas no coinciden</p>
+              )}
+            </div>
             
             <select value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-[var(--color-primary)] mb-6 outline-none font-bold text-[var(--color-primary)]">
-              <option value="ADMIN">Administrador General</option>
-              <option value="ADMIN_RESELLER">Admin Reseller</option>
-              <option value="SUPER_RESELLER">Súper Revendedor</option>
-              <option value="RESELLER">Revendedor</option>
-              <option value="SUBSCRIBER">Cliente (Suscriptor)</option>
+              {mainTab === 'Admins' && <option value="ADMIN">Administrador General</option>}
+              {mainTab === 'Resellers' && (
+                <>
+                  <option value="ADMIN_RESELLER">Admin Reseller</option>
+                  <option value="SUPER_RESELLER">Súper Revendedor</option>
+                  <option value="RESELLER">Revendedor</option>
+                </>
+              )}
             </select>
 
             <div className="flex gap-3 mt-4">
-              <button onClick={() => setCreateModal(false)} className="px-4 py-3 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors flex-1">Cancelar</button>
-              <button onClick={handleCreateUser} className="px-4 py-3 rounded-xl font-bold text-sm bg-[var(--color-primary)] text-black hover:scale-105 transition-transform flex-1">Crear</button>
+              <button onClick={() => setCreateModalType(null)} className="px-4 py-3 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors flex-1">Cancelar</button>
+              <button 
+                disabled={!newUser.username || !newUser.password || !newUser.confirmPassword || (newUser.password !== newUser.confirmPassword)}
+                onClick={() => { handleCreateUser(); setCreateModalType(null); }} 
+                className="px-4 py-3 rounded-xl font-bold text-sm bg-[var(--color-primary)] text-black hover:scale-105 transition-transform flex-1 disabled:opacity-50 disabled:hover:scale-100"
+              >
+                Crear
+              </button>
             </div>
           </div>
         </div>
@@ -353,5 +424,13 @@ export default function UsuariosAdminPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function UsuariosAdminPage() {
+  return (
+    <Suspense fallback={<div className="p-8 flex justify-center"><div className="w-8 h-8 rounded-full border-4 border-[var(--color-primary)] border-t-transparent animate-spin" /></div>}>
+      <UsuariosContent />
+    </Suspense>
   );
 }

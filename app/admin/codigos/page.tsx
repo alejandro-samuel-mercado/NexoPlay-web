@@ -21,7 +21,7 @@ export default function CodigosAdminPage() {
     setLoading(true);
     const currentSearch = forceSearch !== undefined ? forceSearch : search;
     const params = new URLSearchParams({ 
-      page: String(page), limit: '20', 
+      page: String(page), limit: '15', 
       ...(currentSearch ? { search: currentSearch } : {}),
       ...(filterUsed ? { isUsed: filterUsed } : {}) 
     });
@@ -178,6 +178,19 @@ export default function CodigosAdminPage() {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {total > 15 && (
+        <div className="flex items-center justify-between mt-6 bg-[var(--bg-panel)] p-4 rounded-xl border border-[var(--border-subtle)]">
+          <span className="text-sm text-[var(--text-muted)] font-bold">
+            Mostrando {(page - 1) * 15 + 1} - {Math.min(page * 15, total)} de {total}
+          </span>
+          <div className="flex gap-2">
+            <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-30 text-sm font-bold transition-colors text-white">Anterior</button>
+            <button disabled={page * 15 >= total} onClick={() => setPage(page + 1)} className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-30 text-sm font-bold transition-colors text-white">Siguiente</button>
+          </div>
+        </div>
+      )}
 
       {/* Create Modal */}
       {showCreate && (

@@ -17,16 +17,26 @@ import {
     ShieldCheck,
     Store,
     TrendingUp,
-    Users
+    Users,
+    ChevronDown
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 
 // All nav items for ADMIN
 const ADMIN_NAV_ITEMS = [
   { href: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
-  { href: '/admin/usuarios', icon: Users, label: 'Usuarios' },
+  { 
+    href: '/admin/usuarios', 
+    icon: Users, 
+    label: 'Usuarios',
+    subItems: [
+      { href: '/admin/usuarios?tab=Admins', label: 'Administradores' },
+      { href: '/admin/usuarios?tab=Resellers', label: 'Revendedores' },
+      { href: '/admin/usuarios?tab=Clients', label: 'Clientes Finales' },
+    ]
+  },
   { href: '/admin/contenido', icon: Film, label: 'Contenido' },
   { href: '/admin/planes', icon: Crown, label: 'Planes' },
   { href: '/admin/tokens', icon: Coins, label: 'Tokens' },
@@ -47,6 +57,7 @@ const FRANCHISEE_NAV_ITEMS = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user, isAdmin, isFranchisee, isLoading } = useAuth();
   const router = useRouter();
 
@@ -101,25 +112,42 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Nav */}
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {navItems.map((item) => {
+          {(navItems as any[]).map((item) => {
             const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
             const Icon = item.icon;
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-sm font-bold transition-all group ${
-                  isActive ? 'text-white shadow-md' : 'text-[#8B8FA8] hover:text-white hover:bg-white/5'
-                }`}
-                style={
-                  isActive
-                    ? { background: roleColor }
-                    : {}
-                }
-              >
-                <Icon size={17} />
-                {item.label}
-              </Link>
+              <div key={item.href}>
+                <Link
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-sm font-bold transition-all group ${
+                    isActive ? 'text-white shadow-md' : 'text-[#8B8FA8] hover:text-white hover:bg-white/5'
+                  }`}
+                  style={isActive && !item.subItems ? { background: roleColor } : {}}
+                >
+                  <Icon size={17} />
+                  <span className="flex-1">{item.label}</span>
+                  {item.subItems && (
+                    <ChevronDown size={14} className={`transition-transform ${isActive ? 'rotate-180' : ''}`} />
+                  )}
+                </Link>
+                
+                {item.subItems && isActive && (
+                  <div className="ml-8 mt-1 flex flex-col gap-1 border-l border-white/10 pl-2">
+                    {item.subItems.map((sub: any) => {
+                      const isSubActive = searchParams.get('tab') ? sub.href.includes(`tab=${searchParams.get('tab')}`) : sub.href.includes('tab=Admins');
+                      return (
+                        <Link 
+                          key={sub.href} 
+                          href={sub.href} 
+                          className={`text-xs py-2 px-3 rounded-lg transition-colors ${isSubActive ? 'text-white bg-white/10 font-black' : 'text-[#8B8FA8] hover:text-white hover:bg-white/5 font-bold'}`}
+                        >
+                          {sub.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>

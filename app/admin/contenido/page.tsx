@@ -62,7 +62,7 @@ export default function AdminContentPage() {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const limit = 30;
+    const limit = 15;
 
     // Selection State
     const [selectedIds, setSelectedIds] = useState<string[]>([]);

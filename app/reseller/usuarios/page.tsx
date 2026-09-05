@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { CheckCircle2, Copy, Crown, Eye, EyeOff, Search, Users, XCircle, UserPlus, Phone, Mail, User } from 'lucide-react';
+import { CheckCircle2, Copy, Crown, Eye, EyeOff, Search, Users, XCircle, UserPlus, Phone, Mail, User, Shield } from 'lucide-react';
 import { API_BASE, API, apiFetch } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import UserWizardModal from '@/components/admin/UserWizardModal';
 
 const R = (path: string) => `${API_BASE}/api/reseller${path}`;
 
@@ -13,12 +14,13 @@ export default function ResellerUsuariosPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   
-  const [createModal, setCreateModal] = useState(false);
+  const [createModalType, setCreateModalType] = useState<'STANDARD' | 'WIZARD' | null>(null);
   const [assignModal, setAssignModal] = useState<{ userId: string; email: string } | null>(null);
   const [selectedPlan, setSelectedPlan] = useState('');
   
-  const [newUser, setNewUser] = useState({ username: '', password: '', name: '', email: '', phone: '', role: 'SUBSCRIBER' });
+  const [newUser, setNewUser] = useState({ username: '', password: '', confirmPassword: '', name: '', email: '', phone: '', role: 'SUBSCRIBER' });
   const [visible, setVisible] = useState<Record<string, boolean>>({});
   const [infoModal, setInfoModal] = useState<any | null>(null);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
@@ -27,13 +29,13 @@ export default function ResellerUsuariosPage() {
 
   const fetchUsers = async (s = search) => {
     setLoading(true);
-    const params = new URLSearchParams({ limit: '50', ...(s ? { search: s } : {}) });
+    const params = new URLSearchParams({ limit: '15', page: String(page), ...(s ? { search: s } : {}) });
     const res = await apiFetch(R(`/users?${params}`)).catch(() => null);
     if (res?.success) { setUsers(res.data || []); setTotal(res.meta?.total || res.data?.length || 0); }
     setLoading(false);
   };
 
-  useEffect(() => { fetchUsers(); }, []);
+  useEffect(() => { fetchUsers(); }, [page]);
   useEffect(() => {
     apiFetch(`${API_BASE}/api/tokens/plans`).then(r => { 
       if (r.success) setPlans(r.data?.filter((p: any) => p.role === 'SUBSCRIBER' || p.role === 'GUEST' || p.role === 'RESELLER') || []); 
@@ -41,11 +43,12 @@ export default function ResellerUsuariosPage() {
   }, []);
 
   const handleCreate = async () => {
-    if (!newUser.username || !newUser.password) return showToast('Usuario y contraseña son obligatorios', false);
+    if (!newUser.username || !newUser.password || !newUser.confirmPassword) return showToast('Todos los campos son obligatorios', false);
+    if (newUser.password !== newUser.confirmPassword) return showToast('Las contraseñas no coinciden', false);
     try {
       await apiFetch(R('/users'), { method: 'POST', body: JSON.stringify(newUser) });
-      setCreateModal(false);
-      setNewUser({ username: '', password: '', name: '', email: '', phone: '', role: 'SUBSCRIBER' });
+      setCreateModalType(null);
+      setNewUser({ username: '', password: '', confirmPassword: '', name: '', email: '', phone: '', role: 'SUBSCRIBER' });
       fetchUsers();
       showToast('Usuario creado correctamente');
     } catch (e: any) { showToast(e.message || 'Error al crear usuario', false); }
@@ -114,11 +117,19 @@ export default function ResellerUsuariosPage() {
           </h1>
           <p className="text-white/50 font-medium">Administra tu red: {total} usuarios en total.</p>
         </div>
-        <button onClick={() => setCreateModal(true)}
-          className="relative z-10 px-6 py-3.5 rounded-2xl font-black text-sm flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(52,211,153,0.3)]"
-          style={{ background: '#34D399', color: '#0a0f0a' }}>
-          <UserPlus size={18} /> Crear Usuario
-        </button>
+        <div className="flex gap-3">
+          {(user?.role === 'SUPER_RESELLER' || user?.role === 'ADMIN_RESELLER') && (
+            <button onClick={() => setCreateModalType('STANDARD')}
+              className="relative z-10 px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2 hover:scale-105 active:scale-95 transition-all bg-white/10 text-white border border-white/20">
+              <Shield size={18} /> Crear Revendedor
+            </button>
+          )}
+          <button onClick={() => setCreateModalType('WIZARD')}
+            className="relative z-10 px-6 py-3 rounded-2xl font-black text-sm flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(52,211,153,0.3)]"
+            style={{ background: '#34D399', color: '#0a0f0a' }}>
+            <UserPlus size={18} /> Crear Cliente Final
+          </button>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -236,20 +247,45 @@ export default function ResellerUsuariosPage() {
         </div>
       </div>
 
+      {/* Pagination */}
+      {total > 15 && (
+        <div className="flex items-center justify-between mt-6 bg-[var(--bg-panel)] p-4 rounded-2xl border border-[var(--border-subtle)]">
+          <span className="text-sm text-white/50 font-bold">
+            Mostrando {(page - 1) * 15 + 1} - {Math.min(page * 15, total)} de {total}
+          </span>
+          <div className="flex gap-2">
+            <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-30 text-sm font-bold transition-colors text-white">Anterior</button>
+            <button disabled={page * 15 >= total} onClick={() => setPage(page + 1)} className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-30 text-sm font-bold transition-colors text-white">Siguiente</button>
+          </div>
+        </div>
+      )}
+
       {/* Modal Crear */}
-      {createModal && (
+      {createModalType === 'WIZARD' && (
+        <UserWizardModal
+          onClose={() => setCreateModalType(null)}
+          onSuccess={() => {
+            setCreateModalType(null);
+            fetchUsers();
+          }}
+          creatorRole={user?.role || ''}
+          apiEndpoint="/api/reseller/users/advanced"
+        />
+      )}
+
+      {createModalType === 'STANDARD' && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[var(--bg-panel)] p-8 rounded-[32px] w-full max-w-lg border border-[var(--border-subtle)] shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#34D399]/5 blur-[80px] rounded-full pointer-events-none" />
             <h3 className="text-2xl font-black text-white mb-6 flex items-center gap-3">
-              <UserPlus className="text-[#34D399]" /> Nuevo Usuario
+              <UserPlus className="text-[#34D399]" /> Nuevo Revendedor
             </h3>
             
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="col-span-2">
                 <label className={labelCls}>Rol del Usuario</label>
                 <select value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })} className={inputCls + ' font-bold text-[#34D399]'}>
-                  {allowedRoles.map(r => <option key={r.value} value={r.value} className="bg-[#0a0f0a]">{r.label}</option>)}
+                  {allowedRoles.filter(r => r.value !== 'SUBSCRIBER').map(r => <option key={r.value} value={r.value} className="bg-[#0a0f0a]">{r.label}</option>)}
                 </select>
               </div>
 
@@ -259,11 +295,21 @@ export default function ResellerUsuariosPage() {
                   <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
                   <input type="text" value={newUser.username} placeholder="Ej: pedro123" onChange={e => setNewUser({ ...newUser, username: e.target.value })} className={`${inputCls} pl-10`} />
                 </div>
+                {!newUser.username && <p className="text-xs text-red-400 mt-1">Requerido</p>}
               </div>
               
               <div>
                 <label className={labelCls}>Contraseña *</label>
-                <input type="text" value={newUser.password} placeholder="••••••••" onChange={e => setNewUser({ ...newUser, password: e.target.value })} className={inputCls} />
+                <input type="password" value={newUser.password} placeholder="••••••••" onChange={e => setNewUser({ ...newUser, password: e.target.value })} className={inputCls} />
+                {!newUser.password && <p className="text-xs text-red-400 mt-1">Requerida</p>}
+              </div>
+              
+              <div>
+                <label className={labelCls}>Confirmar Contraseña *</label>
+                <input type="password" value={newUser.confirmPassword} placeholder="••••••••" onChange={e => setNewUser({ ...newUser, confirmPassword: e.target.value })} className={inputCls} />
+                {newUser.password && newUser.confirmPassword && newUser.password !== newUser.confirmPassword && (
+                  <p className="text-xs text-red-400 mt-1">No coinciden</p>
+                )}
               </div>
 
               <div className="col-span-2">
@@ -289,8 +335,13 @@ export default function ResellerUsuariosPage() {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setCreateModal(false)} className="flex-1 px-4 py-3.5 rounded-xl font-bold text-sm bg-white/5 text-white hover:bg-white/10 transition-colors border border-white/10">Cancelar</button>
-              <button onClick={handleCreate} className="flex-1 px-4 py-3.5 rounded-xl font-black text-sm hover:scale-105 transition-transform flex items-center justify-center gap-2" style={{ background: '#34D399', color: '#0a0f0a' }}>
+              <button onClick={() => setCreateModalType(null)} className="flex-1 px-4 py-3.5 rounded-xl font-bold text-sm bg-white/5 text-white hover:bg-white/10 transition-colors border border-white/10">Cancelar</button>
+              <button 
+                disabled={!newUser.username || !newUser.password || !newUser.confirmPassword || (newUser.password !== newUser.confirmPassword)}
+                onClick={() => { handleCreate(); setCreateModalType(null); }} 
+                className="flex-1 px-4 py-3.5 rounded-xl font-black text-sm hover:scale-105 transition-transform flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:scale-100" 
+                style={{ background: '#34D399', color: '#0a0f0a' }}
+              >
                 <UserPlus size={18} /> Crear Usuario
               </button>
             </div>
