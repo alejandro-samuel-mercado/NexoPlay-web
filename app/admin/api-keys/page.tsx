@@ -17,7 +17,7 @@ export default function AdminApiKeysPage() {
   const [newKeyName, setNewKeyName] = useState('');
 
   useEffect(() => {
-    if (!authLoading && !isAdmin) router.push('/');
+    if (!authLoading && !isAdmin) router.push('/auth/login');
     if (isAdmin) fetchKeys();
   }, [isAdmin, authLoading]);
 

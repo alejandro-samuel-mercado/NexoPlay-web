@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { Users, Search, ChevronDown, Crown, Shield, User, CheckCircle2, XCircle, Copy, Eye, EyeOff, UserPlus, RefreshCcw } from 'lucide-react';
+import { Users, Search, ChevronDown, Crown, Shield, User, CheckCircle2, XCircle, Copy, Eye, EyeOff, UserPlus, RefreshCcw, Edit2 } from 'lucide-react';
 import { API, apiFetch } from '@/lib/api';
 import { useSearchParams } from 'next/navigation';
 import UserWizardModal from '@/components/admin/UserWizardModal';
@@ -25,6 +25,7 @@ function UsuariosContent() {
   const [selectedPlan, setSelectedPlan] = useState('');
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
   const [infoModal, setInfoModal] = useState<any | null>(null);
+  const [editModal, setEditModal] = useState<{ id: string; username: string; name: string; password?: string; isActive: boolean; planId: string } | null>(null);
 
   const togglePassword = (id: string) => {
     setVisiblePasswords(prev => ({ ...prev, [id]: !prev[id] }));
@@ -60,13 +61,34 @@ function UsuariosContent() {
   const handleAssignPlan = async () => {
     if (!assignModal || !selectedPlan) return;
     try {
-      await apiFetch(API.ADMIN.USER_SUB(assignModal.userId), {
-        method: 'POST',
-        body: JSON.stringify({ planId: selectedPlan }),
-      });
-      setAssignModal(null);
-      fetchUsers();
+      const res = await apiFetch(`${API.ADMIN.USERS}/${assignModal.userId}/subscription`, { method: 'POST', body: JSON.stringify({ planId: selectedPlan }) });
+      if (res.success) { setAssignModal(null); fetchUsers(); }
+      else alert(res.error || 'Error al asignar plan');
     } catch (e: any) { alert(e.message); }
+  };
+
+  const handleEditUser = async () => {
+    if (!editModal) return;
+    try {
+      const res = await apiFetch(API.ADMIN.USER(editModal.id), {
+        method: 'PATCH',
+        body: JSON.stringify({
+          username: editModal.username,
+          name: editModal.name,
+          password: editModal.password || undefined,
+          isActive: editModal.isActive,
+          planId: editModal.planId || undefined
+        })
+      });
+      if (res.success) {
+        setEditModal(null);
+        fetchUsers();
+      } else {
+        alert(res.error || 'Error al editar usuario');
+      }
+    } catch (e: any) {
+      alert(e.message);
+    }
   };
 
   const handleCreateUser = async () => {
@@ -263,14 +285,20 @@ function UsuariosContent() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => handleToggleActive(u.id, u.isActive)}
-                          className={`px-3 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105 inline-flex items-center justify-center gap-2 ${u.isActive ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-green-500 text-white shadow-lg shadow-green-500/20'}`}
-                          title={u.isActive ? 'Suspender acceso' : 'Activar acceso'}>
-                          {u.isActive ? <><XCircle size={14} /> Desactivar</> : <><CheckCircle2 size={14} /> Activar</>}
+                      
+                        <button onClick={() => setEditModal({ id: u.id, username: u.username || '', name: u.name || '', password: '', isActive: u.isActive, planId: u.subscription?.planId || '' })}
+                          className="px-3 py-2 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 transition-all hover:scale-105 inline-flex items-center justify-center gap-2"
+                          title="Editar usuario">
+                          <Edit2 size={14} /> Editar
                         </button>
                         <button onClick={() => { setAssignModal({ userId: u.id, email: u.email, role: u.role }); setSelectedPlan(u.subscription?.planId || ''); }}
                           className="px-3 py-2 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 transition-all hover:scale-105 inline-flex items-center justify-center gap-2">
-                          <Crown size={14} /> Cambiar/Asignar plan
+                          <Crown size={14} /> Plan
+                        </button>
+                          <button onClick={() => handleToggleActive(u.id, u.isActive)}
+                          className={`px-3 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105 inline-flex items-center justify-center gap-2 ${u.isActive ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-green-500 text-white shadow-lg shadow-green-500/20'}`}
+                          title={u.isActive ? 'Suspender acceso' : 'Activar acceso'}>
+                          {u.isActive ? <><XCircle size={14} /> Desactivar</> : <><CheckCircle2 size={14} /> Activar</>}
                         </button>
                         <button onClick={async () => {
                             if (window.confirm('¿Seguro que deseas eliminar este usuario? Esto es irreversible y bloqueará su acceso.')) {
@@ -416,6 +444,62 @@ function UsuariosContent() {
             
             <div className="mt-6 flex justify-end">
               <button onClick={() => setInfoModal(null)} className="px-6 py-2 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors">Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Edit Modal */}
+      {editModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[var(--bg-panel)] p-8 rounded-[24px] w-full max-w-sm border border-[var(--border-subtle)] backdrop-blur-xl shadow-2xl">
+            <h3 className="text-xl font-black text-white mb-6 flex items-center gap-2"><Edit2 size={24} className="text-[var(--color-primary)]"/> Editar Usuario</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-white/50 mb-1 block">Usuario</label>
+                <input type="text" value={editModal.username} onChange={e => setEditModal({...editModal, username: e.target.value})}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] outline-none" />
+              </div>
+              
+              <div>
+                <label className="text-xs font-bold text-white/50 mb-1 block">Nombre Completo (Opcional)</label>
+                <input type="text" value={editModal.name} onChange={e => setEditModal({...editModal, name: e.target.value})}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] outline-none" />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-white/50 mb-1 block">Contraseña (Dejar en blanco para no cambiar)</label>
+                <input type="text" placeholder="Nueva contraseña" value={editModal.password || ''} onChange={e => setEditModal({...editModal, password: e.target.value})}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] outline-none" />
+              </div>
+              
+              <div>
+                <label className="text-xs font-bold text-white/50 mb-1 block">Estado</label>
+                <select value={editModal.isActive ? 'true' : 'false'} onChange={e => setEditModal({ ...editModal, isActive: e.target.value === 'true' })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-[var(--color-primary)] outline-none font-bold text-[var(--color-primary)]">
+                  <option value="true">Activo</option>
+                  <option value="false">Suspendido</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-white/50 mb-1 block">Plan</label>
+                <select value={editModal.planId || ''} onChange={e => setEditModal({ ...editModal, planId: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-[var(--color-primary)] outline-none font-bold text-white">
+                  <option value="">Sin plan</option>
+                  {plans.map(p => (
+                    <option key={p.id} value={p.id}>{p.name} {p.tokenCost ? `(${p.tokenCost} tokens)` : ''}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-8">
+              <button onClick={() => setEditModal(null)} className="px-4 py-3 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors flex-1">Cancelar</button>
+              <button 
+                onClick={handleEditUser} 
+                className="px-4 py-3 rounded-xl font-bold text-sm bg-[var(--color-primary)] text-black hover:scale-105 transition-transform flex-1"
+              >
+                Guardar
+              </button>
             </div>
           </div>
         </div>

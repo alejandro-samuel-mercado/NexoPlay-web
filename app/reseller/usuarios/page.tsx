@@ -247,13 +247,14 @@ export default function ResellerUsuariosPage() {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => handleToggle(u.id, u.isActive)}
-                          className={`px-3 py-2 flex items-center justify-center gap-2 rounded-xl text-xs font-bold transition-all hover:scale-105 ${u.isActive ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-green-500 text-white shadow-lg shadow-green-500/20'}`}>
-                          {u.isActive ? <><XCircle size={14} /> Desactivar</> : <><CheckCircle2 size={14} /> Activar</>}
-                        </button>
+                      
                         <button onClick={() => { setAssignModal({ userId: u.id, email: u.email }); setSelectedPlan(u.subscription?.planId || ''); }}
                           className="px-3 py-2 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 transition-all hover:scale-105 flex items-center gap-1.5">
-                          <Crown size={14} /> Cambiar/Asignar plan
+                          <Crown size={14} /> Plan
+                        </button>
+                          <button onClick={() => handleToggle(u.id, u.isActive)}
+                          className={`px-3 py-2 flex items-center justify-center gap-2 rounded-xl text-xs font-bold transition-all hover:scale-105 ${u.isActive ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-green-500 text-white shadow-lg shadow-green-500/20'}`}>
+                          {u.isActive ? <><XCircle size={14} /> Desactivar</> : <><CheckCircle2 size={14} /> Activar</>}
                         </button>
                       </div>
                     </td>

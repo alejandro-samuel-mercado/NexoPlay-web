@@ -99,7 +99,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (!isLoading && !isAdmin && !isFranchisee) {
-      router.push('/');
+      router.push('/auth/login');
       return;
     }
     if (isAdmin || isFranchisee) {
@@ -135,11 +135,13 @@ export default function AdminDashboard() {
           <SyncButton />
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard icon={<Users size={20} />} label="Usuarios" value={stats?.stats?.totalUsers || 0} color="#60A5FA" />
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+          <StatCard icon={<Users size={20} />} label="Usuarios Totales" value={stats?.stats?.totalUsers || 0} color="#60A5FA" />
+          <StatCard icon={<Users size={20} />} label="Clientes Finales" value={stats?.stats?.totalClients || 0} color="#00D2B4" />
           <StatCard icon={<Crown size={20} />} label="Suscripciones" value={stats?.stats?.activeSubscriptions || 0} color="#A78BFA" />
+          <StatCard icon={<Store size={20} />} label="Revendedores" value={stats?.stats?.totalResellers || 0} color="#3B82F6" />
+          <StatCard icon={<TrendingUp size={20} />} label="Expiradas" value={stats?.stats?.totalExpired || 0} color="#EF4444" />
           <StatCard icon={<Film size={20} />} label="Contenido" value={stats?.stats?.totalContent || 0} color="#34D399" />
-          <StatCard icon={<Download size={20} />} label="Descargas" value={stats?.stats?.totalDownloads || 0} color="#FBBF24" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -172,13 +174,15 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4 mb-8">
         <StatCard icon={<Users size={20} />} label="Usuarios Totales" value={stats?.stats?.totalUsers || 0} color="#00D2B4" />
-        <StatCard icon={<Crown size={20} />} label="Suscripciones Activas" value={stats?.stats?.activeSubscriptions || 0} color="#FFD23F" />
-        <StatCard icon={<TrendingUp size={20} />} label="Próximas a Vencer" value={stats?.stats?.expiringSoon || 0} color="#EF4444" trend="7 días" />
+        <StatCard icon={<Users size={20} />} label="Clientes Finales" value={stats?.stats?.totalClients || 0} color="#60A5FA" />
         <StatCard icon={<Store size={20} />} label="Revendedores" value={stats?.stats?.totalResellers || 0} color="#3B82F6" />
+        <StatCard icon={<Crown size={20} />} label="Suscrip. Activas" value={stats?.stats?.activeSubscriptions || 0} color="#FFD23F" />
+        <StatCard icon={<TrendingUp size={20} />} label="Por Vencer" value={stats?.stats?.expiringSoon || 0} color="#F59E0B" trend="7 días" />
+        <StatCard icon={<TrendingUp size={20} />} label="Cuentas Expiradas" value={stats?.stats?.totalExpired || 0} color="#EF4444" />
         <StatCard icon={<Film size={20} />} label="Contenido" value={stats?.stats?.totalContent || 0} color="#FF8C32" />
-        <StatCard icon={<Download size={20} />} label="Descargas Totales" value={stats?.stats?.totalDownloads || 0} color="#A855F7" />
+        <StatCard icon={<Download size={20} />} label="Descargas" value={stats?.stats?.totalDownloads || 0} color="#A855F7" />
       </div>
 
       {/* Quick Nav Grid */}

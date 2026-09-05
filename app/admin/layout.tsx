@@ -18,11 +18,12 @@ import {
     Store,
     TrendingUp,
     Users,
-    ChevronDown
+    ChevronDown,
+    LogOut
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 // All nav items for ADMIN
 const ADMIN_NAV_ITEMS = [
@@ -58,12 +59,13 @@ const FRANCHISEE_NAV_ITEMS = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { user, isAdmin, isFranchisee, isLoading } = useAuth();
+  const { user, isAdmin, isFranchisee, isLoading, logout } = useAuth();
   const router = useRouter();
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!isLoading && !isAdmin && !isFranchisee) {
-      router.push('/');
+      router.push('/auth/login');
     }
   }, [isLoading, isAdmin, isFranchisee, router]);
 
@@ -73,6 +75,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="w-12 h-12 rounded-full border-4 border-t-transparent animate-spin" style={{ borderColor: 'var(--color-primary)', borderTopColor: 'transparent' }} />
       </div>
     );
+  }
+
+  if (!isAdmin && !isFranchisee) {
+    return null;
   }
 
   const navItems = isAdmin ? ADMIN_NAV_ITEMS : FRANCHISEE_NAV_ITEMS;
@@ -113,25 +119,37 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Nav */}
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
           {(navItems as any[]).map((item) => {
-            const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+            const isPathActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+            const isExpanded = item.subItems ? (expandedMenus[item.href] !== undefined ? expandedMenus[item.href] : isPathActive) : false;
             const Icon = item.icon;
+            
             return (
               <div key={item.href}>
                 <Link
                   href={item.href}
+                  onClick={(e) => {
+                    if (item.subItems) {
+                      if (isPathActive) {
+                        e.preventDefault();
+                        setExpandedMenus(prev => ({ ...prev, [item.href]: !isExpanded }));
+                      } else {
+                        setExpandedMenus(prev => ({ ...prev, [item.href]: true }));
+                      }
+                    }
+                  }}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-sm font-bold transition-all group ${
-                    isActive ? 'text-white shadow-md' : 'text-[#8B8FA8] hover:text-white hover:bg-white/5'
+                    isPathActive ? 'text-white shadow-md' : 'text-[#8B8FA8] hover:text-white hover:bg-white/5'
                   }`}
-                  style={isActive && !item.subItems ? { background: roleColor } : {}}
+                  style={isPathActive && !item.subItems ? { background: roleColor } : {}}
                 >
                   <Icon size={17} />
                   <span className="flex-1">{item.label}</span>
                   {item.subItems && (
-                    <ChevronDown size={14} className={`transition-transform ${isActive ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={14} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                   )}
                 </Link>
                 
-                {item.subItems && isActive && (
+                {item.subItems && isExpanded && (
                   <div className="ml-8 mt-1 flex flex-col gap-1 border-l border-white/10 pl-2">
                     {item.subItems.map((sub: any) => {
                       const isSubActive = searchParams.get('tab') ? sub.href.includes(`tab=${searchParams.get('tab')}`) : sub.href.includes('tab=Admins');
@@ -156,7 +174,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="p-3 border-t border-[var(--border-subtle)] space-y-2">
           <div className="px-3 py-2.5 rounded-[10px] flex items-center gap-2.5" style={{ background: 'rgba(255,255,255,0.04)' }}>
             <div
-              className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden border-2"
+              className="w-8 h-8 rounded-full 
+              flex-shrink-0 overflow-hidden border-2"
               style={{ borderColor: roleColor }}
             >
               <img
@@ -176,6 +195,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
           </div>
 
+          <button 
+            onClick={logout} 
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-[10px] text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/10 mt-2"
+          >
+            <LogOut size={16} />
+            Cerrar Sesión
+          </button>
         </div>
       </aside>
 
@@ -208,6 +234,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </Link>
             );
           })}
+          
+          <button
+            onClick={logout}
+            className="flex-shrink-0 p-2 rounded-[8px] transition-all shadow-sm text-red-400 hover:bg-red-500/10"
+            title="Cerrar Sesión"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
       </div>
 

@@ -21,7 +21,7 @@ export default function TenantSettingsPage() {
   });
 
   useEffect(() => {
-    if (!authLoading && !isAdmin && !isFranchisee) router.push('/');
+    if (!authLoading && !isAdmin && !isFranchisee) router.push('/auth/login');
     if (isAdmin || isFranchisee) fetchSettings();
   }, [isAdmin, isFranchisee, authLoading]);
 

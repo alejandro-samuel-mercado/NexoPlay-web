@@ -14,7 +14,7 @@ export default function TenantDashboardPage() {
   const [settings, setSettings] = useState<any>(null);
 
   useEffect(() => {
-    if (!authLoading && !isAdmin && !isFranchisee) router.push('/');
+    if (!authLoading && !isAdmin && !isFranchisee) router.push('/auth/login');
     if (isAdmin || isFranchisee) {
       Promise.all([
         API.TENANT.getDashboard().catch(() => null),

@@ -56,18 +56,28 @@ const TEST_USERS = [
 ];
 
 function LoginContent() {
-  const { login, isLoggedIn, isLoading } = useAuth();
+  const { login, isLoggedIn, isLoading, user } = useAuth();
   const router = useRouter();
 
   const searchParams = useSearchParams();
-  const redirectPath = searchParams?.get('redirect') || '/';
 
-  // Redirigir al inicio o a la ruta solicitada si ya hay una sesión activa
+  // Redirigir al panel correspondiente según el rol, o a la ruta solicitada
   useEffect(() => {
-    if (!isLoading && isLoggedIn) {
-      router.replace(redirectPath);
+    if (!isLoading && isLoggedIn && user) {
+      const explicitRedirect = searchParams?.get('redirect');
+      let targetPath = '/';
+      
+      if (explicitRedirect) {
+        targetPath = explicitRedirect;
+      } else if (['ADMIN', 'FRANCHISEE'].includes(user.role)) {
+        targetPath = '/admin';
+      } else if (['RESELLER', 'SUPER_RESELLER', 'ADMIN_RESELLER'].includes(user.role)) {
+        targetPath = '/reseller';
+      }
+      
+      router.replace(targetPath);
     }
-  }, [isLoggedIn, isLoading, router, redirectPath]);
+  }, [isLoggedIn, isLoading, user, router, searchParams]);
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -81,7 +91,7 @@ function LoginContent() {
     setLoading(true); setError('');
     try {
       await login(identifier, password);
-      router.push(redirectPath);
+      // El useEffect se encargará de la redirección al detectar el cambio en `isLoggedIn` y `user`
     } catch (err: any) {
       setError(err.message || 'Error al iniciar sesión');
     } finally { setLoading(false); }
@@ -93,7 +103,7 @@ function LoginContent() {
     setLoading(true); setError('');
     try {
       await login(testIdentifier, testPassword);
-      router.push(redirectPath);
+      // El useEffect se encargará de la redirección al detectar el cambio en `isLoggedIn` y `user`
     } catch (err: any) {
       setError(err.message || 'Error al iniciar sesión');
     } finally { setLoading(false); }
@@ -123,7 +133,7 @@ function LoginContent() {
               </div>
             </div>
             <span className="font-black text-3xl tracking-tight text-[var(--text-main)] lowercase">
-              serivia
+            Vexa
             </span>
           </Link>
         </div>
