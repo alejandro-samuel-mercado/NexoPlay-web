@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { UserPlus, User, Lock, Mail, Phone, Clock, Coins, MonitorPlay, CheckCircle2, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react';
+import { UserPlus, User, Lock, Mail, Phone, Clock, Coins, MonitorPlay, CheckCircle2, ChevronRight, ChevronLeft, Loader2, Crown } from 'lucide-react';
 import { apiFetch, API_BASE } from '@/lib/api';
 
 interface UserWizardModalProps {
@@ -43,7 +43,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
     });
     apiFetch(`${API_BASE}/api/tokens/plans`).then(r => {
       if (r.success) {
-        setPlans(r.data.filter((p: any) => p.role === 'SUBSCRIBER' && p.isActive));
+        setPlans(r.data.filter((p: any) => p.role === 'SUBSCRIBER' && p.isActive && !p.name.toUpperCase().includes('PRUEBA')));
       }
     });
   }, []);
