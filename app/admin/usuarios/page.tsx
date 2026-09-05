@@ -75,7 +75,6 @@ export default function UsuariosAdminPage() {
     SUPER_RESELLER: { label: 'Súper Revendedor', text: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
     RESELLER: { label: 'Revendedor', text: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
     SUBSCRIBER: { label: 'Suscripto', text: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20' },
-    GUEST: { label: 'Invitado', text: 'text-gray-400', bg: 'bg-gray-500/10', border: 'border-gray-500/20' },
   };
 
   return (
@@ -113,7 +112,6 @@ export default function UsuariosAdminPage() {
           <option value="SUPER_RESELLER">Súper Revendedores</option>
           <option value="RESELLER">Revendedores</option>
           <option value="SUBSCRIBER">Suscriptores</option>
-          <option value="GUEST">Invitados</option>
         </select>
         <button type="submit" className="px-6 py-2.5 rounded-xl font-bold text-sm transition-transform hover:scale-105 active:scale-95 bg-[var(--color-primary)] text-black">
           Buscar
@@ -300,7 +298,6 @@ export default function UsuariosAdminPage() {
               <option value="SUPER_RESELLER">Súper Revendedor</option>
               <option value="RESELLER">Revendedor</option>
               <option value="SUBSCRIBER">Cliente (Suscriptor)</option>
-              <option value="GUEST">Invitado</option>
             </select>
 
             <div className="flex gap-3 mt-4">
