@@ -220,7 +220,9 @@ function UsuariosContent() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      {isSubActive ? (
+                      {u.role === 'ADMIN' ? (
+                        <span className="text-[var(--text-muted)] text-[12px]">-</span>
+                      ) : isSubActive ? (
                         <div className="flex items-center gap-2">
                           <Crown size={14} className="text-[var(--color-primary)]" />
                           <span className="text-white font-bold text-[13px]">{u.subscription?.planName || 'Plan'}</span>
@@ -249,7 +251,11 @@ function UsuariosContent() {
                       )}
                     </td>
                     <td className="px-4 py-3">
+                      {u.role === 'ADMIN' ? (
+                        <span className="text-[var(--text-muted)] text-[12px]">-</span>
+                      ) : (
                         <span className="text-[12px] font-bold text-[var(--color-primary)]">{u.tokens || 0}</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       {u.isActive ? (
