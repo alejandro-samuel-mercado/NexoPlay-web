@@ -10,12 +10,14 @@ interface UserWizardModalProps {
   creatorRole: string; // 'ADMIN' | 'RESELLER' | 'SUPER_RESELLER' | 'ADMIN_RESELLER'
   creatorName?: string;
   apiEndpoint: string; // '/api/admin/users/advanced' or '/api/reseller/users/advanced'
-  mode?: 'USERS' | 'RESELLERS';
+  mode?: 'USERS' | 'RESELLERS' | 'ADMINS';
 }
 
 export default function UserWizardModal({ onClose, onSuccess, creatorRole, creatorName = 'Tú', apiEndpoint, mode = 'USERS' }: UserWizardModalProps) {
   const [step, setStep] = useState(1);
-  const [type, setType] = useState<'TRIAL' | 'SUBSCRIBER' | 'RESELLER'>(mode === 'RESELLERS' ? 'RESELLER' : 'TRIAL');
+  const [type, setType] = useState<'TRIAL' | 'SUBSCRIBER' | 'RESELLER' | 'ADMIN'>(
+    mode === 'RESELLERS' ? 'RESELLER' : mode === 'ADMINS' ? 'ADMIN' : 'TRIAL'
+  );
   
   const [formData, setFormData] = useState({
     name: '',
@@ -168,6 +170,19 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                   
                 </div>
               )}
+
+              {mode === 'ADMINS' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <button
+                    onClick={() => setFormData({ ...formData, role: 'ADMIN' })}
+                    className={`p-6 rounded-2xl border-2 text-left transition-all ${formData.role === 'ADMIN' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}
+                  >
+                    <User size={32} className={`mb-4 ${formData.role === 'ADMIN' ? 'text-[var(--color-primary)]' : 'text-white/40'}`} />
+                    <h5 className="text-white font-bold text-lg mb-2">Administrador General</h5>
+                    <p className="text-sm text-white/50">Acceso total al sistema. No requiere créditos ni planes.</p>
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -241,38 +256,42 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                 </div>
               )}
 
-              {(type === 'SUBSCRIBER' || type === 'RESELLER') && (
+              {(type === 'SUBSCRIBER' || type === 'RESELLER' || type === 'ADMIN') && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs font-bold text-white/60 mb-2 flex items-center justify-between uppercase tracking-wider">
-                      <span>Créditos a Asignar</span>
-                      <span className="text-[var(--color-primary)] normal-case">Saldo: {creatorBalance}</span>
-                    </label>
-                    <div className="relative">
-                      <Coins size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-primary)]" />
-                      <input type="number" min="0" value={formData.credits} onChange={e => setFormData({ ...formData, credits: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white font-bold focus:border-[var(--color-primary)] focus:outline-none transition-colors" />
-                    </div>
-                    <p className="text-xs text-white/40 mt-2">Los créditos asignados se descontarán de tu saldo.</p>
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Conexiones Máximas</label>
-                    <div className="relative">
-                      <MonitorPlay size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
-                      <input type="number" min="1" max="10" value={formData.maxScreens} onChange={e => setFormData({ ...formData, maxScreens: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors" />
-                    </div>
-                  </div>
-                  <div className="col-span-1 sm:col-span-2">
-                    <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Plan B2B (Opcional)</label>
-                    <div className="relative">
-                      <Crown size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-primary)]" />
-                      <select value={formData.planId} onChange={e => setFormData({ ...formData, planId: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors appearance-none">
-                        <option value="" className="bg-gray-900">Sin plan (Por defecto)</option>
-                        {plans.map(p => (
-                          <option key={p.id} value={p.id} className="bg-gray-900">{p.name} {creatorRole !== 'ADMIN' ? `— ${p.tokenCost || 0} créditos` : ''}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
+                  {(type === 'SUBSCRIBER' || type === 'RESELLER') && (
+                    <>
+                      <div>
+                        <label className="text-xs font-bold text-white/60 mb-2 flex items-center justify-between uppercase tracking-wider">
+                          <span>Créditos a Asignar</span>
+                          <span className="text-[var(--color-primary)] normal-case">Saldo: {creatorBalance}</span>
+                        </label>
+                        <div className="relative">
+                          <Coins size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-primary)]" />
+                          <input type="number" min="0" value={formData.credits} onChange={e => setFormData({ ...formData, credits: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white font-bold focus:border-[var(--color-primary)] focus:outline-none transition-colors" />
+                        </div>
+                        <p className="text-xs text-white/40 mt-2">Los créditos asignados se descontarán de tu saldo.</p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Conexiones Máximas</label>
+                        <div className="relative">
+                          <MonitorPlay size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
+                          <input type="number" min="1" max="10" value={formData.maxScreens} onChange={e => setFormData({ ...formData, maxScreens: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors" />
+                        </div>
+                      </div>
+                      <div className="col-span-1 sm:col-span-2">
+                        <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">{type === 'RESELLER' ? 'Plan B2B' : 'Plan'} (Opcional)</label>
+                        <div className="relative">
+                          <Crown size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-primary)]" />
+                          <select value={formData.planId} onChange={e => setFormData({ ...formData, planId: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors appearance-none">
+                            <option value="" className="bg-gray-900">Sin plan (Por defecto)</option>
+                            {plans.map(p => (
+                              <option key={p.id} value={p.id} className="bg-gray-900">{p.name} {creatorRole !== 'ADMIN' ? `— ${p.tokenCost || 0} créditos` : ''}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -290,7 +309,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                 </div>
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                   <p className="text-xs font-bold text-white/40 uppercase mb-1">Tipo de Cuenta</p>
-                  <p className="text-white font-bold">{type === 'TRIAL' ? 'Prueba (Gratuita)' : type === 'RESELLER' ? (formData.role === 'SUPER_RESELLER' ? 'Súper Revendedor' : 'Revendedor Básico') : 'Cliente Final'}</p>
+                  <p className="text-white font-bold">{type === 'TRIAL' ? 'Prueba (Gratuita)' : type === 'RESELLER' ? (formData.role === 'SUPER_RESELLER' ? 'Súper Revendedor' : 'Revendedor Básico') : type === 'ADMIN' ? 'Administrador General' : 'Cliente Final'}</p>
                 </div>
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                   <p className="text-xs font-bold text-white/40 uppercase mb-1">Usuario</p>

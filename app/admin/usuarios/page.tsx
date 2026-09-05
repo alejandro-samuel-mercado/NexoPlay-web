@@ -230,7 +230,7 @@ function UsuariosContent() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      {isSubActive && u.subscription?.expiresAt ? (
+                      {isSubActive && u.subscription?.expiresAt && !['ADMIN', 'RESELLER', 'SUPER_RESELLER', 'ADMIN_RESELLER'].includes(u.role) ? (
                         <span className="text-[12px] font-bold text-white/90">
                           {new Date(u.subscription.expiresAt).toLocaleDateString()}
                         </span>
