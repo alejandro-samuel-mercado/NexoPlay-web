@@ -152,41 +152,15 @@ export default function PublicSidebar() {
 
       {/* Sección Sistema */}
       <nav className="px-4 space-y-1">
-
-
-        {/* Panel según rol — destacado visualmente */}
-        {user && roleItem && (
-          <Link
-            href={roleItem.path}
-            className="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 font-bold text-sm mt-1 group"
-            style={{
-              background: pathname.startsWith(roleItem.path.split('?')[0]) ? roleItem.bg : 'transparent',
-              color: pathname.startsWith(roleItem.path.split('?')[0]) ? roleItem.color : 'var(--text-muted)',
-              textDecoration: 'none',
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLElement).style.background = roleItem.bg;
-              (e.currentTarget as HTMLElement).style.color = roleItem.color;
-            }}
-            onMouseLeave={e => {
-              if (!pathname.startsWith(roleItem.path.split('?')[0])) {
-                (e.currentTarget as HTMLElement).style.background = 'transparent';
-                (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)';
-              }
-            }}
-          >
-            <roleItem.icon size={20} />
-            <span className="flex-1">{roleItem.name}</span>
-            <span
-              className="text-[9px] font-black px-1.5 py-0.5 rounded-md"
-              style={{ background: roleItem.color, color: '#0a0a0f' }}
-            >
-              {roleItem.badge}
-            </span>
-          </Link>
-        )}
-
-       
+        {/* Configuración */}
+        <Link
+          href="/configuracion"
+          className="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 font-bold text-sm text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-hover)] group"
+          style={{ textDecoration: 'none' }}
+        >
+          <Settings size={20} className="group-hover:rotate-90 transition-transform duration-500" />
+          Configuración
+        </Link>
       </nav>
 
       {/* Remove User info / Login CTA */}
