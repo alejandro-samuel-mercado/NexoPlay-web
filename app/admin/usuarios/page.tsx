@@ -168,7 +168,7 @@ function UsuariosContent() {
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Creado</th>
                 {mainTab !== 'Admins' && <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Suscripción</th>}
                 {mainTab !== 'Admins' && <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Vencimiento</th>}
-                {mainTab !== 'Admins' && <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">{mainTab === 'Clients' ? 'Pantallas Activas' : 'Cuentas Activas'}</th>}
+                <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">{mainTab === 'Clients' ? 'Pantallas Activas' : 'Cuentas Activas'}</th>
                 {mainTab !== 'Admins' && <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Créditos</th>}
                 <th className="text-left px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Estado</th>
                 <th className="text-right px-4 py-3 text-[13px] font-bold tracking-wider text-white/80 uppercase">Acciones</th>
@@ -177,7 +177,7 @@ function UsuariosContent() {
             <tbody className={`transition-opacity duration-200 ${loading && users.length > 0 ? 'opacity-50 pointer-events-none' : ''}`}>
               {loading && users.length === 0 ? (
                 Array.from({ length: 8 }).map((_, i) => (
-                  <tr key={i} className="border-b border-white/5"><td colSpan={mainTab !== 'Admins' ? 8 : 4} className="px-5 py-4"><div className="h-10 bg-white/5 rounded-lg animate-pulse w-full" /></td></tr>
+                  <tr key={i} className="border-b border-white/5"><td colSpan={mainTab !== 'Admins' ? 8 : 5} className="px-5 py-4"><div className="h-10 bg-white/5 rounded-lg animate-pulse w-full" /></td></tr>
                 ))
               ) : users.map((u) => {
                 const rb = ROLE_BADGE[u.role] || ROLE_BADGE.SUBSCRIBER;
@@ -242,13 +242,11 @@ function UsuariosContent() {
                         )}
                       </td>
                     )}
-                    {mainTab !== 'Admins' && (
-                      <td className="px-4 py-3">
-                        <span className="text-[12px] font-bold text-white/90">
-                            {u.activeClients !== undefined ? u.activeClients : 0} Activas
-                        </span>
-                      </td>
-                    )}
+                    <td className="px-4 py-3">
+                      <span className="text-[12px] font-bold text-white/90">
+                          {u.activeClients !== undefined ? u.activeClients : 0} Activas
+                      </span>
+                    </td>
                     {mainTab !== 'Admins' && (
                       <td className="px-4 py-3">
                         <span className="text-[12px] font-bold text-[var(--color-primary)]">{u.tokens || 0}</span>
