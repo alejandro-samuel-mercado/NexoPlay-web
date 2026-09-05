@@ -13,6 +13,7 @@ const nextConfig = {
       { protocol: 'http', hostname: 'localhost' },
       { protocol: 'http', hostname: '192.168.100.6' }
     ],
+    qualities: [75, 100],
   },
 };
 
