@@ -281,22 +281,31 @@ function ResellerUsuariosContent() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => setInfoModal(u)} className="px-3 py-2 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 transition-all hover:scale-105 inline-flex items-center gap-2">
-                          <Eye size={14} /> Detalles
-                        </button>
-                        <button onClick={() => setEditModal({ id: u.id, username: u.username || '', name: u.name || '', password: '', isActive: u.isActive })}
-                          className="px-3 py-2 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 transition-all hover:scale-105 inline-flex items-center gap-2"
+                        <button onClick={() => setEditModal({ id: u.id, username: u.username || '', name: u.name || '', password: '', isActive: u.isActive, planId: u.subscription?.planId || '' })}
+                          className="px-3 py-2 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 transition-all hover:scale-105 inline-flex items-center justify-center gap-2"
                           title="Editar usuario">
                           <Edit2 size={14} /> Editar
                         </button>
                         <button onClick={() => { setAssignModal({ userId: u.id, email: u.email, role: u.role }); setSelectedPlan(u.subscription?.planId || ''); }}
-                          className="px-3 py-2 rounded-xl text-xs font-bold bg-[#34D399]/20 text-[#34D399] hover:bg-[#34D399]/30 transition-all hover:scale-105 inline-flex items-center justify-center gap-2">
+                          className="px-3 py-2 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 transition-all hover:scale-105 inline-flex items-center justify-center gap-2">
                           <Crown size={14} /> Plan
                         </button>
                         <button onClick={() => handleToggleActive(u.id, u.isActive)}
                           className={`px-3 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105 inline-flex items-center justify-center gap-2 ${u.isActive ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-green-500 text-white shadow-lg shadow-green-500/20'}`}
                           title={u.isActive ? 'Suspender acceso' : 'Activar acceso'}>
-                          {u.isActive ? <XCircle size={14} /> : <CheckCircle2 size={14} />}
+                          {u.isActive ? <><XCircle size={14} /> Desactivar</> : <><CheckCircle2 size={14} /> Activar</>}
+                        </button>
+                        <button onClick={async () => {
+                            if (window.confirm('¿Seguro que deseas eliminar este usuario? Esto es irreversible y bloqueará su acceso.')) {
+                              try {
+                                await API.RESELLER.deleteUser(u.id);
+                                fetchUsers();
+                              } catch (e: any) { alert(e.message); }
+                            }
+                          }} 
+                          className="px-3 py-2 rounded-xl text-xs font-bold bg-red-500 text-white shadow-lg shadow-red-500/20 hover:scale-105 transition-all inline-flex items-center justify-center gap-2"
+                          title="Eliminar usuario">
+                          <XCircle size={14} /> Eliminar
                         </button>
                       </div>
                     </td>

@@ -68,7 +68,7 @@ export default function ResellerDashboardPage() {
           value={loading ? '…' : stats?.totalClients ?? 0}
           sub={stats?.maxSubscribers ? `de ${stats.maxSubscribers} permitidos` : 'Ilimitados'} />
         <StatCard icon={Zap} label="Clientes Activos" color={C} href="/reseller/usuarios"
-          value={loading ? '…' : stats?.activeClients ?? 0}  />
+          value={loading ? '…' : stats?.activeClients ?? 0} sub="con plan activo" />
         <StatCard icon={TrendingUp} label="Próximos a Vencer" color="#EF4444" href="/reseller/usuarios"
           value={loading ? '…' : stats?.expiringClients ?? 0} sub="vencen en 7 días" />
         <StatCard icon={Download} label="Descargas Hoy" color={C} href="/reseller/descargas"

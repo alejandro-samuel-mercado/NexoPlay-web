@@ -115,6 +115,7 @@ export const API = {
 
   RESELLER: {
     getWeeklyPack: async () => apiFetch(`${API_BASE}/api/reseller/pack/weekly`, { method: 'POST' }),
+    deleteUser: async (id: string) => apiFetch(`${API_BASE}/api/reseller/users/${id}`, { method: 'DELETE' }),
     buyLimits: async (amount: number) => apiFetch(`${API_BASE}/api/reseller/buy-limits`, { method: 'POST', body: JSON.stringify({ amount }) }),
   }
 };
