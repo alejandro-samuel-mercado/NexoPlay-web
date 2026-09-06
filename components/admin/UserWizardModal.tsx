@@ -185,7 +185,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                     className={`p-6 rounded-2xl border-2 text-left transition-all ${formData.role === 'ADMIN' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}
                   >
                     <User size={32} className={`mb-4 ${formData.role === 'ADMIN' ? 'text-[var(--color-primary)]' : 'text-white/40'}`} />
-                    <h5 className="text-white font-bold text-lg mb-2">Administrador General</h5>
+                    <h5 className="text-white font-bold text-lg mb-2">Administrador Maestro</h5>
                     <p className="text-sm text-white/50">Acceso total al sistema. No requiere créditos ni planes.</p>
                   </button>
 
@@ -195,7 +195,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                   >
                     <Crown size={32} className={`mb-4 ${formData.role === 'ADMIN_RESELLER' ? 'text-[var(--color-primary)]' : 'text-white/40'}`} />
                     <h5 className="text-white font-bold text-lg mb-2">Admin Revendedores</h5>
-                    <p className="text-sm text-white/50">Control máximo sobre revendedores. No requiere créditos.</p>
+                    <p className="text-sm text-white/50">Control máximo sobre revendedores. Requiere créditos.</p>
                   </button>
                 </div>
               )}
@@ -262,13 +262,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                       </select>
                     </div>
                   </div>
-                  <div>
-                    <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Conexiones Máximas</label>
-                    <div className="relative">
-                      <MonitorPlay size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
-                      <input type="number" min="1" max="10" value={formData.maxScreens} onChange={e => setFormData({ ...formData, maxScreens: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors" />
-                    </div>
-                  </div>
+                 
                 </div>
               )}
 
@@ -276,7 +270,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {(type === 'SUBSCRIBER' || type === 'RESELLER') && (
                     <>
-                      <div>
+                     {type === 'RESELLER' && <div>
                         <label className="text-xs font-bold text-white/60 mb-2 flex items-center justify-between uppercase tracking-wider">
                           <span>Créditos a Asignar</span>
                           <span className="text-[var(--color-primary)] normal-case">Saldo: {creatorBalance}</span>
@@ -320,12 +314,15 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                           </div>
                         )}
                         <p className="text-xs text-white/40 mt-2">Los créditos asignados se descontarán de tu saldo.</p>
-                      </div>
+                      </div>}
+
+
+
                       <div className="sm:border-l sm:border-white/10 sm:pl-4">
-                        <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">{type === 'RESELLER' ? 'Plan B2B' : 'Plan'} (Opcional)</label>
+                        <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">{type === 'RESELLER' ? 'Plan B2B' : 'Plan'}</label>
                         <div className="relative">
                           <Crown size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-primary)]" />
-                          <select value={formData.planId} onChange={e => setFormData({ ...formData, planId: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors appearance-none">
+                          <select disabled={type==='RESELLER'?false:true}  value={formData.planId} onChange={e => setFormData({ ...formData, planId: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors appearance-none"   style={type!=='RESELLER'? { backgroundColor: '#706c6c36', color: '#666', cursor: 'not-allowed' }:{}} >
                             <option value="" className="bg-gray-900">Sin plan (Por defecto)</option>
                             {plans.map(p => (
                               <option key={p.id} value={p.id} className="bg-gray-900">{p.name} {creatorRole !== 'ADMIN' ? `— ${p.tokenCost || 0} créditos` : ''}</option>
@@ -334,15 +331,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                         </div>
                       </div>
                       
-                      {type === 'SUBSCRIBER' && (
-                        <div>
-                          <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Conexiones Máximas</label>
-                          <div className="relative">
-                            <MonitorPlay size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
-                            <input type="number" min="1" max="10" value={formData.maxScreens} onChange={e => setFormData({ ...formData, maxScreens: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors" />
-                          </div>
-                        </div>
-                      )}
+                      
                     </>
                   )}
                 </div>
@@ -362,7 +351,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                 </div>
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                   <p className="text-xs font-bold text-white/40 uppercase mb-1">Tipo de Cuenta</p>
-                  <p className="text-white font-bold">{type === 'TRIAL' ? 'Prueba (Gratuita)' : type === 'RESELLER' ? (formData.role === 'SUPER_RESELLER' ? 'Súper Revendedor' : formData.role === 'ADMIN_RESELLER' ? 'Admin Revendedores' : 'Revendedor Básico') : type === 'ADMIN' ? 'Administrador General' : 'Cliente Final'}</p>
+                  <p className="text-white font-bold">{type === 'TRIAL' ? 'Prueba (Gratuita)' : type === 'RESELLER' ? (formData.role === 'SUPER_RESELLER' ? 'Súper Revendedor' : formData.role === 'ADMIN_RESELLER' ? 'Admin Revendedores' : 'Revendedor Básico') : type === 'ADMIN' ? 'Administrador aestro' : 'Cliente Final'}</p>
                 </div>
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                   <p className="text-xs font-bold text-white/40 uppercase mb-1">Usuario</p>

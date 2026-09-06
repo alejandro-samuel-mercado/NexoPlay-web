@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
-import { Coins, Download, LayoutDashboard, LogOut, Package, ShieldCheck, Users, ChevronDown } from 'lucide-react';
+import { Coins, Download, LayoutDashboard, LogOut, Package, ShieldCheck, Users, ChevronDown, Film } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -54,9 +54,10 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
       ]
     },
     ...(canSeeResellers ? [{ href: '/reseller/credit-packs', icon: Package, label: 'Packs de Créditos' }] : []),
-    { href: '/reseller/descargas', icon: Download, label: 'Descargas' },
-    { href: '/reseller/pack', icon: Package, label: 'Pack Semanal' },
-    { href: '/reseller/tokens', icon: Coins, label: 'Créditos' },
+     { href: '/reseller/contenido', icon: Film, label: 'Contenido' }
+    //{ href: '/reseller/descargas', icon: Download, label: 'Descargas' },
+   // { href: '/reseller/pack', icon: Package, label: 'Pack Semanal' },
+   // { href: '/reseller/tokens', icon: Coins, label: 'Créditos' },
   ];
 
   return (

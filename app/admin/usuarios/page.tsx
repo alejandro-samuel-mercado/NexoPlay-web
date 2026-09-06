@@ -161,7 +161,7 @@ function UsuariosContent() {
         <div className="flex gap-2 bg-[var(--bg-panel)] border border-[var(--border-subtle)] p-1 rounded-xl w-full lg:w-fit overflow-x-auto">
           {mainTab === 'Admins' && (
             <>
-              <button onClick={() => { setRole('ADMIN'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'ADMIN' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Admin Generales</button>
+              <button onClick={() => { setRole('ADMIN'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'ADMIN' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Admin Maestros</button>
               <button onClick={() => { setRole('ADMIN_RESELLER'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'ADMIN_RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Admin Revendedores</button>
             </>
           )}

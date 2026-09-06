@@ -36,7 +36,7 @@ export const API = {
     PLANS: `${API_BASE}/api/admin/plans`,
     CODES: `${API_BASE}/api/admin/codes`,
     CODE: (id: string) => `${API_BASE}/api/admin/codes/${id}`,
-    CONTENT: `${API_BASE}/api/admin/content`,
+    CONTENT: `${API_BASE}/api/reseller/content`,
     CONTENT_VISIBILITY: (id: string) => `${API_BASE}/api/admin/content/${id}/visibility`,
     CONFIG: `${API_BASE}/api/admin/config`,
   },
