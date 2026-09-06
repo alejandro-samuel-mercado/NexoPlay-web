@@ -164,7 +164,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                     <p className="text-sm text-white/50">Puede crear clientes finales y pruebas. No puede crear otros revendedores.</p>
                   </button>
 
-                  {creatorRole === 'ADMIN' && (
+                  {(creatorRole === 'ADMIN' || creatorRole === 'ADMIN_RESELLER') && (
                     <button
                       onClick={() => setFormData({ ...formData, role: 'SUPER_RESELLER' })}
                       className={`p-6 rounded-2xl border-2 text-left transition-all ${formData.role === 'SUPER_RESELLER' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}
