@@ -26,8 +26,8 @@ function ResellerLoginContent() {
       });
       const user = res?.data?.user;
       if (!user) throw new Error('Respuesta inesperada del servidor.');
-      if (user.role !== 'RESELLER') {
-        throw new Error('Esta cuenta no tiene acceso al Panel Revendedor. Solo cuentas con rol REVENDEDOR pueden ingresar.');
+      if (!['RESELLER', 'SUPER_RESELLER', 'ADMIN_RESELLER'].includes(res.data.user.role)) {
+        throw new Error('Esta cuenta no tiene acceso al Panel Revendedor.');
       }
       localStorage.setItem('nexo_access_token', res.data.accessToken);
       localStorage.setItem('nexo_refresh_token', res.data.refreshToken);
