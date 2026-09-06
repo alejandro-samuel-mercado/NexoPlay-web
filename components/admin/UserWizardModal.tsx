@@ -30,7 +30,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
     maxScreens: 3,
     credits: 0,
     planId: '',
-    role: 'RESELLER'
+    role: mode === 'RESELLERS' ? 'RESELLER' : mode === 'ADMINS' ? 'ADMIN' : 'SUBSCRIBER'
   });
 
   const [plans, setPlans] = useState<any[]>([]);
