@@ -395,12 +395,12 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-white/60">Costo de esta operación:</span>
-                  <span className="font-bold text-red-400">-{type === 'TRIAL' || creatorRole === 'ADMIN' ? 0 : formData.credits + (plans.find(p => p.id === formData.planId)?.tokenCost || 0)}</span>
+                  <span className="font-bold text-red-400">-{type === 'TRIAL' || creatorRole === 'ADMIN' ? 0 : 1 + formData.credits + (plans.find(p => p.id === formData.planId)?.tokenCost || 0)}</span>
                 </div>
                 <hr className="border-[var(--color-primary)]/20" />
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-white">Tus Créditos Finales:</span>
-                  <span className="font-black text-lg text-[var(--color-primary)]">{creatorBalance - (type === 'TRIAL' || creatorRole === 'ADMIN' ? 0 : formData.credits + (plans.find(p => p.id === formData.planId)?.tokenCost || 0))}</span>
+                  <span className="font-black text-lg text-[var(--color-primary)]">{creatorBalance - (type === 'TRIAL' || creatorRole === 'ADMIN' ? 0 : 1 + formData.credits + (plans.find(p => p.id === formData.planId)?.tokenCost || 0))}</span>
                 </div>
               </div>
             </div>
