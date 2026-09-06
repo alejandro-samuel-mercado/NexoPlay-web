@@ -135,7 +135,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
               {mode === 'USERS' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <button
-                    onClick={() => setType('TRIAL')}
+                    onClick={() => { setType('TRIAL'); setFormData({ ...formData, role: 'SUBSCRIBER' }); }}
                     className={`p-6 rounded-2xl border-2 text-left transition-all ${type === 'TRIAL' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}
                   >
                     <Clock size={32} className={`mb-4 ${type === 'TRIAL' ? 'text-[var(--color-primary)]' : 'text-white/40'}`} />
@@ -143,7 +143,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                     <p className="text-sm text-white/50">Por horas. No consume créditos.</p>
                   </button>
                   <button
-                    onClick={() => setType('SUBSCRIBER')}
+                    onClick={() => { setType('SUBSCRIBER'); setFormData({ ...formData, role: 'SUBSCRIBER' }); }}
                     className={`p-6 rounded-2xl border-2 text-left transition-all ${type === 'SUBSCRIBER' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}
                   >
                     <User size={32} className={`mb-4 ${type === 'SUBSCRIBER' ? 'text-[var(--color-primary)]' : 'text-white/40'}`} />
