@@ -34,7 +34,7 @@ export default function SyncButton() {
       style={{ background: 'var(--color-primary)', color: '#000' }}
     >
       <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} />
-      {syncing ? 'Sincronizando...' : 'Sincronizar con Vexa'}
+      {syncing ? 'Sincronizando...' : 'Sincronizar con Nuba'}
     </button>
   );
 }
