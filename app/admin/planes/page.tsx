@@ -11,6 +11,14 @@ const EMPTY_PLAN = {
   maxScreens: 1, maxSubscribers: 0,
 };
 
+function formatDuration(days: number): string {
+  if (days >= 365 && days % 365 === 0) return `${days / 365} año${days / 365 > 1 ? 's' : ''}`;
+  if (days >= 30 && days % 30 === 0) return `${days / 30} mes${days / 30 > 1 ? 'es' : ''}`;
+  if (days >= 365) return `${Math.floor(days / 365)} año${Math.floor(days / 365) > 1 ? 's' : ''} y ${days % 365} días`;
+  if (days >= 30) return `${Math.floor(days / 30)} mes${Math.floor(days / 30) > 1 ? 'es' : ''} y ${days % 30} días`;
+  return `${days} día${days > 1 ? 's' : ''}`;
+}
+
 export default function PlanesAdminPage() {
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,9 +112,12 @@ export default function PlanesAdminPage() {
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="font-black text-white text-xl">{plan.name}</h3>
-          <p className="text-sm text-white/50">{plan.role}</p>
+          <p className="text-sm text-white/50">{plan.role === 'SUBSCRIBER' ? 'Usuario Final' : 'Revendedor'}</p>
           <p className="text-3xl font-black mt-2" style={{ color: 'var(--color-primary)' }}>
-            {Number(plan.tokenCost)} <span className="text-sm font-bold text-white/50">Tokens</span>
+            {Number(plan.tokenCost)} <span className="text-sm font-bold text-white/50">Crédito{Number(plan.tokenCost) !== 1 ? 's' : ''}</span>
+          </p>
+          <p className="text-sm text-white/40 mt-1 flex items-center gap-1">
+            <span>⏱</span> {formatDuration(plan.durationDays)}
           </p>
         </div>
         <div className="flex gap-1 bg-black/20 rounded-xl p-1 border border-white/5">

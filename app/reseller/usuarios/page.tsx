@@ -130,6 +130,16 @@ function ResellerUsuariosContent() {
 
   return (
     <div className="p-6 sm:p-8">
+      {/* Plan expired warning for resellers */}
+      {(user as any)?.planExpired && (
+        <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-3">
+          <span className="text-2xl">⚠️</span>
+          <div>
+            <p className="font-bold text-amber-400">Tu plan ha vencido</p>
+            <p className="text-sm text-amber-300/70">No podés crear nuevos usuarios hasta renovar tu plan. Contactá a tu administrador.</p>
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-black text-white flex items-center gap-3">
@@ -137,8 +147,10 @@ function ResellerUsuariosContent() {
           </h1>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{total} usuarios en tu red</p>
         </div>
-        <button onClick={() => setCreateModalType(mainTab === 'Clients' ? 'WIZARD' : 'WIZARD_RESELLERS')} 
-          className="bg-[#34D399] text-black px-6 py-3 rounded-2xl font-black hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_20px_rgba(52,211,153,0.3)]">
+        <button 
+          onClick={() => { if (!(user as any)?.planExpired) setCreateModalType(mainTab === 'Clients' ? 'WIZARD' : 'WIZARD_RESELLERS'); }} 
+          disabled={!!(user as any)?.planExpired}
+          className="bg-[#34D399] text-black px-6 py-3 rounded-2xl font-black hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_20px_rgba(52,211,153,0.3)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100">
           <UserPlus size={18} />
           {mainTab === 'Resellers' ? 'Crear Revendedor' : 'Crear Cliente Final'}
         </button>

@@ -322,13 +322,30 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                         <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">{type === 'RESELLER' ? 'Plan B2B' : 'Plan'}</label>
                         <div className="relative">
                           <Crown size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-primary)]" />
-                          <select disabled={type==='RESELLER'?false:true}  value={formData.planId} onChange={e => setFormData({ ...formData, planId: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors appearance-none"   style={type!=='RESELLER'? { backgroundColor: '#706c6c36', color: '#666', cursor: 'not-allowed' }:{}} >
+                          <select value={formData.planId} onChange={e => setFormData({ ...formData, planId: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors appearance-none">
                             <option value="" className="bg-gray-900">Sin plan (Por defecto)</option>
                             {plans.map(p => (
-                              <option key={p.id} value={p.id} className="bg-gray-900">{p.name} {creatorRole !== 'ADMIN' ? `— ${p.tokenCost || 0} créditos` : ''}</option>
+                              <option key={p.id} value={p.id} className="bg-gray-900">{p.name}</option>
                             ))}
                           </select>
                         </div>
+                        {formData.planId && (() => {
+                          const selectedPlan = plans.find(p => p.id === formData.planId);
+                          if (!selectedPlan) return null;
+                          const days = selectedPlan.durationDays || 30;
+                          let dur = '';
+                          if (days >= 365 && days % 365 === 0) dur = `${days / 365} año${days / 365 > 1 ? 's' : ''}`;
+                          else if (days >= 30 && days % 30 === 0) dur = `${days / 30} mes${days / 30 > 1 ? 'es' : ''}`;
+                          else dur = `${days} días`;
+                          return (
+                            <div className="mt-2 p-2.5 rounded-lg bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 flex items-center justify-between">
+                              <span className="text-xs text-white/60">⏱ Duración: <span className="font-bold text-white">{dur}</span></span>
+                              {creatorRole !== 'ADMIN' && (
+                                <span className="text-xs text-white/60">Costo: <span className="font-bold text-[var(--color-primary)]">{selectedPlan.tokenCost || 0} crédito{(selectedPlan.tokenCost || 0) !== 1 ? 's' : ''}</span></span>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                       
                       
