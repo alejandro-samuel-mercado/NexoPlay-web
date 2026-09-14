@@ -48,7 +48,7 @@ export default function ResellerTokensPage() {
   };
 
   return (
-    <div className="p-6 sm:p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       {toast && (
         <div className="fixed top-5 right-5 z-[200] px-4 py-3 rounded-xl text-sm font-bold shadow-2xl flex items-center gap-2"
           style={{ background: toast.ok ? '#34D399' : '#EF4444', color: '#0a0f0a' }}>
@@ -56,9 +56,9 @@ export default function ResellerTokensPage() {
         </div>
       )}
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-white flex items-center gap-3">
-          <Coins size={28} style={{ color: '#EAB308' }} /> Mis Créditos
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-2">
+          <Coins size={24} style={{ color: '#EAB308' }} /> Mis Créditos
         </h1>
         <p className="text-sm mt-1" style={{ color: '#6B7280' }}>Usá créditos para comprar descargas extra</p>
       </div>

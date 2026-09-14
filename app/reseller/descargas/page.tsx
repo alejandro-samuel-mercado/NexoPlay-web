@@ -62,7 +62,7 @@ export default function ResellerDescargasPage() {
   };
 
   return (
-    <div className="p-6 sm:p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       {toast && (
         <div className="fixed top-5 right-5 z-[200] px-4 py-3 rounded-xl text-sm font-bold shadow-2xl flex items-center gap-2"
           style={{ background: toast.ok ? '#34D399' : '#EF4444', color: '#0a0f0a' }}>
@@ -70,10 +70,10 @@ export default function ResellerDescargasPage() {
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-black text-white flex items-center gap-3">
-            <Download size={28} style={{ color: '#34D399' }} /> Catálogo & Descargas
+          <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-2">
+            <Download size={24} style={{ color: '#34D399' }} /> Catálogo & Descargas
           </h1>
           <p className="text-sm mt-1" style={{ color: '#6B7280' }}>{filtered.length} títulos disponibles</p>
         </div>
@@ -121,9 +121,8 @@ export default function ResellerDescargasPage() {
         </div>
       </div>
 
-      {/* Grid */}
       {loading ? (
-        <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-9 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-3">
           {Array.from({ length: 27 }).map((_, i) => <div key={i} className="aspect-[2/3] rounded-xl animate-pulse" style={{ background: 'rgba(255,255,255,0.05)' }} />)}
         </div>
       ) : filtered.length === 0 ? (
@@ -133,10 +132,10 @@ export default function ResellerDescargasPage() {
           <p className="text-sm mt-1" style={{ color: '#6B7280' }}>Probá con otro término de búsqueda</p>
         </div>
       ) : (
-        <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-9 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-3">
           {filtered.map(item => {
+            const title = item.title || item.originalTitle || 'Sin título';
             const thumb = posterUrl(item);
-            const title = item.title || item.originalTitle || item.id;
             return (
               <div key={item.id} className="group relative">
                 <div className="aspect-[2/3] rounded-xl overflow-hidden relative" style={{ border: '2px solid rgba(255,255,255,0.07)' }}>

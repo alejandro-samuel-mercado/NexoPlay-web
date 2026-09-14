@@ -66,19 +66,19 @@ export default function CodigosAdminPage() {
   };
 
   return (
-    <div className="p-6 sm:p-8">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-3xl font-black text-white flex items-center gap-3">
-            <Key size={28} style={{ color: 'var(--color-secondary)' }} /> Códigos de Descarga
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-6 gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
+            <Key size={24} style={{ color: 'var(--color-secondary)' }} /> Códigos de Descarga
           </h1>
-          <button onClick={() => { setShowCreate(true); setCreateResult(null); }}
-            className="px-6 py-2.5 rounded-xl font-bold text-sm transition-transform hover:scale-105 active:scale-95 flex items-center gap-2"
-            style={{ background: 'var(--color-primary)', color: '#000' }}>
-            <Plus size={16} /> Generar código
-          </button>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{total} códigos en total</p>
         </div>
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{total} códigos en total</p>
+        <button onClick={() => { setShowCreate(true); setCreateResult(null); }}
+          className="px-4 sm:px-6 py-2.5 rounded-xl font-bold text-sm transition-transform hover:scale-105 active:scale-95 flex items-center gap-2 self-start"
+          style={{ background: 'var(--color-primary)', color: '#000' }}>
+          <Plus size={16} /> <span className="hidden sm:inline">Generar código</span><span className="sm:hidden">Generar</span>
+        </button>
       </div>
 
       {/* Filters */}

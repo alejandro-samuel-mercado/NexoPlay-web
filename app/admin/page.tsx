@@ -154,8 +154,8 @@ export default function AdminDashboard() {
 
   // Full admin view
   return (
-    <div className="p-6 sm:p-8">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-1">
             <h1 className="text-3xl font-black text-white">Dashboard</h1>
@@ -174,7 +174,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-3 sm:gap-4 mb-8">
         <StatCard icon={<Users size={20} />} label="Usuarios Totales" value={stats?.stats?.totalUsers || 0} color="#00D2B4" />
         <StatCard icon={<Users size={20} />} label="Clientes Finales" value={stats?.stats?.totalClients || 0} color="#60A5FA" />
         <StatCard icon={<Store size={20} />} label="Revendedores" value={stats?.stats?.totalResellers || 0} color="#3B82F6" />
@@ -190,7 +190,7 @@ export default function AdminDashboard() {
         <h2 className="text-sm font-black uppercase tracking-wider mb-4" style={{ color: '#6B7280' }}>
           Módulos del Sistema
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           <QuickLink href="/admin/usuarios" icon={<Users size={18} />} label="Usuarios" color="#00D2B4" desc="Gestionar cuentas y roles" />
           <QuickLink href="/admin/contenido" icon={<Film size={18} />} label="Contenido" color="#FFD23F" desc="Películas, series y anime" />
           <QuickLink href="/admin/planes" icon={<Crown size={18} />} label="Planes" color="#A855F7" desc="Crear y editar suscripciones" />

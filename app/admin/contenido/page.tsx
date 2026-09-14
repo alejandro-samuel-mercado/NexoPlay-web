@@ -235,7 +235,7 @@ export default function AdminContentPage() {
     };
 
     return (
-        <div className="adm-page p-10">
+        <div className="adm-page p-4 sm:p-6 lg:p-10">
             <div className="adm-page-header">
                 <div>
                     <h1 className="adm-page-title">Inventario de Contenido</h1>
@@ -362,9 +362,9 @@ export default function AdminContentPage() {
                 </div>
             )}
 
-            <div className="adm-table-card">
-                <div className="adm-table-wrapper">
-                    <table className="adm-table">
+            <div className="adm-table-card overflow-hidden">
+                <div className="adm-table-wrapper overflow-x-auto">
+                    <table className="adm-table w-full">
                     <thead>
                         <tr>
                             <th style={{ width: 40, textAlign: 'center' }}>

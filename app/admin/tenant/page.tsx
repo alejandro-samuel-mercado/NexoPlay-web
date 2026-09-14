@@ -55,10 +55,10 @@ export default function TenantSettingsPage() {
   if (authLoading || loading) return <div className="p-8 flex justify-center"><div className="w-12 h-12 rounded-full border-4 border-t-transparent animate-spin border-[var(--color-primary)]" style={{ borderTopColor: 'transparent' }} /></div>;
 
   return (
-    <div className="p-6 sm:p-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-black text-white flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
             <Settings className="text-[var(--color-secondary)]" size={32} />
             Configuración de Marca Blanca
           </h1>

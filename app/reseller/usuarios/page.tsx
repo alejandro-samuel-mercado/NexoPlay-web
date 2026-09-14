@@ -129,7 +129,7 @@ function ResellerUsuariosContent() {
   };
 
   return (
-    <div className="p-6 sm:p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       {/* Plan expired warning for resellers */}
       {(user as any)?.planExpired && (
         <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-3">
@@ -140,17 +140,17 @@ function ResellerUsuariosContent() {
           </div>
         </div>
       )}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-black text-white flex items-center gap-3">
-            <Users size={28} style={{ color: '#34D399' }} /> Usuarios
+          <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-2">
+            <Users size={24} style={{ color: '#34D399' }} /> Usuarios
           </h1>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{total} usuarios en tu red</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{total} usuarios en tu red</p>
         </div>
         <button 
           onClick={() => { if (!(user as any)?.planExpired) setCreateModalType(mainTab === 'Clients' ? 'WIZARD' : 'WIZARD_RESELLERS'); }} 
           disabled={!!(user as any)?.planExpired}
-          className="bg-[#34D399] text-black px-6 py-3 rounded-2xl font-black hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_20px_rgba(52,211,153,0.3)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100">
+          className="bg-[#34D399] text-black px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl font-black hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_20px_rgba(52,211,153,0.3)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 self-start">
           <UserPlus size={18} />
           {mainTab === 'Resellers' ? 'Crear Revendedor' : 'Crear Cliente Final'}
         </button>
@@ -184,19 +184,19 @@ function ResellerUsuariosContent() {
 
       {/* Role specific sub-tabs if we are in Resellers tab */}
       {mainTab === 'Resellers' && canSeeResellers && (
-        <div className="flex gap-2 mb-4 bg-[var(--bg-panel)] border border-[var(--border-subtle)] p-1 rounded-xl w-fit">
+        <div className="flex gap-1 mb-4 bg-[var(--bg-panel)] border border-[var(--border-subtle)] p-1 rounded-xl overflow-x-auto hide-scrollbar w-full lg:w-fit">
           {user?.role === 'ADMIN_RESELLER' && (
-            <button onClick={() => { setRole('SUPER_RESELLER'); setPage(1); }} className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'SUPER_RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Súper Revendedores</button>
+            <button onClick={() => { setRole('SUPER_RESELLER'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-3 sm:px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'SUPER_RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Súper Rev.</button>
           )}
-          <button onClick={() => { setRole('RESELLER'); setPage(1); }} className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Revendedores Básicos</button>
+          <button onClick={() => { setRole('RESELLER'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-3 sm:px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Rev. Básicos</button>
         </div>
       )}
 
       {/* Client type sub-tabs if we are in Clients tab */}
       {mainTab === 'Clients' && (
-        <div className="flex gap-2 mb-4 bg-[var(--bg-panel)] border border-[var(--border-subtle)] p-1 rounded-xl w-fit">
-          <button onClick={() => { setClientType('regular'); setPage(1); }} className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${clientType === 'regular' ? 'bg-[#34D399]/20 text-[#34D399] shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Cuentas normales</button>
-          <button onClick={() => { setClientType('trial'); setPage(1); }} className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${clientType === 'trial' ? 'bg-[#34D399]/20 text-[#34D399] shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Cuentas de Prueba</button>
+        <div className="flex gap-1 mb-4 bg-[var(--bg-panel)] border border-[var(--border-subtle)] p-1 rounded-xl overflow-x-auto hide-scrollbar w-full lg:w-fit">
+          <button onClick={() => { setClientType('regular'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-3 sm:px-5 py-2 rounded-lg text-xs font-bold transition-all ${clientType === 'regular' ? 'bg-[#34D399]/20 text-[#34D399] shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Cuentas normales</button>
+          <button onClick={() => { setClientType('trial'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-3 sm:px-5 py-2 rounded-lg text-xs font-bold transition-all ${clientType === 'trial' ? 'bg-[#34D399]/20 text-[#34D399] shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Cuentas de Prueba</button>
         </div>
       )}
 
@@ -356,8 +356,15 @@ function ResellerUsuariosContent() {
             
             <select value={selectedPlan} onChange={(e) => setSelectedPlan(e.target.value)} 
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#34D399] transition-colors mb-6">
-              <option value="" className="bg-black">Ninguno (Remover)</option>
-              {plans.filter(p => (['RESELLER', 'SUPER_RESELLER', 'ADMIN_RESELLER'].includes(assignModal.role) && p.role === 'RESELLER') || p.role === assignModal.role).map(p => (
+              {assignModal.role !== 'SUBSCRIBER' ? (
+                <option value="" className="bg-black">Ninguno (Remover)</option>
+              ) : (
+                <option value="" disabled className="bg-black">Selecciona un plan...</option>
+              )}
+              {plans.filter(p => {
+                if (assignModal.role === 'SUBSCRIBER' && p.name.toUpperCase().includes('PRUEBA')) return false;
+                return (['RESELLER', 'SUPER_RESELLER', 'ADMIN_RESELLER'].includes(assignModal.role) && p.role === 'RESELLER') || p.role === assignModal.role;
+              }).map(p => (
                 <option key={p.id} value={p.id} className="bg-black">{p.name} ({p.tokenCost || 0} créditos)</option>
               ))}
             </select>

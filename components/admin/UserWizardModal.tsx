@@ -16,7 +16,7 @@ interface UserWizardModalProps {
 export default function UserWizardModal({ onClose, onSuccess, creatorRole, creatorName = 'Tú', apiEndpoint, mode = 'USERS' }: UserWizardModalProps) {
   const [step, setStep] = useState(1);
   const [type, setType] = useState<'TRIAL' | 'SUBSCRIBER' | 'RESELLER' | 'ADMIN'>(
-    mode === 'RESELLERS' ? 'RESELLER' : mode === 'ADMINS' ? 'ADMIN' : 'TRIAL'
+    mode === 'RESELLERS' ? 'RESELLER' : mode === 'ADMINS' ? 'ADMIN' : 'SUBSCRIBER'
   );
   
   const [formData, setFormData] = useState({
@@ -150,15 +150,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
               <h4 className="text-lg font-bold text-white mb-4">¿Qué tipo de cuenta deseas crear?</h4>
               
               {mode === 'USERS' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <button
-                    onClick={() => { setType('TRIAL'); setFormData({ ...formData, role: 'SUBSCRIBER' }); }}
-                    className={`p-6 rounded-2xl border-2 text-left transition-all ${type === 'TRIAL' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}
-                  >
-                    <Clock size={32} className={`mb-4 ${type === 'TRIAL' ? 'text-[var(--color-primary)]' : 'text-white/40'}`} />
-                    <h5 className="text-white font-bold text-lg mb-2">Cuenta de Prueba</h5>
-                    <p className="text-sm text-white/50">Por horas. No consume créditos.</p>
-                  </button>
+                <div className="grid grid-cols-1 gap-4">
                   <button
                     onClick={() => { setType('SUBSCRIBER'); setFormData({ ...formData, role: 'SUBSCRIBER' }); }}
                     className={`p-6 rounded-2xl border-2 text-left transition-all ${type === 'SUBSCRIBER' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}

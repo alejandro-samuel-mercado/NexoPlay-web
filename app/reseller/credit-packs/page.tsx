@@ -64,7 +64,7 @@ export default function ResellerCreditPacksPage() {
   };
 
   return (
-    <div className="p-6 sm:p-8 max-w-3xl space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-3xl space-y-6 sm:space-y-8">
       <div>
         <h1 className="text-3xl font-black text-white flex items-center gap-3">
           <Package size={28} style={{ color: 'var(--clay-yellow)' }} />
@@ -75,13 +75,13 @@ export default function ResellerCreditPacksPage() {
 
       {/* Packages list */}
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
           <h2 className="font-black text-white flex items-center gap-2">
             <Box size={18} style={{ color: 'var(--clay-yellow)' }} />
             Mis Paquetes
           </h2>
           <button onClick={() => { setShowForm(true); setEditId(null); setForm({ name: '', tokens: '', priceUSD: '', sortOrder: '0' }); }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black"
+            className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-black w-full sm:w-auto"
             style={{ background: 'var(--clay-yellow)', color: 'var(--clay-ink)', border: '2px solid var(--clay-ink)', boxShadow: '2px 2px 0 var(--clay-ink)' }}>
             <Plus size={14} /> Nuevo paquete
           </button>

@@ -120,18 +120,26 @@ function UsuariosContent() {
   };
 
   return (
-    <div className="p-6 sm:p-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-black text-white flex items-center gap-3">
-            <Users size={28} style={{ color: 'var(--color-secondary)' }} /> Usuarios
+          <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-2">
+            <Users size={24} style={{ color: 'var(--color-primary)' }} /> Usuarios
           </h1>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{total} usuarios registrados</p>
         </div>
-        <button onClick={() => setCreateModalType(mainTab === 'Clients' ? 'WIZARD' : mainTab === 'Resellers' ? 'WIZARD_RESELLERS' : 'WIZARD_ADMINS')} className="bg-[var(--color-primary)] text-black px-6 py-3 rounded-2xl font-black hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_20px_rgba(0,216,182,0.3)]">
-          <UserPlus size={18} />
-          {mainTab === 'Admins' ? 'Crear Administrador' : mainTab === 'Resellers' ? 'Crear Revendedor' : 'Crear Cliente Final'}
-        </button>
+        <div className="flex gap-2">
+          {mainTab === 'Clients' && (
+            <>
+              <button onClick={() => setCreateModalType('WIZARD')} className="flex items-center gap-2 bg-[var(--color-primary)] text-black px-3 sm:px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm hover:scale-105 transition-transform"><UserPlus size={16} /><span className="hidden sm:inline">Nuevo Cliente</span><span className="sm:hidden">Nuevo Cliente</span></button>
+            </>
+          )}
+          {mainTab === 'Admins' && (
+            <button onClick={() => setCreateModalType('WIZARD_ADMINS')} className="flex items-center gap-2 bg-[var(--color-primary)] text-black px-3 sm:px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm hover:scale-105 transition-transform"><UserPlus size={16} /><span className="hidden sm:inline">Nuevo Admin</span><span className="sm:hidden">Admin</span></button>
+          )}
+          {mainTab === 'Resellers' && (
+            <button onClick={() => setCreateModalType('WIZARD_RESELLERS')} className="flex items-center gap-2 bg-[var(--color-primary)] text-black px-3 sm:px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm hover:scale-105 transition-transform"><UserPlus size={16} /><span className="hidden sm:inline">Nuevo Revendedor</span><span className="sm:hidden">Revendedor</span></button>
+          )}
+        </div>
       </div>
 
       {/* Search and Sub Tabs */}
@@ -158,23 +166,23 @@ function UsuariosContent() {
           </button>
         </div>
 
-        <div className="flex gap-2 bg-[var(--bg-panel)] border border-[var(--border-subtle)] p-1 rounded-xl w-full lg:w-fit overflow-x-auto">
+        <div className="flex gap-1 bg-[var(--bg-panel)] border border-[var(--border-subtle)] p-1 rounded-xl overflow-x-auto hide-scrollbar w-full lg:w-fit">
           {mainTab === 'Admins' && (
             <>
-              <button onClick={() => { setRole('ADMIN'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'ADMIN' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Admin Maestros</button>
-              <button onClick={() => { setRole('ADMIN_RESELLER'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'ADMIN_RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Admin Revendedores</button>
+              <button onClick={() => { setRole('ADMIN'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-3 sm:px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'ADMIN' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Admin Maestros</button>
+              <button onClick={() => { setRole('ADMIN_RESELLER'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-3 sm:px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'ADMIN_RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Admin Rev.</button>
             </>
           )}
           {mainTab === 'Resellers' && (
             <>
-              <button onClick={() => { setRole('SUPER_RESELLER'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'SUPER_RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Súper Revendedores</button>
-              <button onClick={() => { setRole('RESELLER'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Revendedores Normales</button>
+              <button onClick={() => { setRole('SUPER_RESELLER'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-3 sm:px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'SUPER_RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Súper Rev.</button>
+              <button onClick={() => { setRole('RESELLER'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-3 sm:px-5 py-2 rounded-lg text-xs font-bold transition-all ${role === 'RESELLER' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Normales</button>
             </>
           )}
           {mainTab === 'Clients' && (
             <>
-              <button onClick={() => { setRole('SUBSCRIBER'); setClientType('regular'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${clientType === 'regular' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Suscriptores</button>
-              <button onClick={() => { setRole('SUBSCRIBER'); setClientType('trial'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${clientType === 'trial' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Cuentas de Prueba</button>
+              <button onClick={() => { setRole('SUBSCRIBER'); setClientType('regular'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-3 sm:px-5 py-2 rounded-lg text-xs font-bold transition-all ${clientType === 'regular' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Suscriptores</button>
+              <button onClick={() => { setRole('SUBSCRIBER'); setClientType('trial'); setPage(1); }} className={`shrink-0 flex-1 lg:flex-none px-3 sm:px-5 py-2 rounded-lg text-xs font-bold transition-all ${clientType === 'trial' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}>Prueba</button>
             </>
           )}
         </div>
@@ -352,7 +360,10 @@ function UsuariosContent() {
                 ) : (
                   <option value="" disabled className="bg-gray-900 text-white">Selecciona un plan...</option>
                 )}
-              {plans.filter(p => assignModal.role === 'ADMIN' || (['RESELLER', 'SUPER_RESELLER', 'ADMIN_RESELLER'].includes(assignModal.role) && p.role === 'RESELLER') || p.role === assignModal.role).map(p => (
+              {plans.filter(p => {
+                if (assignModal.role === 'SUBSCRIBER' && p.name.toUpperCase().includes('PRUEBA')) return false;
+                return assignModal.role === 'ADMIN' || (['RESELLER', 'SUPER_RESELLER', 'ADMIN_RESELLER'].includes(assignModal.role) && p.role === 'RESELLER') || p.role === assignModal.role;
+              }).map(p => (
                 <option key={p.id} value={p.id} className="bg-gray-900 text-white">{p.name} ({p.role} - {p.tier})</option>
               ))}
             </select>
@@ -493,8 +504,11 @@ function UsuariosContent() {
                   ) : (
                     <option value="" disabled className="bg-gray-900 text-white">Selecciona un plan...</option>
                   )}
-                  {plans.filter(p => editModal.role === 'ADMIN' || (['RESELLER', 'SUPER_RESELLER', 'ADMIN_RESELLER'].includes(editModal.role) && p.role === 'RESELLER') || p.role === editModal.role).map(p => (
-                    <option key={p.id} value={p.id} className="bg-gray-900 text-white">{p.name} {p.tokenCost ? `(${p.tokenCost} tokens)` : ''}</option>
+                  {plans.filter(p => {
+                    if (editModal.role === 'SUBSCRIBER' && p.name.toUpperCase().includes('PRUEBA')) return false;
+                    return editModal.role === 'ADMIN' || (['RESELLER', 'SUPER_RESELLER', 'ADMIN_RESELLER'].includes(editModal.role) && p.role === 'RESELLER') || p.role === editModal.role;
+                  }).map(p => (
+                    <option key={p.id} value={p.id} className="bg-gray-900 text-white">{p.name} {p.tokenCost ? `(Costo: ${p.tokenCost} CRÉDITOS)` : ''}</option>
                   ))}
                 </select>
               </div>

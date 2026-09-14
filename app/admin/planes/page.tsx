@@ -151,7 +151,7 @@ export default function PlanesAdminPage() {
   );
 
   return (
-    <div className="p-6 sm:p-8 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-black text-white flex items-center gap-3">
@@ -196,8 +196,8 @@ export default function PlanesAdminPage() {
 
       {/* Edit Modal */}
       {modal && (
-        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[var(--bg-panel)] p-8 rounded-[24px] w-full max-w-2xl border border-[var(--border-subtle)] backdrop-blur-xl shadow-2xl my-auto">
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-start sm:items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-[var(--bg-panel)] p-5 sm:p-8 rounded-[24px] w-full max-w-2xl border border-[var(--border-subtle)] backdrop-blur-xl shadow-2xl my-4 sm:my-auto">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-black text-white">{modal === 'create' ? 'Crear Nuevo Plan' : 'Editar Plan'}</h3>
                 <button onClick={() => setModal(null)} className="text-white/40 hover:text-white"><X size={24} /></button>

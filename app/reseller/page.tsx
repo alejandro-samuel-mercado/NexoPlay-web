@@ -51,8 +51,8 @@ export default function ResellerDashboardPage() {
   const pct = stats ? Math.min(100, (stats.dailyUsed / (stats.dailyLimit || 1)) * 100) : 0;
 
   return (
-    <div className="p-6 sm:p-8">
-      <div className="mb-8">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="mb-6 sm:mb-8">
         <h1 className="text-3xl font-black text-white flex items-center gap-3">
           <Download size={28} style={{ color: C }} /> Dashboard
         </h1>
@@ -63,7 +63,7 @@ export default function ResellerDashboardPage() {
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 mb-8">
         <StatCard icon={Users} label="Total Clientes" color="#60A5FA" href="/reseller/usuarios"
           value={loading ? '…' : stats?.totalClients ?? 0}
           sub={stats?.maxSubscribers ? `de ${stats.maxSubscribers} permitidos` : 'Ilimitados'} />
@@ -108,7 +108,7 @@ export default function ResellerDashboardPage() {
       )}
 
       {/* Quick links */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
           { href: '/reseller/usuarios', icon: Users, label: 'Mis Clientes', desc: 'Crear y gestionar cuentas de suscriptores', color: '#60A5FA' },
           { href: '/reseller/descargas', icon: Download, label: 'Catálogo', desc: 'Buscar y descargar contenido en 4K/1080p', color: C },

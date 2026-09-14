@@ -34,13 +34,13 @@ export default function AdminNotificacionesPage() {
   };
 
   return (
-    <div className="p-4 sm:p-8 max-w-4xl mx-auto">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-12 h-12 rounded-xl bg-[var(--clay-teal)] flex items-center justify-center border-2 border-[var(--clay-ink)]" style={{ boxShadow: '3px 3px 0px var(--clay-ink)' }}>
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
+      <div className="flex items-center gap-3 mb-6 sm:mb-8">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[var(--clay-teal)] flex items-center justify-center border-2 border-[var(--clay-ink)]" style={{ boxShadow: '3px 3px 0px var(--clay-ink)' }}>
           <BellRing size={24} className="text-[var(--clay-ink)]" />
         </div>
         <div>
-          <h1 className="text-3xl font-black text-white" style={{ fontFamily: 'Space Grotesk' }}>Notificaciones Push</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-white" style={{ fontFamily: 'Space Grotesk' }}>Notificaciones Push</h1>
           <p className="text-[#A8B3C8] text-sm mt-1">Envía avisos al instante a los celulares de tus usuarios</p>
         </div>
       </div>

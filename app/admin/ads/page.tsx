@@ -45,13 +45,13 @@ export default function AdsDashboard() {
   if (!user || user.role !== 'ADMIN') return <div className="p-8">No autorizado</div>;
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Gestión de Publicidad</h1>
-          <p className="text-zinc-400">Administra las campañas visibles para usuarios gratuitos</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Gestión de Publicidad</h1>
+          <p className="text-zinc-400 text-sm mt-1">Administra las campañas visibles para usuarios gratuitos</p>
         </div>
-        <button onClick={addDummyCampaign} className="bg-primary text-black px-4 py-2 rounded-lg font-bold flex items-center gap-2">
+        <button onClick={addDummyCampaign} className="bg-primary text-black px-4 py-2 rounded-lg font-bold flex items-center gap-2 self-start">
           <Plus size={20} />
           Crear Campaña
         </button>
