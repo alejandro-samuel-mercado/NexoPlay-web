@@ -41,7 +41,7 @@ const ADMIN_NAV_ITEMS = [
     ]
   },
   { href: '/admin/contenido', icon: Film, label: 'Contenido' },
-  { href: '/admin/hero', icon: Monitor, label: 'Hero del Home', mobileHidden: true },
+  { href: '/admin/hero', icon: Monitor, label: 'Contenido de portadas', mobileHidden: true },
   { href: '/admin/planes', icon: Crown, label: 'Planes' },
 
   { href: '/admin/tokens', icon: Coins, label: 'Créditos' },
