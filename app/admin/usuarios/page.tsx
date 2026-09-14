@@ -345,9 +345,13 @@ function UsuariosContent() {
             <h3 className="text-xl font-black text-white mb-2">Asignar Plan</h3>
             <p className="text-sm text-white/60 mb-6">Usuario: {assignModal.email}</p>
             
-            <select value={selectedPlan} onChange={(e) => setSelectedPlan(e.target.value)} 
-              className="w-full bg-[#141414] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors mb-6">
-              {assignModal.role !== 'SUBSCRIBER' && <option value="" className="bg-gray-900 text-white">Ninguno (Remover)</option>}
+              <select value={selectedPlan} onChange={(e) => setSelectedPlan(e.target.value)} 
+                className="w-full bg-[#141414] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors mb-6">
+                {assignModal.role !== 'SUBSCRIBER' ? (
+                  <option value="" className="bg-gray-900 text-white">Ninguno (Remover)</option>
+                ) : (
+                  <option value="" disabled className="hidden">Selecciona un plan...</option>
+                )}
               {plans.filter(p => assignModal.role === 'ADMIN' || (['RESELLER', 'SUPER_RESELLER', 'ADMIN_RESELLER'].includes(assignModal.role) && p.role === 'RESELLER') || p.role === assignModal.role).map(p => (
                 <option key={p.id} value={p.id} className="bg-gray-900 text-white">{p.name} ({p.role} - {p.tier})</option>
               ))}
@@ -484,8 +488,12 @@ function UsuariosContent() {
               <div>
                 <label className="text-xs font-bold text-white/50 mb-1 block">Plan</label>
                 <select value={editModal.planId || ''} onChange={e => setEditModal({ ...editModal, planId: e.target.value })} className="w-full bg-[#141414] border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-[var(--color-primary)] outline-none font-bold text-white">
-                  {editModal.role !== 'SUBSCRIBER' && <option value="" className="bg-gray-900 text-white">Sin plan</option>}
-                  {plans.map(p => (
+                  {editModal.role !== 'SUBSCRIBER' ? (
+                    <option value="" className="bg-gray-900 text-white">Sin plan</option>
+                  ) : (
+                    <option value="" disabled className="hidden">Selecciona un plan...</option>
+                  )}
+                  {plans.filter(p => editModal.role === 'ADMIN' || (['RESELLER', 'SUPER_RESELLER', 'ADMIN_RESELLER'].includes(editModal.role) && p.role === 'RESELLER') || p.role === editModal.role).map(p => (
                     <option key={p.id} value={p.id} className="bg-gray-900 text-white">{p.name} {p.tokenCost ? `(${p.tokenCost} tokens)` : ''}</option>
                   ))}
                 </select>
