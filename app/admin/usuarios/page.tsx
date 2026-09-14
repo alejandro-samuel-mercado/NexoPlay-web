@@ -25,7 +25,7 @@ function UsuariosContent() {
   const [selectedPlan, setSelectedPlan] = useState('');
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
   const [infoModal, setInfoModal] = useState<any | null>(null);
-  const [editModal, setEditModal] = useState<{ id: string; username: string; name: string; password?: string; isActive: boolean; planId: string } | null>(null);
+  const [editModal, setEditModal] = useState<{ id: string; username: string; name: string; password?: string; isActive: boolean; planId: string; role: string } | null>(null);
 
   const togglePassword = (id: string) => {
     setVisiblePasswords(prev => ({ ...prev, [id]: !prev[id] }));
@@ -286,7 +286,7 @@ function UsuariosContent() {
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
                       
-                        <button onClick={() => setEditModal({ id: u.id, username: u.username || '', name: u.name || '', password: '', isActive: u.isActive, planId: u.subscription?.planId || '' })}
+                        <button onClick={() => setEditModal({ id: u.id, username: u.username || '', name: u.name || '', password: '', isActive: u.isActive, planId: u.subscription?.planId || '', role: u.role })}
                           className="px-3 py-2 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 transition-all hover:scale-105 inline-flex items-center justify-center gap-2"
                           title="Editar usuario">
                           <Edit2 size={14} /> Editar
