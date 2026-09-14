@@ -45,21 +45,35 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
 
   const RESELLER_NAV = [
     { href: '/reseller', icon: LayoutDashboard, label: 'Dashboard', exact: true },
-    { 
-      href: '/reseller/usuarios', 
-      icon: Users, 
-      label: 'Mis Clientes',
-      subItems: [
-        ...(canSeeResellers ? [{ href: '/reseller/usuarios?tab=Resellers', label: 'Revendedores' }] : []),
-        { href: '/reseller/usuarios?tab=Clients', label: 'Suscriptores' },
-      ]
-    },
+    ...(canSeeResellers 
+      ? [
+          { href: '/reseller/usuarios?tab=Resellers', icon: Users, label: 'Revendedores' },
+          { href: '/reseller/usuarios?tab=Clients', icon: Users, label: 'Clientes Finales' }
+        ]
+      : [
+          { href: '/reseller/usuarios?tab=Clients', icon: Users, label: 'Mis Clientes' }
+        ]
+    ),
     ...(canSeeResellers ? [{ href: '/reseller/credit-packs', icon: Package, label: 'Packs de Créditos' }] : []),
      { href: '/reseller/contenido', icon: Film, label: 'Contenido' }
-    //{ href: '/reseller/descargas', icon: Download, label: 'Descargas' },
-   // { href: '/reseller/pack', icon: Package, label: 'Pack Semanal' },
-   // { href: '/reseller/tokens', icon: Coins, label: 'Créditos' },
   ];
+
+  const getIsActive = (item: any) => {
+    if (item.exact) return pathname === item.href;
+    const basePath = item.href.split('?')[0];
+    if (!pathname.startsWith(basePath)) return false;
+    
+    if (item.href.includes('tab=')) {
+      const targetTab = new URLSearchParams(item.href.split('?')[1]).get('tab');
+      const currentTab = searchParams.get('tab');
+      if (!currentTab) {
+        const defaultTab = canSeeResellers ? 'Resellers' : 'Clients';
+        return targetTab === defaultTab;
+      }
+      return currentTab === targetTab;
+    }
+    return true;
+  };
 
   return (
     <div className="serivia-layout">
@@ -76,8 +90,8 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
         </div>
 
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {RESELLER_NAV.map((item) => {
-            const isPathActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+          {RESELLER_NAV.map((item: any) => {
+            const isPathActive = getIsActive(item);
             const isExpanded = item.subItems ? (expandedMenus[item.href] !== undefined ? expandedMenus[item.href] : isPathActive) : false;
             const Icon = item.icon;
 
@@ -109,7 +123,7 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
 
                 {item.subItems && isExpanded && (
                   <div className="mt-1 ml-4 border-l-2 border-white/5 pl-2 space-y-1">
-                    {item.subItems.map(subItem => {
+                    {item.subItems.map((subItem: any) => {
                       // subItem.href is like '/reseller/usuarios?tab=Clients'
                       const isSubActive = searchParams.get('tab') ? subItem.href.includes(`tab=${searchParams.get('tab')}`) : (subItem.href.includes('tab=Resellers') && canSeeResellers) || (subItem.href.includes('tab=Clients') && !canSeeResellers);
                       
@@ -165,7 +179,7 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
       {/* Mobile Bottom Navbar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-[var(--border-subtle)] bg-[var(--bg-panel)] backdrop-blur-xl pb-safe flex justify-around items-center px-2 py-2">
         {RESELLER_NAV.slice(0, 4).map((item: any) => {
-          const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+          const isActive = getIsActive(item);
           const Icon = item.icon;
           return (
             <Link key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)} className={`flex flex-col items-center p-2 rounded-xl transition-all ${isActive ? 'text-white' : 'text-[#8B8FA8] hover:text-white'}`}>
@@ -189,8 +203,8 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
               <button onClick={() => setMobileMenuOpen(false)} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white"><X size={18} /></button>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-1">
-              {RESELLER_NAV.map((item) => {
-                const isPathActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+              {RESELLER_NAV.map((item: any) => {
+                const isPathActive = getIsActive(item);
                 const isExpanded = item.subItems ? (expandedMenus[item.href] !== undefined ? expandedMenus[item.href] : isPathActive) : false;
                 const Icon = item.icon;
                 return (

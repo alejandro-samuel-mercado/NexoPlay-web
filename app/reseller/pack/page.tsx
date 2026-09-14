@@ -61,6 +61,7 @@ export default function ResellerPackPage() {
   const contents = pack?.contents || [];
   const posterUrl = (url: string) => url?.startsWith('http') ? url : `${VPS}${url}`;
 
+  return (
     <div className="p-4 sm:p-6 lg:p-8">
       {toast && (
         <div className="fixed top-5 right-5 z-[200] px-4 py-3 rounded-xl text-sm font-bold shadow-2xl flex items-center gap-2"
