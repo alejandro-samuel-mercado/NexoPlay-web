@@ -346,10 +346,10 @@ function UsuariosContent() {
             <p className="text-sm text-white/60 mb-6">Usuario: {assignModal.email}</p>
             
             <select value={selectedPlan} onChange={(e) => setSelectedPlan(e.target.value)} 
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors mb-6">
-              <option value="" className="bg-black">Ninguno (Remover)</option>
+              className="w-full bg-[#141414] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors mb-6">
+              {assignModal.role !== 'SUBSCRIBER' && <option value="" className="bg-gray-900 text-white">Ninguno (Remover)</option>}
               {plans.filter(p => assignModal.role === 'ADMIN' || (['RESELLER', 'SUPER_RESELLER', 'ADMIN_RESELLER'].includes(assignModal.role) && p.role === 'RESELLER') || p.role === assignModal.role).map(p => (
-                <option key={p.id} value={p.id} className="bg-black">{p.name} ({p.role} - {p.tier})</option>
+                <option key={p.id} value={p.id} className="bg-gray-900 text-white">{p.name} ({p.role} - {p.tier})</option>
               ))}
             </select>
 
