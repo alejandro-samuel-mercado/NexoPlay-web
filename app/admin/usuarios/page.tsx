@@ -476,17 +476,17 @@ function UsuariosContent() {
               <div>
                 <label className="text-xs font-bold text-white/50 mb-1 block">Estado</label>
                 <select value={editModal.isActive ? 'true' : 'false'} onChange={e => setEditModal({ ...editModal, isActive: e.target.value === 'true' })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-[var(--color-primary)] outline-none font-bold text-[var(--color-primary)]">
-                  <option value="true">Activo</option>
-                  <option value="false">Suspendido</option>
+                  <option value="true" className="bg-gray-900 text-white">Activo</option>
+                  <option value="false" className="bg-gray-900 text-white">Suspendido</option>
                 </select>
               </div>
 
               <div>
                 <label className="text-xs font-bold text-white/50 mb-1 block">Plan</label>
                 <select value={editModal.planId || ''} onChange={e => setEditModal({ ...editModal, planId: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-[var(--color-primary)] outline-none font-bold text-white">
-                  <option value="">Sin plan</option>
+                  <option value="" className="bg-gray-900 text-white">Sin plan</option>
                   {plans.map(p => (
-                    <option key={p.id} value={p.id}>{p.name} {p.tokenCost ? `(${p.tokenCost} tokens)` : ''}</option>
+                    <option key={p.id} value={p.id} className="bg-gray-900 text-white">{p.name} {p.tokenCost ? `(${p.tokenCost} tokens)` : ''}</option>
                   ))}
                 </select>
               </div>

@@ -427,8 +427,8 @@ function ResellerUsuariosContent() {
               <div>
                 <label className="text-xs font-bold text-white/50 mb-1 block">Estado</label>
                 <select value={editModal.isActive ? 'true' : 'false'} onChange={e => setEditModal({ ...editModal, isActive: e.target.value === 'true' })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-[#34D399] outline-none font-bold text-[#34D399]">
-                  <option value="true">Activo</option>
-                  <option value="false">Suspendido</option>
+                  <option value="true" className="bg-gray-900 text-white">Activo</option>
+                  <option value="false" className="bg-gray-900 text-white">Suspendido</option>
                 </select>
               </div>
             </div>
