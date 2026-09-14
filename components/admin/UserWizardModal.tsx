@@ -71,12 +71,10 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
     });
   }, []);
 
-  // Auto-clear planId when switching to a locked role, or enforce plan for SUBSCRIBER
+  // Auto-clear planId when switching to a locked role
   useEffect(() => {
     if (planIsLocked && formData.planId !== '') {
       setFormData(prev => ({ ...prev, planId: '' }));
-    } else if (type === 'SUBSCRIBER' && formData.planId === '' && plans.length > 0) {
-      setFormData(prev => ({ ...prev, planId: plans[0].id }));
     }
     setPlanDropdownOpen(false);
   }, [formData.role, type, plans, planIsLocked]);
@@ -392,7 +390,11 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                           <div className="relative">
                             <Crown size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-primary)]" />
                             <select value={formData.planId} onChange={e => setFormData({ ...formData, planId: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors appearance-none">
-                              {type !== 'SUBSCRIBER' && <option value="" className="bg-gray-900 text-white">Sin plan (Por defecto)</option>}
+                              {type !== 'SUBSCRIBER' ? (
+                                <option value="" className="bg-gray-900 text-white">Sin plan (Por defecto)</option>
+                              ) : (
+                                <option value="" disabled className="bg-gray-900 text-white">Selecciona un plan...</option>
+                              )}
                               {plans.map(p => (
                                 <option key={p.id} value={p.id} className="bg-gray-900 text-white">{p.name}</option>
                               ))}

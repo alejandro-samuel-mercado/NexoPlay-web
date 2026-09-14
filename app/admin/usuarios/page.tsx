@@ -350,7 +350,7 @@ function UsuariosContent() {
                 {assignModal.role !== 'SUBSCRIBER' ? (
                   <option value="" className="bg-gray-900 text-white">Ninguno (Remover)</option>
                 ) : (
-                  <option value="" disabled className="hidden">Selecciona un plan...</option>
+                  <option value="" disabled className="bg-gray-900 text-white">Selecciona un plan...</option>
                 )}
               {plans.filter(p => assignModal.role === 'ADMIN' || (['RESELLER', 'SUPER_RESELLER', 'ADMIN_RESELLER'].includes(assignModal.role) && p.role === 'RESELLER') || p.role === assignModal.role).map(p => (
                 <option key={p.id} value={p.id} className="bg-gray-900 text-white">{p.name} ({p.role} - {p.tier})</option>
@@ -491,7 +491,7 @@ function UsuariosContent() {
                   {editModal.role !== 'SUBSCRIBER' ? (
                     <option value="" className="bg-gray-900 text-white">Sin plan</option>
                   ) : (
-                    <option value="" disabled className="hidden">Selecciona un plan...</option>
+                    <option value="" disabled className="bg-gray-900 text-white">Selecciona un plan...</option>
                   )}
                   {plans.filter(p => editModal.role === 'ADMIN' || (['RESELLER', 'SUPER_RESELLER', 'ADMIN_RESELLER'].includes(editModal.role) && p.role === 'RESELLER') || p.role === editModal.role).map(p => (
                     <option key={p.id} value={p.id} className="bg-gray-900 text-white">{p.name} {p.tokenCost ? `(${p.tokenCost} tokens)` : ''}</option>
