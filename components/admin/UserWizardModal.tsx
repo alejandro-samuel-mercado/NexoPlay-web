@@ -36,6 +36,11 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
   const [plans, setPlans] = useState<any[]>([]);
   const [packages, setPackages] = useState<any[]>([]);
   const [creditMode, setCreditMode] = useState<'manual'|'package'>('manual');
+  const [planDropdownOpen, setPlanDropdownOpen] = useState(false);
+
+  // Roles that cannot have a plan assigned (operators/admins — plan assignment coming soon)
+  const LOCKED_PLAN_ROLES = ['RESELLER', 'SUPER_RESELLER', 'ADMIN', 'ADMIN_RESELLER'];
+  const planIsLocked = LOCKED_PLAN_ROLES.includes(formData.role);
 
   const [creatorBalance, setCreatorBalance] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -65,6 +70,14 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
       }
     });
   }, []);
+
+  // Auto-clear planId when switching to a locked role
+  useEffect(() => {
+    if (planIsLocked && formData.planId !== '') {
+      setFormData(prev => ({ ...prev, planId: '' }));
+    }
+    setPlanDropdownOpen(false);
+  }, [formData.role]);
 
   const isStep2Valid = formData.username && formData.password && formData.confirmPassword && (formData.password === formData.confirmPassword);
   
@@ -324,16 +337,68 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
 
                       <div className="sm:border-l sm:border-white/10 sm:pl-4">
                         <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">{type === 'RESELLER' ? 'Plan B2B' : 'Plan'}</label>
-                        <div className="relative">
-                          <Crown size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-primary)]" />
-                          <select value={formData.planId} onChange={e => setFormData({ ...formData, planId: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors appearance-none">
-                            <option value="" className="bg-gray-900">Sin plan (Por defecto)</option>
-                            {plans.map(p => (
-                              <option key={p.id} value={p.id} className="bg-gray-900">{p.name}</option>
-                            ))}
-                          </select>
-                        </div>
-                        {formData.planId && (() => {
+                        
+                        {planIsLocked ? (
+                          /* ── Locked plan selector for operator roles ─────────────────── */
+                          <div className="relative">
+                            <div
+                              className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white cursor-pointer flex items-center justify-between select-none"
+                              onClick={() => setPlanDropdownOpen(o => !o)}
+                            >
+                              <Crown size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-primary)]" />
+                              <span>Sin plan (Por defecto)</span>
+                              <svg className={`w-4 h-4 text-white/30 transition-transform ${planDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                            </div>
+
+                            {planDropdownOpen && (
+                              <>
+                                {/* Overlay to close dropdown */}
+                                <div className="fixed inset-0 z-40" onClick={() => setPlanDropdownOpen(false)} />
+                                <div className="absolute z-50 mt-1 w-full bg-[#141414] border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+                                  {/* Default — always enabled */}
+                                  <button
+                                    type="button"
+                                    className="w-full px-4 py-3 text-sm text-left flex items-center gap-2 bg-[var(--color-primary)]/10 text-white border-b border-white/5"
+                                    onClick={() => { setFormData(p => ({ ...p, planId: '' })); setPlanDropdownOpen(false); }}
+                                  >
+                                    <CheckCircle2 size={14} className="text-[var(--color-primary)] shrink-0" />
+                                    Sin plan (Por defecto)
+                                  </button>
+
+                                  {/* Locked plans with tooltip */}
+                                  {plans.length > 0 ? plans.map(p => (
+                                    <div key={p.id} className="relative group">
+                                      <div className="w-full px-4 py-3 text-sm text-white/25 flex items-center gap-2 cursor-not-allowed select-none">
+                                        <Lock size={12} className="text-white/20 shrink-0" />
+                                        <span>{p.name}</span>
+                                      </div>
+                                      {/* Hover tooltip */}
+                                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-black/95 text-white/90 text-xs rounded-lg border border-white/10 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[60] shadow-xl">
+                                        🔒 Esta opción aún no está disponible
+                                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-black/95" />
+                                      </div>
+                                    </div>
+                                  )) : (
+                                    <div className="px-4 py-3 text-sm text-white/25 italic">No hay planes configurados</div>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ) : (
+                          /* ── Normal plan selector for subscriber roles ───────────────── */
+                          <div className="relative">
+                            <Crown size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-primary)]" />
+                            <select value={formData.planId} onChange={e => setFormData({ ...formData, planId: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors appearance-none">
+                              <option value="" className="bg-gray-900">Sin plan (Por defecto)</option>
+                              {plans.map(p => (
+                                <option key={p.id} value={p.id} className="bg-gray-900">{p.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        {!planIsLocked && formData.planId && (() => {
                           const selectedPlan = plans.find(p => p.id === formData.planId);
                           if (!selectedPlan) return null;
                           const days = selectedPlan.durationDays || 30;
