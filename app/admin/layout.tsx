@@ -13,6 +13,7 @@ import {
     Film, Key,
     LayoutDashboard,
     MessageCircleHeart,
+    Monitor,
     Settings,
     ShieldCheck,
     Store,
@@ -21,6 +22,7 @@ import {
     ChevronDown,
     LogOut
 } from 'lucide-react';
+
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -39,7 +41,9 @@ const ADMIN_NAV_ITEMS = [
     ]
   },
   { href: '/admin/contenido', icon: Film, label: 'Contenido' },
+  { href: '/admin/hero', icon: Monitor, label: 'Hero del Home', mobileHidden: true },
   { href: '/admin/planes', icon: Crown, label: 'Planes' },
+
   { href: '/admin/tokens', icon: Coins, label: 'Créditos' },
   { href: '/admin/codigos', icon: Key, label: 'Códigos' },
   { href: '/admin/ads', icon: TrendingUp, label: 'Publicidad' },
@@ -216,7 +220,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </span>
         {/* Mobile nav: horizontal scrollable */}
         <div className="flex gap-1 overflow-x-auto max-w-xs hide-scrollbar">
-          {navItems.map((item) => {
+          {navItems.filter((item: any) => !item.mobileHidden).map((item) => {
             const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
             const Icon = item.icon;
             return (

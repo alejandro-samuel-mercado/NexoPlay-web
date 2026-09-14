@@ -39,7 +39,10 @@ export const API = {
     CONTENT: `${API_BASE}/api/reseller/content`,
     CONTENT_VISIBILITY: (id: string) => `${API_BASE}/api/admin/content/${id}/visibility`,
     CONFIG: `${API_BASE}/api/admin/config`,
+    HERO_CONFIG: `${API_BASE}/api/admin/hero/config`,
+    HERO_SEARCH: `${API_BASE}/api/admin/hero/search`,
   },
+
   SOCIAL_ADMIN: {
     METRICS: `${API_BASE}/api/social/admin/metrics`,
     SUGGESTIONS: `${API_BASE}/api/social/suggestions/admin`,

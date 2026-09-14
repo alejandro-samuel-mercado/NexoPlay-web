@@ -12,7 +12,7 @@ export default function HomePage() {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<any>(null);
-    const [estrenos, setEstrenos] = useState<any[]>([]);
+    const [heroItems, setHeroItems] = useState<any[]>([]);
     const [genres, setGenres] = useState<any[]>(MOCK_GENRES);
     const [activeGenreId, setActiveGenreId] = useState<string | null>(null);
 
@@ -25,7 +25,6 @@ export default function HomePage() {
                     const gRes = await fetch(API_ROUTES.CATEGORIES.GENRES);
                     const gJson = await gRes.json();
                     if (gJson.success && gJson.data?.length > 0) {
-                        // Deduplicate genres by name just in case API returns duplicates
                         const uniqueGenres = gJson.data.filter((v: any, i: number, a: any[]) => a.findIndex(t => (t.name === v.name)) === i);
                         setGenres(uniqueGenres.length > 0 ? uniqueGenres : MOCK_GENRES);
                     } else {
@@ -35,28 +34,31 @@ export default function HomePage() {
                     setGenres(MOCK_GENRES);
                 }
 
-                // Fetch Homepage Data
+                // Fetch Homepage Data — includes heroItems pre-built by backend
                 try {
                     const hRes = await fetch(API_ROUTES.HOMEPAGE.DATA, { cache: 'no-store' });
                     const hJson = await hRes.json();
                     if (hJson.success && hJson.data) {
                         setData(hJson.data);
+                        // Use heroItems from API (driven by admin-configured hero_mode)
+                        if (hJson.data.heroItems?.length > 0) {
+                            setHeroItems(hJson.data.heroItems);
+                        } else {
+                            // Fallback: build from trending/recent
+                            const pool = [
+                                ...(hJson.data.recent || []),
+                                ...(hJson.data.trending || []),
+                            ];
+                            const unique = Array.from(new Map(pool.map((item: any) => [item.id, item])).values());
+                            setHeroItems(unique.slice(0, 10).length > 0 ? unique.slice(0, 10) : MOCK_FILMS);
+                        }
                     } else {
                         setData({ trending: MOCK_FILMS });
+                        setHeroItems(MOCK_FILMS);
                     }
                 } catch {
                     setData({ trending: MOCK_FILMS });
-                }
-
-                // Fetch Estrenos for Hero
-                try {
-                    const eRes = await fetch(`${API_ROUTES.CONTENT.LIST}?releaseYear=${new Date().getFullYear()}&sort=createdAt&order=desc&limit=15`, { cache: 'no-store' });
-                    const eJson = await eRes.json();
-                    if (eJson.success && eJson.data?.length > 0) {
-                        setEstrenos(eJson.data);
-                    }
-                } catch (e) {
-                    console.error('Error fetching estrenos', e);
+                    setHeroItems(MOCK_FILMS);
                 }
             } finally {
                 setLoading(false);
@@ -71,7 +73,6 @@ export default function HomePage() {
     useEffect(() => {
             if (!data) return;
 
-            // Combine backend arrays for a single pool if not filtering
             const allItems = [
                 ...(data.trending || []),
                 ...(data.recent || []),
@@ -94,7 +95,6 @@ export default function HomePage() {
                     if (json.success && json.data?.length > 0) {
                         setFilteredContent(json.data);
                     } else {
-                        // Fallback to local pool if API returns empty (mock data support)
                         const localFiltered = pool.filter((item: any) => 
                             item.genres?.some((g: any) => g.genreId === activeGenreId || g.genre?.id === activeGenreId)
                         );
@@ -124,29 +124,17 @@ export default function HomePage() {
         );
     }
 
-    const pool = [
-        ...(estrenos || []),
-        ...(data?.recent || []),
-        ...(data?.trending || [])
-    ];
-    let uniquePool = Array.from(new Map(pool.map((item: any) => [item.id, item])).values());
-    for (let i = uniquePool.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [uniquePool[i], uniquePool[j]] = [uniquePool[j], uniquePool[i]];
-    }
-    const heroList = uniquePool.length > 0 ? uniquePool.slice(0, 10) : MOCK_FILMS;
-    const heroContent = heroList[0];
-    const heroIds = new Set(heroList.map((h: any) => h.id));
-
-    const filteredEstrenos = (estrenos || []).filter((item: any) => !heroIds.has(item.id));
+    // Exclude heroItems from content rows to avoid duplicates
+    const heroIds = new Set(heroItems.map((h: any) => h.id));
+    const heroContent = heroItems[0];
     const filteredTrending = (data?.trending || []).filter((item: any) => !heroIds.has(item.id));
     const filteredRecent = (data?.recent || []).filter((item: any) => !heroIds.has(item.id));
 
     return (
         <PublicLayout>
             <div className="page-container">
-                {/* 1. Hero Card */}
-                <SeriviaHero content={heroContent} contentList={heroList} />
+                {/* 1. Hero Card — content driven by admin hero_mode config */}
+                <SeriviaHero content={heroContent} contentList={heroItems} />
 
                 {/* 2. Category Filter Pills */}
                 <SeriviaFilters 
@@ -175,16 +163,11 @@ export default function HomePage() {
                                 </>
                             ) : (
                                 <>
-                                    {filteredEstrenos && filteredEstrenos.length > 0 && (
-                                        <ContentRow title="Estrenos" items={filteredEstrenos} />
-                                    )}
                                     {filteredTrending && filteredTrending.length > 0 && (
-                                        <div className={filteredEstrenos && filteredEstrenos.length > 0 ? "mt-8" : ""}>
-                                            <ContentRow title="Tendencias" items={filteredTrending} />
-                                        </div>
+                                        <ContentRow title="Tendencias" items={filteredTrending} />
                                     )}
                                     {filteredRecent && filteredRecent.length > 0 && (
-                                        <div className="mt-8">
+                                        <div className={filteredTrending && filteredTrending.length > 0 ? "mt-8" : ""}>
                                             <ContentRow title="Agregados Recientemente" items={filteredRecent} />
                                         </div>
                                     )}
