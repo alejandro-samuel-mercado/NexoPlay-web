@@ -5,9 +5,9 @@ import { Crown, Pencil, X, Plus, Trash2 } from 'lucide-react';
 import { API, apiFetch } from '@/lib/api';
 
 const EMPTY_PLAN = {
-  id: '', name: '', description: '', role: 'SUBSCRIBER', tier: 'BASIC',
+  id: '', name: '', description: '', role: 'SUBSCRIBER', tier: '',
   tokenCost: 0, durationDays: 30, weeklyOfflineLimit: 0, dailyDownloadLimit: 0,
-  unlimitedDownloads: false, showAds: false, isActive: true,
+  unlimitedDownloads: false, showAds: false, isActive: true, isDefault: false,
   maxScreens: 1, maxSubscribers: 0,
 };
 
@@ -69,6 +69,7 @@ export default function PlanesAdminPage() {
       const payload = {
         name: form.name,
         description: form.description,
+        tier: form.tier,
         tokenCost: Number(form.tokenCost),
         durationDays: Number(form.durationDays),
         weeklyOfflineLimit: Number(form.weeklyOfflineLimit),
@@ -76,6 +77,7 @@ export default function PlanesAdminPage() {
         unlimitedDownloads: !!form.unlimitedDownloads,
         showAds: !!form.showAds,
         isActive: !!form.isActive,
+        isDefault: !!form.isDefault,
         maxScreens: Number(form.maxScreens) || 1,
         maxSubscribers: form.role === 'RESELLER' ? (Number(form.maxSubscribers) || null) : null,
       };
@@ -108,10 +110,15 @@ export default function PlanesAdminPage() {
 
   const renderPlan = (plan: any) => (
     <div key={plan.id} className="bg-[var(--bg-panel)] backdrop-blur-md border border-[var(--border-subtle)] p-6 rounded-2xl shadow-xl transition-all hover:border-[var(--color-primary)]/50"
-      style={!plan.isActive ? { opacity: 0.5, filter: 'grayscale(100%)' } : {}}>
+      style={!plan.isActive ? { opacity: 0.5, filter: 'grayscale(100%)' } : {}}
+      >
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="font-black text-white text-xl">{plan.name}</h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-black text-white text-xl">{plan.name}</h3>
+            {plan.tier && <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-white/10 text-white/60 border border-white/10">{plan.tier}</span>}
+            {plan.isDefault && <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[var(--color-primary)]/20 border border-[var(--color-primary)]/40" style={{ color: 'var(--color-primary)' }}>Por Defecto</span>}
+          </div>
           <p className="text-sm text-white/50">{plan.role === 'SUBSCRIBER' ? 'Usuario Final' : 'Revendedor'}</p>
           <p className="text-3xl font-black mt-2" style={{ color: 'var(--color-primary)' }}>
             {Number(plan.tokenCost)} <span className="text-sm font-bold text-white/50">Crédito{Number(plan.tokenCost) !== 1 ? 's' : ''}</span>
@@ -218,6 +225,10 @@ export default function PlanesAdminPage() {
                 <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Nombre</label>
                 <input value={form.name} onChange={set('name')} placeholder="Ej. Plan Familiar" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] outline-none" />
               </div>
+              <div>
+                <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Etiqueta <span className="normal-case text-white/30">(opcional, ej. "VIP", "Familiar")</span></label>
+                <input value={form.tier} onChange={set('tier')} placeholder="Ej. BASIC, PREMIUM, VIP..." className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] outline-none" />
+              </div>
               <div className="sm:col-span-2">
                 <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Descripción</label>
                 <textarea value={form.description} onChange={set('description')} placeholder="Breve descripción del plan..." className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] outline-none" rows={2} />
@@ -262,6 +273,11 @@ export default function PlanesAdminPage() {
                 <BoolField label="Plan Activo" field="isActive" />
                 <BoolField label="Mostrar Anuncios" field="showAds" />
                 {form.role === 'RESELLER' && <BoolField label="Descargas Ilimitadas" field="unlimitedDownloads" />}
+                {form.role === 'SUBSCRIBER' && (
+                  <div className="sm:col-span-2">
+                    <BoolField label="Plan por Defecto (se asigna a nuevos usuarios al registrarse)" field="isDefault" />
+                  </div>
+                )}
               </div>
             </div>
 
