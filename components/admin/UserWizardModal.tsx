@@ -55,7 +55,8 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
     apiFetch(`${API_BASE}/api/tokens/plans`).then(r => {
       if (r.success) {
         const filtered = r.data.filter((p: any) => 
-          p.isActive && (mode === 'RESELLERS' ? p.role === 'RESELLER' : p.role === 'SUBSCRIBER')
+          p.isActive && !p.name.toUpperCase().includes('PRUEBA') && 
+          (mode === 'RESELLERS' ? p.role === 'RESELLER' : p.role === 'SUBSCRIBER')
         );
         setPlans(filtered);
         if (filtered.length > 0) {
@@ -149,7 +150,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
               <h4 className="text-lg font-bold text-white mb-4">¿Qué tipo de cuenta deseas crear?</h4>
               
               {mode === 'USERS' && (
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <button
                     onClick={() => { setType('SUBSCRIBER'); setFormData({ ...formData, role: 'SUBSCRIBER' }); }}
                     className={`p-6 rounded-2xl border-2 text-left transition-all ${type === 'SUBSCRIBER' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}
@@ -157,6 +158,15 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                     <User size={32} className={`mb-4 ${type === 'SUBSCRIBER' ? 'text-[var(--color-primary)]' : 'text-white/40'}`} />
                     <h5 className="text-white font-bold text-lg mb-2">Cliente Final (Normal)</h5>
                     <p className="text-sm text-white/50">Puedes asignarle créditos. Consume de tu saldo.</p>
+                  </button>
+
+                  <button
+                    onClick={() => { setType('TRIAL'); setFormData({ ...formData, role: 'SUBSCRIBER' }); }}
+                    className={`p-6 rounded-2xl border-2 text-left transition-all ${type === 'TRIAL' ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-white/10 hover:border-white/20'}`}
+                  >
+                    <MonitorPlay size={32} className={`mb-4 ${type === 'TRIAL' ? 'text-[var(--color-primary)]' : 'text-white/40'}`} />
+                    <h5 className="text-white font-bold text-lg mb-2">Prueba (Gratuita)</h5>
+                    <p className="text-sm text-white/50">Cuenta temporal. No consume créditos.</p>
                   </button>
                 </div>
               )}
