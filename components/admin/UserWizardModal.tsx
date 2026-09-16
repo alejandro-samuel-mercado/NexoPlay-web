@@ -55,8 +55,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
     apiFetch(`${API_BASE}/api/tokens/plans`).then(r => {
       if (r.success) {
         const filtered = r.data.filter((p: any) => 
-          p.isActive && !p.name.toUpperCase().includes('PRUEBA') && 
-          (mode === 'RESELLERS' ? p.role === 'RESELLER' : p.role === 'SUBSCRIBER')
+          p.isActive && (mode === 'RESELLERS' ? p.role === 'RESELLER' : p.role === 'SUBSCRIBER')
         );
         setPlans(filtered);
         if (filtered.length > 0) {

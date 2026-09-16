@@ -6,7 +6,7 @@ import { API, apiFetch } from '@/lib/api';
 
 const EMPTY_PLAN = {
   id: '', name: '', description: '', role: 'SUBSCRIBER', tier: '',
-  tokenCost: 0, durationDays: 30, weeklyOfflineLimit: 0, dailyDownloadLimit: 0,
+  tokenCost: 0, durationDays: 30, durationHours: 0, weeklyOfflineLimit: 0, dailyDownloadLimit: 0,
   unlimitedDownloads: false, showAds: false, isActive: true, isDefault: false,
   maxScreens: 1, maxSubscribers: 0,
 };
@@ -72,6 +72,7 @@ export default function PlanesAdminPage() {
         tier: form.tier,
         tokenCost: Number(form.tokenCost),
         durationDays: Number(form.durationDays),
+        durationHours: Number(form.durationHours) || 0,
         weeklyOfflineLimit: Number(form.weeklyOfflineLimit),
         dailyDownloadLimit: Number(form.dailyDownloadLimit),
         unlimitedDownloads: !!form.unlimitedDownloads,
@@ -124,7 +125,7 @@ export default function PlanesAdminPage() {
             {Number(plan.tokenCost)} <span className="text-sm font-bold text-white/50">Crédito{Number(plan.tokenCost) !== 1 ? 's' : ''}</span>
           </p>
           <p className="text-sm text-white/40 mt-1 flex items-center gap-1">
-            <span>⏱</span> {formatDuration(plan.durationDays)}
+            <span>⏱</span> {plan.durationHours > 0 ? `${plan.durationHours} hora${plan.durationHours > 1 ? 's' : ''}` : formatDuration(plan.durationDays)}
           </p>
         </div>
         <div className="flex gap-1 bg-black/20 rounded-xl p-1 border border-white/5">
@@ -240,7 +241,11 @@ export default function PlanesAdminPage() {
               </div>
               <div>
                 <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">Duración (Días)</label>
-                <input type="number" min="1" value={form.durationDays} onChange={set('durationDays')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] outline-none" />
+                <input type="number" min="0" value={form.durationDays} onChange={set('durationDays')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-white/60 mb-2 block uppercase tracking-wider">O Duración (Horas)</label>
+                <input type="number" min="0" value={form.durationHours} onChange={set('durationHours')} placeholder="Si es > 0, ignora los días" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[var(--color-primary)] outline-none" />
               </div>
 
               {form.role === 'SUBSCRIBER' && (
