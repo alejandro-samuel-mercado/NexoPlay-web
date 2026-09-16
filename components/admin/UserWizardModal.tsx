@@ -276,8 +276,6 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                         <option value={1} className="bg-gray-900">1 Hora</option>
                         <option value={2} className="bg-gray-900">2 Horas</option>
                         <option value={4} className="bg-gray-900">4 Horas</option>
-                        <option value={6} className="bg-gray-900">6 Horas</option>
-                        <option value={12} className="bg-gray-900">12 Horas</option>
                       </select>
                     </div>
                   </div>
