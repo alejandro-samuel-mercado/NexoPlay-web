@@ -265,9 +265,10 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
                       <Clock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
                       <select value={formData.durationHours} onChange={e => setFormData({ ...formData, durationHours: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none transition-colors appearance-none">
                         <option value={1} className="bg-gray-900">1 Hora</option>
+                        <option value={2} className="bg-gray-900">2 Horas</option>
+                        <option value={4} className="bg-gray-900">4 Horas</option>
                         <option value={6} className="bg-gray-900">6 Horas</option>
                         <option value={12} className="bg-gray-900">12 Horas</option>
-                        <option value={24} className="bg-gray-900">24 Horas</option>
                       </select>
                     </div>
                   </div>
