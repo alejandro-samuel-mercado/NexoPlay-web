@@ -278,11 +278,6 @@ export default function PlanesAdminPage() {
                 <BoolField label="Plan Activo" field="isActive" />
                 <BoolField label="Mostrar Anuncios" field="showAds" />
                 {form.role === 'RESELLER' && <BoolField label="Descargas Ilimitadas" field="unlimitedDownloads" />}
-                {form.role === 'SUBSCRIBER' && (
-                  <div className="sm:col-span-2">
-                    <BoolField label="Plan por Defecto (se asigna a nuevos usuarios al registrarse)" field="isDefault" />
-                  </div>
-                )}
               </div>
             </div>
 
