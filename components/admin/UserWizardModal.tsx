@@ -85,7 +85,7 @@ export default function UserWizardModal({ onClose, onSuccess, creatorRole, creat
     if (step === 2) {
       if (!isStep2Valid) return;
       const planCost = plans.find(p => p.id === formData.planId)?.tokenCost || 0;
-      const totalCost = 1 + formData.credits + planCost;
+      const totalCost = formData.credits + planCost;
       if ((type === 'SUBSCRIBER' || type === 'RESELLER') && creatorRole !== 'ADMIN' && totalCost > creatorBalance) {
         window.alert(`Créditos insuficientes. Tienes ${creatorBalance} y necesitas ${totalCost}.`);
         return;
