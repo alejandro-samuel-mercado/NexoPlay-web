@@ -119,6 +119,20 @@ function UsuariosContent() {
     SUBSCRIBER: { label: 'Suscripto', text: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20' },
   };
 
+  const isUserSubscriptionExpired = (user: any) => {
+    if (!user || user.role === 'ADMIN') return false;
+
+    const expiresAt = user.subscription?.expiresAt;
+    if (!expiresAt) {
+      return ['EXPIRED', 'CANCELED', 'PAST_DUE', 'INACTIVE'].includes(user.subscription?.status);
+    }
+
+    const expiresAtMs = new Date(expiresAt).getTime();
+    if (Number.isNaN(expiresAtMs)) return false;
+
+    return expiresAtMs < Date.now() || user.subscription?.status === 'EXPIRED';
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
@@ -212,8 +226,9 @@ function UsuariosContent() {
               ) : users.map((u) => {
                 const rb = ROLE_BADGE[u.role] || ROLE_BADGE.SUBSCRIBER;
                 const isSubActive = u.subscription?.status === 'ACTIVE';
+                const isExpired = isUserSubscriptionExpired(u);
                 return (
-                  <tr key={u.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
+                  <tr key={u.id} className={`border-b border-white/5 hover:bg-white/5 transition-colors group ${isExpired ? 'opacity-45 grayscale-[0.15]' : ''}`}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm bg-black/20 ${rb.text}`}>
@@ -222,6 +237,11 @@ function UsuariosContent() {
                         <div>
                           <p className="font-bold text-white text-[13px] flex items-center gap-2">
                             {u.username || u.email}
+                            {isExpired && (
+                              <span className="inline-flex items-center rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-amber-300">
+                                vencida
+                              </span>
+                            )}
                             <button onClick={() => navigator.clipboard.writeText(u.username || u.email)} className="text-[var(--text-muted)] hover:text-white transition-colors" title="Copiar usuario">
                               <Copy size={12} />
                             </button>
@@ -265,7 +285,7 @@ function UsuariosContent() {
                       {u.role === 'ADMIN' ? (
                         <span className="text-[var(--text-muted)] text-[12px]">-</span>
                       ) : isSubActive && u.subscription?.expiresAt ? (
-                        <span className="text-[12px] font-bold text-white/90">
+                        <span className={`text-[12px] font-bold ${isExpired ? 'text-amber-300' : 'text-white/90'}`}>
                           {new Date(u.subscription.expiresAt).toLocaleDateString()}
                         </span>
                       ) : (
@@ -273,7 +293,7 @@ function UsuariosContent() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-[12px] font-bold text-white/90">
+                      <span className={`text-[12px] font-bold ${isExpired ? 'text-white/70' : 'text-white/90'}`}>
                           {u.activeClients !== undefined ? u.activeClients : 0} Activas
                       </span>
                     </td>
@@ -281,11 +301,13 @@ function UsuariosContent() {
                       {u.role === 'ADMIN' ? (
                         <span className="text-[var(--text-muted)] text-[12px]">-</span>
                       ) : (
-                        <span className="text-[12px] font-bold text-[var(--color-primary)]">{u.tokens || 0}</span>
+                        <span className={`text-[12px] font-bold ${isExpired ? 'text-[var(--color-primary)]/70' : 'text-[var(--color-primary)]'}`}>{u.tokens || 0}</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      {u.isActive ? (
+                      {isExpired ? (
+                        <span className="text-amber-300 font-bold flex items-center gap-1.5 text-[12px]"><XCircle size={14}/> Vencida</span>
+                      ) : u.isActive ? (
                         <span className="text-green-400 font-bold flex items-center gap-1.5 text-[12px]"><CheckCircle2 size={14}/> Activo</span>
                       ) : (
                         <span className="text-red-400 font-bold flex items-center gap-1.5 text-[12px]"><XCircle size={14}/> Baneado</span>
